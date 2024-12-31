@@ -109,3 +109,11 @@ est[1,1]/sum(est[,1])
 colSums(est)
 
 
+#if(!require('Rcpp')){install.packages('Rcpp')}
+library(Rcpp)
+library(RcppArmadillo)
+# setwd('..')
+Rcpp::sourceCpp("functions/testing_cpp_functions.cpp")
+
+sum_cube()
+
