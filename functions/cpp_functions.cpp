@@ -76,7 +76,7 @@ double mod0_loglik(vec X){
 }
 
 
-// 7 modes log-likelihood
+// 7 modes log-likelihood, dimension 16
 // [[Rcpp::export]]
 double loglik(const arma::vec& X){
   double theta=15;
@@ -357,19 +357,18 @@ swap_rate.row(s)=temp_rate.t();
 
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
-  log_bound_vector.zeros();//All log-bounds start at 0
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
   int total_sim = (endsim-startsim+1); //Count total number of simulations
-  int total_swaps=trunc(numiter/iterswap);
   List output; // To store output of the update function
   double Z; // To store Z factor of update function
   int swap_count; //to keep track of even-odd swaps
   double current_temp; // to temporarily store the temperature
   double current_log_bound; //to temporarily store the log-bound
+  int new_samples;//temporal variable to store weight with multiplicity list
   //// Initialize arrays to store information
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
@@ -378,6 +377,13 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec t
   // Rcpp::Rcout << "max num: " << max_num << std::endl;  
   vec pi_est(max_num); //Vector to store the estimated weight for each state
   mat full_pi_est(max_num,total_sim);
+  vec first_visit(max_num);//Vector to store the first visit to each state
+  mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
+  vec swap_total(J,fill::ones);
+  swap_total*=total_swaps;//We always have the same number of total swaps
+  vec swap_success(J);
+  mat swap_rate(total_sim,J);
+  cube total_iterations(total_swaps,T,total_sim,fill::zeros);//To store iterations needed in between swaps
   ////Variables to update index process
   vec epsilon_indic(T); //Vector that indicates if the entry of the index process is proposed to change
   vec prop_swap(T); //vector to indicate a proposed swap
@@ -401,43 +407,55 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec t
     swap_count=0; //Reset swap count
     X.zeros();//Reset the starting point of all chains
     pi_est.zeros(); // Reset the estimated distribution
-    
+    first_visit.zeros(); //Reset the vector of first visits
+    log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
+    swap_success.zeros();
     //// Start the loop for all iterations in simulation s
-    for(int i=0;i<numiter;i++){
+    for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Swap: " << i << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
-        current_temp=temp(index_process(replica));// Extract temperature of the replica
-        current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
-        // Rcpp::Rcout <<"Inside replica loop, with replica: "<< replica << std::endl;
-        //Depending on the chosen method
-        //// Update each replica independently
-        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound);
-        //// Store Z factor of replica with temperature 1
-        if(current_temp==1){ // For the original temperature replica
-          // Rcpp::Rcout << "Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
+        int samples_replica=0;
+        while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
+          total_iterations(i,index_process(replica),s)+=1;//increase the number of iterations
+          current_temp=temp(index_process(replica));// Extract temperature of the replica
+          current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
+          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound);
+          
+          //// Compute weight
           Z = output(1); //Extract the Z-factor
-          // Rcpp::Rcout << "Printing Z: " << Z << std::endl;
-          int state=vec_to_num(X.col(replica));
-          // Rcpp::Rcout << "Printing state: " << state << std::endl;
-          pi_est(state)+=(1/Z);//Add weight
-          // pi_est(state)++;//Count how many times each state was visited
-          // Rcpp::Rcout << "Printing pi_est: " << pi_est << std::endl;
-          // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
+          new_samples=1+R::rgeom(Z);
+          if(new_samples<1){
+            Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+          }
+          if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
+            new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
+          }
+          samples_replica+=new_samples; // Update number of samples obtained from the replica
+          //// Store weight of replica with temperature 1
+          if(current_temp==1){ // For the original temperature replica
+            int state=vec_to_num(X.col(replica));
+            pi_est(state)+=new_samples;//Add weight
+            if(first_visit(state)==0){
+              mat current_slice=total_iterations.slice(s);//Extract current slice
+              //Store the first time the state is visited 
+              first_visit(state)=sum(current_slice.col(index_process(replica)));
+            }
+          }
+          X.col(replica)=vec(output(0)); //Update current state of the chain
+          log_bound_vector(index_process(replica))=output(2); //Update log-bound 
         }
-        X.col(replica)=vec(output(0)); //Update current state of the chain
-        log_bound_vector(index_process(replica))=output(2); //Update log-bound
       }//End loop to update replicas
       
-      //// Start replica swap process
-      if ((i+1) % iterswap == 0){
+//// Start replica swap process
+
         swap_count+=1;//Increase the count of swaps
         // Rcpp::Rcout << "Trying swap: " << swap_count << std::endl;
         epsilon_indic.fill(-1); //Epsilon indic starts as -1
         prop_swap.zeros();
         do_swap.zeros();
-        //Try a replica swap every iterswap number of iterations
+        //Try a replica swap after reaching sample_inter_swap in each replica
         //We're doing non-reversible parallel tempering
         int starting=swap_count%2; // Detect if it's even or odd
         // Rcpp::Rcout <<"Trying replica swap "<<swap_count<<" start: "<<starting <<" at iteration: "<< i << std::endl;
@@ -450,15 +468,13 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec t
           Xtemp_from=X.cols(find(index_process==t));
           Xtemp_to=X.cols(find(index_process==t+1));
           
-          
-          //// Optional Computation of Z factors to correct bias
           //// Computing swap probability
           swap_prob=(temp(t)-temp(t+1))*(loglik(Xtemp_to) - loglik(Xtemp_from)); 
           swap_prob=exp(swap_prob);
           // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
           ppp=Rcpp::runif(1);
           if(ppp(0)<swap_prob){//In case the swap is accepted
-            // Rcpp::Rcout <<"Accepted swap " << std::endl;
+            swap_success(t)+=1;//Increase the number of successful swaps of temp t
             do_swap.elem(find(index_process==t)).ones();
             do_swap.elem(find(index_process==t+1)).ones();
           }
@@ -469,15 +485,21 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec t
         // Rcpp::Rcout <<"New index process:\n "<< index_process << std::endl;
         ind_pro_hist.row((s*total_swaps)+swap_count)=index_process.t();
         // Rcpp::Rcout <<"Store index process " << std::endl;
-      }//End of replica swap process
+////End of replica swap process
     }// End loop of iterations
     // Store result of the simulation
     full_pi_est.col(s)=pi_est;
+    full_first_visit.col(s)=first_visit;
+    vec temp_rate=swap_success / swap_total;
+    swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
   ret["est_pi"]=full_pi_est;
   ret["ip"]=ind_pro_hist;
+  ret["visits"]=full_first_visit;
+  ret["swap_rate"]=swap_rate;
+  ret["total_iter"]=total_iterations;
   return ret;
 }
 
