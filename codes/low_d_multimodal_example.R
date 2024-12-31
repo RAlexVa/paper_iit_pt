@@ -128,8 +128,8 @@ pi.true[modes+1]
 sum(pi.true[modes+1])
 
 
-##### Running simulations #####
-
+##### IIT with PT simulations #####
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
 total_iter <- 300000
 iterswap <- 2000
 temperatures <- c(1,0.18,0.09,.001)
@@ -157,4 +157,19 @@ TVD(pi.est,pi.true)
 ex3[[3]][modes+1]
 pi.est[modes+1]
 
+##### Adaptive PT simulations #####
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+sample_inter_swap <- 3000
+total_swap <- 200
+temperatures <- c(1,0.18,0.09,.001)
+bal_f <- c("sq","sq","sq","sq")
+set.seed(153)
+ex1 <- PT_a_IIT_sim(p,startsim=1, endsim=2,total_swap,sample_inter_swap,temperatures,bal_f)
 
+pi.est <- ex1[[1]]/sum(ex1[[1]])
+TVD(pi.est,pi.true)
+ex1[[3]][modes+1]
+ex1[[4]]
+ex1[[5]]
