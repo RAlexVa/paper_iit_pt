@@ -27,7 +27,6 @@ int vec_to_num(vec X){
 
 
 
-
 ////////// Balancing functions //////////
 
 ///// List of balancing functions that apply to log-likelihoods
@@ -197,6 +196,68 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound)
   ret["logbound"]=log_bound;
   return ret;
 }
+
+
+// [[Rcpp::export]]
+uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_process, const std::vector<std::string>& bal_function){
+  int rows=weight_matrix.n_rows;
+  int cols=weight_matrix.n_cols;
+  int total_neighbors=states_matrix.n_rows;
+  std::string current_bal_fun;
+  double current_temp;
+  mat random_matrix=mat(rows,cols,fill::randu);
+  // Rcpp::Rcout << "Random matrix: \n" << random_matrix << std::endl;
+  random_matrix=log(-log(random_matrix));
+  // Rcpp::Rcout << "Transformed random matrix: \n" << random_matrix << std::endl;
+  
+  mat result_matrix = random_matrix - log(weight_matrix);
+  // Rcpp::Rcout << "Result matrix: \n" << result_matrix << std::endl;
+  // uword index=result_matrix.index_min();
+  // Rcpp::Rcout << "Chosen index: " << index << std::endl;
+  uvec index=ind2sub(size(rows,cols),result_matrix.index_min());
+  uword neighbor=index(0);
+  uword replica=index(1);
+  if(neighbor==rows-1){//If the last row is chosen, it's a replica swap
+    
+  }else{//If it's not a replica swap
+    //Swap the chosen coordinate of the chosen replica
+    states_matrix(neighbor,replica)=1-states_matrix(neighbor,replica);
+////Then compute the new weights for all neighbors
+    vec X=states_matrix.col(replica); // Current state of the replica updating
+    current_temp=temp(index_process(replica));
+    current_bal_fun=bal_function[index_process(replica)];
+    double logpi_current=loglik(X);
+    ////// Compute weight for all neighbors
+    double temporal=0;
+    vec newX;
+    for(int j=0; j<total_neighbors;j++){
+      // Rcpp::Rcout << "Starts checking neighbors  "<< j<<std::endl; 
+      newX = X;
+      newX.row(j) = 1-X.row(j);
+      temporal=loglik(newX)-logpi_current;
+      //Apply balancing function to log probability times temperature ////
+      weight_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
+    }
+////Compute the new weights for the possible replica swaps    
+    uword replica_left;
+    uword replica_right;
+    if(replica==0||replica==cols-1){//If the replica to update is the first or the last
+        if(replica==0){
+        replica_left=cols-1;
+        replica_right=1;
+          }
+        if(replica==cols-1){
+          replica_left=replica-1;
+          replica_right=0;
+          }
+    }else{
+      replica_left=replica-1;
+      replica_right=replica+1;
+         } 
+  return(index);
+}
+/// Falta terminar el ajuste en los pesos de replicas cuando se hace un update de neighbor
+//// y luego hay que hacer el codigo para replica swaps
 
 
 ////////// Code for Parallel Tempering simulations //////////
@@ -502,6 +563,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["total_iter"]=total_iterations;
   return ret;
 }
+
+
 
 
 ////////// testing functions //////////
