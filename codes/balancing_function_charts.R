@@ -97,8 +97,8 @@ data_u <- tibble(r=x,
     geom_segment(aes(x=3,y=0,xend=3,yend=3),color = "red", linetype = "dashed", size = 1)+
     annotate("text", x=2.1, y=0, label= TeX("$y_1$"),size=6, color='blue')+
     annotate("text", x=3.1, y=0, label= TeX("$y_2$"),size=6, color='red')+
-    theme(axis.text=element_text(size=15),axis.title=element_text(size=14)))+
-  theme_minimal()
+    theme(axis.text=element_text(size=15),axis.title=element_text(size=14))+
+  theme_minimal())
 
 jpeg(file.path(here(),"fig","compare_balancing.jpg"), width = 850, height = 300)
 plot1
