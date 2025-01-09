@@ -117,3 +117,10 @@ Rcpp::sourceCpp("functions/testing_cpp_functions.cpp")
 
 sum_cube()
 
+neigh <- matrix(c(1:5,30),nrow=2)
+set.seed(123)
+sample_prop(neigh)
+
+
+entries_vec(0,c(1,2,3,4,5,6))
+entries_vec(5,c(1,2,3,4,5,6))
