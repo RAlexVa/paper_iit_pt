@@ -19,16 +19,6 @@ NumberToVector <- function(number,N)
   }
   return(X)
 }
-#Replica swap
-PT_swap_rate <- function(index_process){
-  
-  head(index_process,10)
-  ch1 <- index_process[c(T,F),]
-  swap_rate1 <- colSums(index_process[-1, ] != index_process[-nrow(ip1), ])
-  
-  #Need to multiply by 2 since not every swap is trying to swap all temperatures
-  return(2*swap_rate1/(nrow(index_process)-1));
-}
 #Total variation distance
 TVD <- function(pi,pi.est){
   return(0.5*sum(abs(pi-pi.est)))
