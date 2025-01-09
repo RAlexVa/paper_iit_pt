@@ -215,8 +215,8 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
   // uword index=result_matrix.index_min();
   // Rcpp::Rcout << "Chosen index: " << index << std::endl;
   uvec index=ind2sub(size(rows,cols),result_matrix.index_min());
-  uword neighbor=index(0);
-  uword replica=index(1);
+  uword neighbor=index(0);//Randomly chosen neighbor
+  uword replica=index(1);//Randomly chosen replica
   if(neighbor==rows-1){//If the last row is chosen, it's a replica swap
     
   }else{//If it's not a replica swap
@@ -253,12 +253,17 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
     }else{
       replica_left=replica-1;
       replica_right=replica+1;
-         } 
-  return(index);
+         }
+    //Update replica swap weight of current replica
+    temporal=(current_temp-temp(index_process(replica_right)))*(loglik(states_matrix.col(replica_right)) - loglik(X));
+    weight_matrix(rows-1,replica)=bal_func(temporal,current_bal_fun);
+    temporal=(temp(index_process(replica_left))-current_temp)*(loglik(X)-loglik(states_matrix.col(replica_left)));
+    weight_matrix(rows-1,replica_left)=bal_func(temporal,current_bal_fun);
+  
 }
-/// Falta terminar el ajuste en los pesos de replicas cuando se hace un update de neighbor
 //// y luego hay que hacer el codigo para replica swaps
-
+return(index);
+}
 
 ////////// Code for Parallel Tempering simulations //////////
 
