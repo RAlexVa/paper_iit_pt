@@ -95,9 +95,9 @@ PT_RT <- function(ip,total_iter,iterswap, total_sim){
     }
   }
   # Code to test  
+  # ip |> filter(V2==min_temp|V2==max_temp) |> select(sim,V2) |> filter(sim==3)
   # ip |> filter(V4==1|V4==4) |> select(sim,V4) |> filter(sim==1)
   # ip |> filter(V1==1|V1==4) |> select(sim,V1) |> filter(sim==1)
-  # ip |> filter(V2==1|V2==4) |> select(sim,V2) |> filter(sim==1)
   # ip |> filter(V3==1|V3==4) |> select(sim,V3) |> filter(sim==1)
   # ip |> filter(V3==1|V3==4) |> select(sim,V3) |> filter(sim==9)
   # ip |> filter(V1==1|V1==4) |> select(sim,V1) |> filter(sim==9)
