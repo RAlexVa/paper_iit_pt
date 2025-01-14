@@ -1,3 +1,4 @@
+library(dplyr)
 ##### General functions #####
 
 
@@ -46,9 +47,8 @@ TVD <- function(pi,pi.est){
 ### Index process (from Rcpp function)
 ### Number oof iterations, total simulations and iteration between swaps.
 #Output: matrix reporting the number of Round Trips for each simulation
-PT_RT <- function(ip,total_iter,iterswap, total_sim){
+PT_RT <- function(ip,total_swaps, total_sim){
   ip <- as.data.frame(ip)
-  total_swaps <- floor(total_iter/iterswap)
   if(nrow(ip)!=(total_sim*total_swaps+1)){print("Error with size of input")}
   
   max_temp <- max(ip[1,])#Get max temp
