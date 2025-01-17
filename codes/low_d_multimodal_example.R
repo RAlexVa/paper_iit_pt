@@ -75,19 +75,19 @@ if(alg %in% c(1,2,3,4)){
   if(check!=1){alg <- 0;print("modify parameters")}
 if(alg==4){
   # Only IIT
-  output_name <- paste0("IIT_","sim_",total_simulations,"_iter_",total_iter);
+  output_name <- paste0("IIT_","sim_",total_simulations,"_iter_",total_iter,"Rds");
   output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap=total_iter+1,temp=temperatures[1],bal_function=bal_f[1], bias_fix = TRUE)
 }else{
   
 if(alg==1){
-  output_name <- paste0("PT_IIT_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap);
+  output_name <- paste0("PT_IIT_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"Rds");
   # Using Z factor bias correction
   output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = TRUE)
   #round trip rate (NA for IIT)
   export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
 }
 if(alg==2){
-  output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap);
+  output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"Rds");
   # Without Z factor bias correction
   output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = FALSE)
   #round trip rate (NA for IIT)
@@ -95,7 +95,7 @@ if(alg==2){
 }
 if(alg==3){
   # Using A-IIT in each replica
-  output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap);
+  output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"Rds");
   output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f)
   #Number of iterations needed between swaps for each replica
   export[["total_iter"]] <- output[["total_iter"]]
@@ -116,7 +116,7 @@ export[["tvd"]] <- apply(output[["est_pi"]], 2,TVD,pi.est=pi.true)
 export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
 
 
-save(export,file=file.path("results",output_name))
+saveRDS(export,file=file.path("results",output_name))
 }else{ print("Choose a valid option")}
 
 
