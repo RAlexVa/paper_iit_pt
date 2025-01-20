@@ -12,7 +12,7 @@ source("functions/r_functions.R")
 
 # Parameters for all algorithms
 set.seed(153)
-total_simulations <- 5#100#100
+total_simulations <- 100
 temperatures <- c(1,0.18,0.09,.001)
 bal_f <- c("sq","sq","sq","sq")
 
@@ -108,7 +108,8 @@ export[["swap_rate"]] <- output[["swap_rate"]]
 }
 
 #Compute estimated density
-output[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]])) 
+output[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]]))
+export[["est_pi"]] <- output[["est_pi"]]
 # Total Variation Distance
 export[["tvd"]] <- apply(output[["est_pi"]], 2,TVD,pi.est=pi.true)
 
