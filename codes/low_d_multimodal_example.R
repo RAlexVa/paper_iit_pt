@@ -11,11 +11,11 @@ source("functions/r_functions.R")
 ##### Define parameters #####
 
 # Parameters for all algorithms
-set.seed(153)
 total_simulations <- 100
 temperatures <- c(1,0.18,0.09,.001)
 bal_f <- c("sq","sq","sq","sq")
-
+defined_seed <- 153
+set.seed(defined_seed)
 #Parameters for PT with IIT
 total_iter <- 500000 #300000 #Total number of steps to perform in each replica
 iterswap <- 2000 #Total iterations before trying a replica swap
@@ -63,7 +63,7 @@ alg <- as.numeric(readline('Select algortihm'))
 export <- list();
 #### Function depending on algorithm to use
 if(alg %in% c(1,2,3,4)){
-  writeLines(c("Parameters:",paste0("Total simulations: ",total_simulations),
+  writeLines(c("Parameters:",paste0("Seed: ",defined_seed),paste0("Total simulations: ",total_simulations),
                paste0("Temperatures: ",paste(temperatures,collapse=',')),
                paste0("Balancing functions: ",paste(bal_f,collapse = ',')),
                paste0("Total iterations: ",total_iter),
@@ -75,19 +75,19 @@ if(alg %in% c(1,2,3,4)){
   if(check!=1){alg <- 0;print("modify parameters")}
 if(alg==4){
   # Only IIT
-  output_name <- paste0("IIT_","sim_",total_simulations,"_iter_",total_iter,".Rds");
+  output_name <- paste0("IIT_","sim_",total_simulations,"_iter_",total_iter,"_s_",defined_seed,".Rds");
   output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap=total_iter+1,temp=temperatures[1],bal_function=bal_f[1], bias_fix = TRUE)
 }else{
   
 if(alg==1){
-  output_name <- paste0("PT_IIT_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,".Rds");
+  output_name <- paste0("PT_IIT_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
   # Using Z factor bias correction
   output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = TRUE)
   #round trip rate (NA for IIT)
   export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
 }
 if(alg==2){
-  output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,".Rds");
+  output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
   # Without Z factor bias correction
   output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = FALSE)
   #round trip rate (NA for IIT)
@@ -95,7 +95,7 @@ if(alg==2){
 }
 if(alg==3){
   # Using A-IIT in each replica
-  output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,".Rds");
+  output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
   output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f)
   #Number of iterations needed between swaps for each replica
   export[["total_iter"]] <- output[["total_iter"]]
