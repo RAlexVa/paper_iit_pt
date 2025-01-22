@@ -14,7 +14,7 @@ source("functions/r_functions.R")
 total_simulations <- 100
 temperatures <- c(1,0.18,0.09,.001)
 bal_f <- c("sq","sq","sq","sq")
-defined_seed <- 153
+defined_seed <- as.numeric(readline('ok? 1 Yes/ 0 No'))
 set.seed(defined_seed)
 #Parameters for PT with IIT
 total_iter <- 500000 #300000 #Total number of steps to perform in each replica
