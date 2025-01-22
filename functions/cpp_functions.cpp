@@ -499,10 +499,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
           }
           samples_replica+=new_samples; // Update number of samples obtained from the replica
-          //// Store weight of replica with temperature 1
+//// Store weight of replica with temperature 1
           if(current_temp==1){ // For the original temperature replica
             int state=vec_to_num(X.col(replica));
             pi_est(state)+=new_samples;//Add weight
+//// Check if it's the first time that replica with temperature 1 visits this state
             if(first_visit(state)==0){
               mat current_slice=total_iterations.slice(s);//Extract current slice
               //Store the first time the state is visited 
