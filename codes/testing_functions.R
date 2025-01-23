@@ -115,6 +115,15 @@ library(RcppArmadillo)
 # setwd('..')
 Rcpp::sourceCpp("functions/testing_cpp_functions.cpp")
 
+a <- num_to_vec(16,16)
+a <- num_to_vec(2^16 -1,16)
+a <- num_to_vec(2^16,16)
+a <- num_to_vec(0,16)
+as.numeric(t(a))
+
+as.numeric(t(num_to_vec(modes[7],16)))
+
+
 sum_cube()
 
 neigh <- matrix(c(1:5,30),nrow=2)
@@ -124,3 +133,5 @@ sample_prop(neigh)
 
 entries_vec(0,c(1,2,3,4,5,6))
 entries_vec(5,c(1,2,3,4,5,6))
+
+
