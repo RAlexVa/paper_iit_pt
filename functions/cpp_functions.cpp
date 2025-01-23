@@ -25,6 +25,25 @@ int vec_to_num(vec X){
   return number;
 }
 
+// [[Rcpp::export]]
+vec num_to_vec(int n, int d){
+  vec X(d);
+  X.zeros();
+  int temp;
+  if(n<0 | n>=std::pow(2,d)){
+    Rcpp::Rcout <<"Error, number bigger than dimension " << std::endl;
+    return(X);
+  }else{
+    for(int i=0;i<d;i++){
+      // Rcpp::Rcout <<"iteration: " <<i<< std::endl;
+      temp=n % 2;
+      X(i)=temp;
+      if(temp==1){n = (n-1)/2;}
+      if(temp==0){n=n/2;}
+    }
+  }
+  return(X);
+}
 
 
 ////////// Balancing functions //////////
