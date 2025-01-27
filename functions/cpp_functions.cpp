@@ -229,7 +229,57 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
   uvec index=ind2sub(size(rows,cols),result_matrix.index_min());
   uword neighbor=index(0);//Randomly chosen neighbor
   uword replica=index(1);//Randomly chosen replica
-  if(neighbor==rows-1){//If the last row is chosen, it's a replica swap
+//If the last row is chosen, it's a replica swap
+  if(neighbor==rows-1){
+    //Update index process
+    vec epsilon_indic(cols);
+    epsilon_indic.fill(-1);
+    epsilon_indic(replica)=1;
+    
+    vec accepted_swap(cols);
+    accepted_swap.zeros();
+    accepted_swap(replica)=1;
+    int replica_to_swap = index_process(replica)+1; //Find t+1
+    accepted_swap.elem(find(index_process==replica_to_swap)).ones();
+    
+    vec resulting_swap=epsilon_indic % accepted_swap;
+    index_process+=resulting_swap;
+    //Update weights of the involved neighbors.
+    double logpi_current;
+    double temporal;
+    vec X(total_neighbors);
+    vec newX(total_neighbors);
+    X=states_matrix.col(replica); // Current state of the replica updating
+    current_temp=temp(index_process(replica));
+    current_bal_fun=bal_function[index_process(replica)];
+    logpi_current=loglik(X);
+    ////// Compute weight for all neighbors
+    temporal=0;
+    for(int j=0; j<total_neighbors;j++){
+      // Rcpp::Rcout << "Starts checking neighbors  "<< j<<std::endl; 
+      newX = X;
+      newX.row(j) = 1-X.row(j);
+      temporal=loglik(newX)-logpi_current;
+      //Apply balancing function to log probability times temperature ////
+      weight_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
+    }
+    
+    X=states_matrix.col(replica_to_swap); // Current state of the replica updating
+    current_temp=temp(index_process(replica));
+    current_bal_fun=bal_function[index_process(replica)];
+    logpi_current=loglik(X);
+    ////// Compute weight for all neighbors
+    temporal=0;
+    for(int j=0; j<total_neighbors;j++){
+      // Rcpp::Rcout << "Starts checking neighbors  "<< j<<std::endl; 
+      newX = X;
+      newX.row(j) = 1-X.row(j);
+      temporal=loglik(newX)-logpi_current;
+      //Apply balancing function to log probability times temperature ////
+      weight_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
+    }
+    
+    
     
   }else{//If it's not a replica swap
     //Swap the chosen coordinate of the chosen replica
@@ -241,7 +291,7 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
     double logpi_current=loglik(X);
     ////// Compute weight for all neighbors
     double temporal=0;
-    vec newX;
+    vec newX(total_neighbors);
     for(int j=0; j<total_neighbors;j++){
       // Rcpp::Rcout << "Starts checking neighbors  "<< j<<std::endl; 
       newX = X;
@@ -253,27 +303,25 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
 ////Compute the new weights for the possible replica swaps    
     uword replica_left;
     uword replica_right;
-    if(replica==0||replica==cols-1){//If the replica to update is the first or the last
-        if(replica==0){
+    if(index_process(replica)==0||index_process(replica)==cols-1){//If the replica to update is the first or the last
+        if(index_process(replica)==0){
         replica_left=cols-1;
         replica_right=1;
           }
-        if(replica==cols-1){
-          replica_left=replica-1;
+        if(index_process(replica)==cols-1){
+          replica_left=index_process(replica)-1;
           replica_right=0;
           }
     }else{
-      replica_left=replica-1;
-      replica_right=replica+1;
+      replica_left=index_process(replica)-1;
+      replica_right=index_process(replica)+1;
          }
     //Update replica swap weight of current replica
-    temporal=(current_temp-temp(index_process(replica_right)))*(loglik(states_matrix.col(replica_right)) - loglik(X));
+    temporal=(current_temp-temp(replica_right))*(loglik(states_matrix.cols(find(index_process==replica_right))) - loglik(X));
     weight_matrix(rows-1,replica)=bal_func(temporal,current_bal_fun);
-    temporal=(temp(index_process(replica_left))-current_temp)*(loglik(X)-loglik(states_matrix.col(replica_left)));
+    temporal=(temp(replica_left)-current_temp)*(loglik(X)-loglik(states_matrix.cols(find(index_process==replica_left))));
     weight_matrix(rows-1,replica_left)=bal_func(temporal,current_bal_fun);
-  
 }
-//// y luego hay que hacer el codigo para replica swaps
 return(index);
 }
 
