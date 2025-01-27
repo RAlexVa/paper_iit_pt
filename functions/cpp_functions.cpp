@@ -100,13 +100,6 @@ double loglik(const arma::vec& X){
   double theta=15;
 
   // Defined modes
-  // arma::vec mod1 = {1,1,1,1,1,1,1,1};
-  // arma::vec mod2 = {1,0,1,0,1,0,1,0};
-  // arma::vec mod3 = {0,1,0,1,0,1,0,1};
-  // arma::vec mod4 = {1,1,1,1,0,0,0,0};
-  // arma::vec mod5 = {0,0,0,0,1,1,1,1};
-  // arma::vec mod6 = {1,0,0,0,0,0,0,1};
-  // arma::vec mod7 = {0,0,0,1,1,0,0,0};
     arma::vec  mod1 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     arma::vec  mod2 = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
     arma::vec  mod3 = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
