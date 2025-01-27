@@ -1,5 +1,18 @@
 library(dplyr)
+library(readr)
 ##### General functions #####
+
+#Reads file to create sparse matrix
+readMatrix <- function(path){
+  parameters <- readLines(path,n=1)
+  parameters <- as.numeric(strsplit(parameters, " ")[[1]])
+  details <- as.matrix(read_delim(path,delim=" ", skip=1,col_names = c("r","c","v")));
+  M <- matrix(data=0,nrow=parameters[1],ncol=parameters[1])
+  for(i in 1:parameters[2]){
+    M[details[i,1],details[i,2]] <- details[i,3]
+  }
+  return(M)
+}
 
 
 #Transform nummbers in base 10 to a vector representation of the number in base 2
