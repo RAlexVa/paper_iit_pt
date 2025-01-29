@@ -211,19 +211,20 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound)
 
 
 // [[Rcpp::export]]
-uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_process, const std::vector<std::string>& bal_function){
-  int rows=weight_matrix.n_rows;
-  int cols=weight_matrix.n_cols;
+List IPT_update(mat& logprob_matrix, mat& states_matrix, vec& temp,vec& index_process, const std::vector<std::string>& bal_function){
+  int rows=logprob_matrix.n_rows;
+  int cols=logprob_matrix.n_cols;
   int total_neighbors=states_matrix.n_rows;
+  Rcpp::Rcout << "Rows: " << rows <<", cols:"<<cols<<", tot_neigh: "<<total_neighbors<< std::endl;
   std::string current_bal_fun;
   double current_temp;
   mat random_matrix=mat(rows,cols,fill::randu);
   // Rcpp::Rcout << "Random matrix: \n" << random_matrix << std::endl;
   random_matrix=log(-log(random_matrix));
-  // Rcpp::Rcout << "Transformed random matrix: \n" << random_matrix << std::endl;
+  //Rcpp::Rcout << "Transformed random matrix: \n" << random_matrix << std::endl;
   
-  mat result_matrix = random_matrix - log(weight_matrix);
-  // Rcpp::Rcout << "Result matrix: \n" << result_matrix << std::endl;
+  mat result_matrix = random_matrix - logprob_matrix;
+  Rcpp::Rcout << "Result matrix: \n" << result_matrix << std::endl;
   // uword index=result_matrix.index_min();
   // Rcpp::Rcout << "Chosen index: " << index << std::endl;
   uvec index=ind2sub(size(rows,cols),result_matrix.index_min());
@@ -231,19 +232,23 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
   uword replica=index(1);//Randomly chosen replica
 //If the last row is chosen, it's a replica swap
   if(neighbor==rows-1){
+    Rcpp::Rcout << "Swapping replica: "<<replica<< std::endl;
     //Update index process
     vec epsilon_indic(cols);
     epsilon_indic.fill(-1);
     epsilon_indic(replica)=1;
-    
+    Rcpp::Rcout << "epsilon indic: "<<epsilon_indic<< std::endl;
     vec accepted_swap(cols);
     accepted_swap.zeros();
     accepted_swap(replica)=1;
+    Rcpp::Rcout << "accepted_swap: "<<accepted_swap<< std::endl;
     int replica_to_swap = index_process(replica)+1; //Find t+1
     accepted_swap.elem(find(index_process==replica_to_swap)).ones();
-    
+    Rcpp::Rcout << "accepted_swap: "<<accepted_swap<< std::endl;
     vec resulting_swap=epsilon_indic % accepted_swap;
+    Rcpp::Rcout << "resulting_swap: "<<resulting_swap<< std::endl;
     index_process+=resulting_swap;
+    Rcpp::Rcout << "resulting_swap: "<<resulting_swap<< std::endl;c
     //Update weights of the involved neighbors.
     double logpi_current;
     double temporal;
@@ -261,7 +266,7 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
       newX.row(j) = 1-X.row(j);
       temporal=loglik(newX)-logpi_current;
       //Apply balancing function to log probability times temperature ////
-      weight_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
+      logprob_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
     }
     
     X=states_matrix.col(replica_to_swap); // Current state of the replica updating
@@ -276,12 +281,13 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
       newX.row(j) = 1-X.row(j);
       temporal=loglik(newX)-logpi_current;
       //Apply balancing function to log probability times temperature ////
-      weight_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
+      logprob_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
     }
     
     
     
   }else{//If it's not a replica swap
+    Rcpp::Rcout << "Changing neighbor: " << neighbor <<" of replica:"<<replica<< std::endl;
     //Swap the chosen coordinate of the chosen replica
     states_matrix(neighbor,replica)=1-states_matrix(neighbor,replica);
 ////Then compute the new weights for all neighbors
@@ -298,7 +304,7 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
       newX.row(j) = 1-X.row(j);
       temporal=loglik(newX)-logpi_current;
       //Apply balancing function to log probability times temperature ////
-      weight_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
+      logprob_matrix(j,replica)=bal_func(temporal*current_temp, current_bal_fun);
     }
 ////Compute the new weights for the possible replica swaps    
     uword replica_left;
@@ -318,11 +324,15 @@ uvec IPT_update(mat& weight_matrix, mat& states_matrix, vec& temp,vec& index_pro
          }
     //Update replica swap weight of current replica
     temporal=(current_temp-temp(replica_right))*(loglik(states_matrix.cols(find(index_process==replica_right))) - loglik(X));
-    weight_matrix(rows-1,replica)=bal_func(temporal,current_bal_fun);
+    logprob_matrix(rows-1,replica)=bal_func(temporal,current_bal_fun);
     temporal=(temp(replica_left)-current_temp)*(loglik(X)-loglik(states_matrix.cols(find(index_process==replica_left))));
-    weight_matrix(rows-1,replica_left)=bal_func(temporal,current_bal_fun);
+    logprob_matrix(rows-1,replica_left)=bal_func(temporal,current_bal_fun);
 }
-return(index);
+  List ret;
+  ret["weights"]=logprob_matrix;
+  ret["states"]=states_matrix; 
+  ret["ip"]=index_process;
+  return ret;  
 }
 
 ////////// Code for Parallel Tempering simulations //////////
