@@ -5,6 +5,52 @@ library(RcppArmadillo)
 Rcpp::sourceCpp("functions/cpp_functions.cpp")
 
 
+##### Testing IPT #####
+library(Rcpp)
+library(RcppArmadillo)
+# setwd('..')
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+temperature <- c(1,0.18,0.09,.001)
+bal_f <- c("sq","sq","sq","sq")
+p <- 16
+tot_rep <- length(temperature)
+
+set.seed(432)
+state_matrix <- matrix(rbinom(tot_rep*p,size=1,prob=0.3),ncol=tot_rep,nrow=p)
+index_process <- c(3,1,4,2)
+weight_matrix <- matrix(NA,nrow=p+1,ncol=tot_rep)
+
+### Build weight matrix
+for(r in 1:tot_rep){
+  # print(index_process)
+  currentX <- state_matrix[,r]
+  logpi_current <- loglik(currentX);
+  current_temp <- temperature[index_process[r]];
+  chosen_bf <- bal_f[index_process[r]];
+  for(n in 1:p){
+    newX <-  currentX;
+    newX[n] <- 1-newX[n];
+    temporal <- loglik(newX)-logpi_current;
+    weight_matrix[n,r] <- bal_func(temporal*current_temp, chosen_bf);
+  }
+  
+  if(index_process[r]==4){#Last temperature
+    temp_to <- temperature[1]
+    index_to <- which(index_process==1)
+  }else{
+    temp_to <- temperature[index_process[r]+1]
+    index_to <- which(index_process==(index_process[r]+1))
+  }
+  weight_matrix[p+1,r] <- (temp_to-current_temp)*(logpi_current - loglik(state_matrix[,index_to]))
+}
+
+##### Test function
+# set.seed(43)
+IPT_update(weight_matrix,state_matrix,temperature,index_process-1,bal_f)
+
+
+##### #####
+
 TVD <- function(pi,pi.est){
   return(0.5*sum(abs(pi-pi.est)))
 }
@@ -134,4 +180,27 @@ sample_prop(neigh)
 entries_vec(0,c(1,2,3,4,5,6))
 entries_vec(5,c(1,2,3,4,5,6))
 
+##### Testing High dimensional matrix ##### 
+
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+
+a <- readSparseMatrix(file.path(getwd(),"gset/G_example.txt"))
+
+
+
+testing_loglik("gset/G_example.txt",rep(0,10))
+
+source("functions/r_functions.R")
+M <- readMatrix("gset/G_example.txt")
+dim <- nrow(M)
+v <- rep(0,dim)
+
+for(i in 1:length(v)){
+  tempv <- v
+  tempv[i] <- 1-tempv[i]
+  # print(sum(tempv))
+ print(tempv%*%M%*%tempv) 
+}
 
