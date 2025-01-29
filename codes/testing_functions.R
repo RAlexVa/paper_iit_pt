@@ -31,7 +31,7 @@ for(r in 1:tot_rep){
     newX <-  currentX;
     newX[n] <- 1-newX[n];
     temporal <- loglik(newX)-logpi_current;
-    weight_matrix[n,r] <- bal_func(temporal*current_temp, chosen_bf);
+    weight_matrix[n,r] <- bal_func(temporal*current_temp, chosen_bf)-log(p);
   }
   
   if(index_process[r]==4){#Last temperature
@@ -41,12 +41,13 @@ for(r in 1:tot_rep){
     temp_to <- temperature[index_process[r]+1]
     index_to <- which(index_process==(index_process[r]+1))
   }
-  weight_matrix[p+1,r] <- (temp_to-current_temp)*(logpi_current - loglik(state_matrix[,index_to]))
+  weight_matrix[p+1,r] <- (temp_to-current_temp)*(logpi_current - loglik(state_matrix[,index_to]))-log(tot_rep)
 }
 
 ##### Test function
 # set.seed(43)
-IPT_update(weight_matrix,state_matrix,temperature,index_process-1,bal_f)
+ip <- index_process-1
+IPT_update(weight_matrix,state_matrix,temperature,ip,bal_f)
 
 
 ##### #####
