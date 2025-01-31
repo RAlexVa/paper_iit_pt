@@ -12,8 +12,8 @@ readMatrix <- function(path){
     idx1 <- details[i,1];
     idx2 <- details[i,2]
     
-    M[min(idx1,idx2),max(idx1,idx2)] <- details[i,3]
-    M[max(idx1,idx2),min(idx1,idx2)] <- details[i,3]
+    M[min(idx1,idx2),max(idx1,idx2)] <- -details[i,3]
+    M[max(idx1,idx2),min(idx1,idx2)] <- -details[i,3]
   }
   # Define the diagonal
   for(i in 1:nrow(M)){

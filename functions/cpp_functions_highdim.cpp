@@ -51,11 +51,49 @@ vec num_to_vec(int n, int d){
 }
 
 
+////////// Balancing functions //////////
 
-////////// Creating sparse matrix //////////
-
-// void readSparseMatrix(const std::string& filename)
+///// List of balancing functions that apply to log-likelihoods
 // [[Rcpp::export]]
+double bf_sq(double x){
+  return x/2;
+}
+
+// [[Rcpp::export]]
+double bf_min(double x){
+  double result;
+  if(x<0){
+    result = x;
+  }else{
+    result = 0;
+  }
+  return result;
+}
+
+
+///// Functions to call balancing functions inside other functions
+
+//This function we don't export to R because it generates errors
+double invoke(double x, double (*func)(double)) {
+  return func(x);
+}
+
+// [[Rcpp::export]]
+double bal_func(double x,String chosen){
+  if (chosen == "sq") {
+    return invoke(x, &bf_sq);
+  } else if (chosen == "min") {
+    return invoke(x, &bf_min);
+  } else {
+    cout << "Unknown operation!" << endl;
+    Rcpp::Rcout <<"Unknown operation!" << std::endl;
+    return 0; // Default return for unknown operation
+  }
+}
+
+
+////////// Creating sparse matrix from file //////////
+
 arma::sp_mat readSparseMatrix(const std::string& filename){
   // Open the file
   std::ifstream file(filename);
@@ -69,37 +107,58 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
   
   // Create a sparse matrix
   arma::sp_mat matrix(n_rows, n_rows);
-  
+  arma::vec diag_vec(n_rows, fill::zeros);
   // Read the subsequent lines for the non-zero entries
   size_t row, col;
   double value;
   for (size_t i = 0; i < n_nonzeros; ++i) {
     file >> row >> col >> value;
     // Adjust for 1-based indexing in the file
-    matrix(row - 1, col - 1) = value;
+    matrix(row - 1, col - 1) = -value;
+    matrix(col - 1, row - 1) = -value;
+    
+    // Add for the diagonal
+    diag_vec(row-1)+=1;
+    diag_vec(col-1)+=1;
   }
   file.close();
+  
+  matrix.diag()=diag_vec;
   // Rcpp::Rcout <<"Matrix\n " <<matrix<< std::endl;
   return matrix;
 }
 
 
-// double loglik(vec X, mat M){
-//   return(arma::as_scalar(X.t() * M * X));
-// }
+////////// loglikelihood functions //////////
+double loglik(const arma::vec& X,const arma::sp_mat& M){
+  return arma::as_scalar(X.t() * M * X);
+}
 
+
+
+////////// Some testing functions //////////
 
 // [[Rcpp::export]]
-void testing_loglik(const std::string& filename, vec X){
+vec testing_loglik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
   double temp;
   int n=X.n_rows;
   vec tempX(n);
+  vec loglik_vector(n);
   for(int i=0;i<n;i++){
     tempX=X;
     tempX(i)=1-tempX(i);
-    temp=arma::as_scalar(X.t() * M * X);
-    Rcpp::Rcout <<"Vector\n " <<tempX.t()<< std::endl;
-    Rcpp::Rcout <<"loglik:  " <<temp<< std::endl;
+    // temp=arma::as_scalar(tempX.t() * M * tempX);
+    // Rcpp::Rcout <<"Vector\n " <<tempX.t()<< std::endl;
+    // Rcpp::Rcout <<"loglik:  " <<temp<< std::endl;
+    loglik_vector(i)=loglik(tempX,M);
   }
+  return(loglik_vector);
+}
+
+// [[Rcpp::export]]
+void print_matrix(const std::string& filename){
+  sp_mat M=readSparseMatrix(filename);
+  Rcpp::Rcout <<"Matrix\n " <<M<< std::endl;
+  
 }
