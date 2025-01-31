@@ -9,7 +9,15 @@ readMatrix <- function(path){
   details <- as.matrix(read_delim(path,delim=" ", skip=1,col_names = c("r","c","v")));
   M <- matrix(data=0,nrow=parameters[1],ncol=parameters[1])
   for(i in 1:parameters[2]){
-    M[details[i,1],details[i,2]] <- details[i,3]
+    idx1 <- details[i,1];
+    idx2 <- details[i,2]
+    
+    M[min(idx1,idx2),max(idx1,idx2)] <- details[i,3]
+    M[max(idx1,idx2),min(idx1,idx2)] <- details[i,3]
+  }
+  # Define the diagonal
+  for(i in 1:nrow(M)){
+    M[i,i] <- -sum(M[i,][-i])
   }
   return(M)
 }
