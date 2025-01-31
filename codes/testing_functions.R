@@ -220,3 +220,19 @@ for(i in 1:length(v)){
  print(tempv%*%M%*%tempv) 
 }
 
+
+testing_loglik("gset/ex_paper.txt",x)
+print_matrix("gset/ex_paper.txt")
+
+
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+# Testing matrix of size 800
+print_matrix("gset/G1.txt")
+v <- rep(1,800)
+set.seed(345)
+v2 <- rbinom(800,size=1,prob=0.4)
+v3 <- rep(0:1,400)
+
+check <- testing_loglik("gset/G1.txt",v)
+
+
