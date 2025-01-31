@@ -15,6 +15,10 @@ double ret_max(double a,double b,double c){
 
 // [[Rcpp::export]]
 int vec_to_num(vec X){
+  if(X.max()>1 || X.min()<0){
+    Rcpp::Rcout <<"Error with entries in the vector"<< std::endl;
+    return -1;
+  }
   int n=X.n_rows;
   int number=0;
   for(int i=0;i<n;i++){
@@ -366,7 +370,7 @@ for(int r=0;r<cols;r++){
 ////////// Code for Parallel Tempering simulations //////////
 
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state){
 //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
@@ -409,7 +413,11 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X.zeros();//Reset the starting point of all chains
+    // X.zeros();//Reset the starting point of all chains
+    vec initialX=num_to_vec(initial_state,p);
+    for(int c=1;c<T;c++){
+      X.col(c)=initialX;
+    }
     pi_est.zeros(); // Reset the estimated distribution
     first_visit.zeros(); //Reset the vector of first visits
     swap_total.zeros();
@@ -521,7 +529,7 @@ swap_rate.row(s)=temp_rate.t();
 
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function, int initial_state){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -569,7 +577,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X.zeros();//Reset the starting point of all chains
+    // X.zeros();//Reset the starting point of all chains
+    vec initialX=num_to_vec(initial_state,p);
+    for(int c=1;c<T;c++){
+      X.col(c)=initialX;
+    }
     pi_est.zeros(); // Reset the estimated distribution
     first_visit.zeros(); //Reset the vector of first visits
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
