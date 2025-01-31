@@ -16,8 +16,10 @@ p <- 16
 tot_rep <- length(temperature)
 
 set.seed(432)
-state_matrix <- matrix(rbinom(tot_rep*p,size=1,prob=0.3),ncol=tot_rep,nrow=p)
-index_process <- c(3,1,4,2)
+# state_matrix <- matrix(rbinom(tot_rep*p,size=1,prob=0.3),ncol=tot_rep,nrow=p)
+state_matrix <- matrix(0,ncol=tot_rep,nrow=p)
+# index_process <- c(3,1,4,2)
+index_process <- 1:4;
 weight_matrix <- matrix(NA,nrow=p+1,ncol=tot_rep)
 
 ### Build weight matrix
@@ -41,12 +43,17 @@ for(r in 1:tot_rep){
     temp_to <- temperature[index_process[r]+1]
     index_to <- which(index_process==(index_process[r]+1))
   }
-  weight_matrix[p+1,r] <- (temp_to-current_temp)*(logpi_current - loglik(state_matrix[,index_to]))-log(tot_rep)
+  temporal <- (temp_to-current_temp)*(logpi_current - loglik(state_matrix[,index_to]))
+  weight_matrix[p+1,r] <-bal_func(temporal, chosen_bf)-log(tot_rep);
 }
 
 ##### Test function
 # set.seed(43)
 ip <- index_process-1
+
+#manual input for testing
+# weight_matrix[p+1,3] <- 30
+# weight_matrix[3,1] <- 40
 IPT_update(weight_matrix,state_matrix,temperature,ip,bal_f)
 
 
@@ -194,7 +201,15 @@ a <- readSparseMatrix(file.path(getwd(),"gset/G_example.txt"))
 testing_loglik("gset/G_example.txt",rep(0,10))
 
 source("functions/r_functions.R")
-M <- readMatrix("gset/G_example.txt")
+M <- readMatrix("gset/ex_paper.txt")
+x <- c(0,1,1,0,0)
+
+x%*%M%*%x
+
+y <- c(1,0,0,1,0)
+
+y%*%M%*%y
+
 dim <- nrow(M)
 v <- rep(0,dim)
 
