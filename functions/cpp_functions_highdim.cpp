@@ -398,8 +398,6 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
   int max_num=pow(2,p);
   
   
-  vec first_visit(max_num);//Vector to store the first visit to each state
-  mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
   vec swap_total(J);
   vec swap_success(J);
   mat swap_rate(total_sim,J);
@@ -431,7 +429,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
     //   X.col(c)=initialX;
     // }
     
-    first_visit.zeros(); //Reset the vector of first visits
+
     swap_total.zeros();
     swap_success.zeros();
     //// Start the loop for all iterations in simulation s
@@ -452,12 +450,6 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
           // Rcpp::Rcout << "Printing Z: " << Z << std::endl;
           int state=vec_to_num(X.col(replica));
           // Rcpp::Rcout << "Printing state: " << state << std::endl;
-          
-          
-          if(first_visit(state)==0){
-            first_visit(state)=i;//Store the first time the state is visited 
-          }
-          
           // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
         }
         X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -526,7 +518,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
     }// End loop of iterations
     // Store result of the simulation
     
-    full_first_visit.col(s)=first_visit;
+    
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
@@ -534,7 +526,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
   List ret;
   
   ret["ip"]=ind_pro_hist;
-  ret["visits"]=full_first_visit;
+  
   ret["swap_rate"]=swap_rate;
   return ret;
 }
@@ -561,8 +553,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   // Rcpp::Rcout << "max num: " << max_num << std::endl;  
   
   
-  vec first_visit(max_num);//Vector to store the first visit to each state
-  mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
   vec swap_total(J,fill::ones);
   swap_total*=total_swaps;//We always have the same number of total swaps
   vec swap_success(J);
@@ -597,7 +587,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //   X.col(c)=initialX;
     // }
     
-    first_visit.zeros(); //Reset the vector of first visits
+
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
     //// Start the loop for all iterations in simulation s
@@ -628,11 +618,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             int state=vec_to_num(X.col(replica));
             
             //// Check if it's the first time that replica with temperature 1 visits this state
-            if(first_visit(state)==0){
-              mat current_slice=total_iterations.slice(s);//Extract current slice
-              //Store the first time the state is visited 
-              first_visit(state)=sum(current_slice.col(index_process(replica)));
-            }
+            
           }
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
@@ -680,7 +666,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }// End loop of iterations
     // Store result of the simulation
     
-    full_first_visit.col(s)=first_visit;
+    
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
@@ -688,7 +674,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   List ret;
   
   ret["ip"]=ind_pro_hist;
-  ret["visits"]=full_first_visit;
+  
   ret["swap_rate"]=swap_rate;
   ret["total_iter"]=total_iterations;
   return ret;
