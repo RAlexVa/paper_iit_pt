@@ -396,8 +396,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
   int max_num=pow(2,p);
-  vec pi_est(max_num); //Vector to store the estimated weight for each state
-  mat full_pi_est(max_num,total_sim); //Matrix to store the estimated weight considering all simulations
+  
+  
   vec first_visit(max_num);//Vector to store the first visit to each state
   mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
   vec swap_total(J);
@@ -430,7 +430,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
     // for(int c=1;c<T;c++){
     //   X.col(c)=initialX;
     // }
-    pi_est.zeros(); // Reset the estimated distribution
+    
     first_visit.zeros(); //Reset the vector of first visits
     swap_total.zeros();
     swap_success.zeros();
@@ -452,12 +452,12 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
           // Rcpp::Rcout << "Printing Z: " << Z << std::endl;
           int state=vec_to_num(X.col(replica));
           // Rcpp::Rcout << "Printing state: " << state << std::endl;
-          // pi_est(state)++;//Count how many times each state was visited
-          pi_est(state)+=(1/Z);//Add weight
+          
+          
           if(first_visit(state)==0){
             first_visit(state)=i;//Store the first time the state is visited 
           }
-          // Rcpp::Rcout << "Printing pi_est: " << pi_est << std::endl;
+          
           // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
         }
         X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -525,14 +525,14 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
       }//End of replica swap process
     }// End loop of iterations
     // Store result of the simulation
-    full_pi_est.col(s)=pi_est;
+    
     full_first_visit.col(s)=first_visit;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
-  ret["est_pi"]=full_pi_est;
+  
   ret["ip"]=ind_pro_hist;
   ret["visits"]=full_first_visit;
   ret["swap_rate"]=swap_rate;
@@ -559,8 +559,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
   int max_num=pow(2,p);
   // Rcpp::Rcout << "max num: " << max_num << std::endl;  
-  vec pi_est(max_num); //Vector to store the estimated weight for each state
-  mat full_pi_est(max_num,total_sim);
+  
+  
   vec first_visit(max_num);//Vector to store the first visit to each state
   mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
   vec swap_total(J,fill::ones);
@@ -596,7 +596,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     // for(int c=1;c<T;c++){
     //   X.col(c)=initialX;
     // }
-    pi_est.zeros(); // Reset the estimated distribution
+    
     first_visit.zeros(); //Reset the vector of first visits
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
@@ -626,7 +626,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           //// Store weight of replica with temperature 1
           if(current_temp==1){ // For the original temperature replica
             int state=vec_to_num(X.col(replica));
-            pi_est(state)+=new_samples;//Add weight
+            
             //// Check if it's the first time that replica with temperature 1 visits this state
             if(first_visit(state)==0){
               mat current_slice=total_iterations.slice(s);//Extract current slice
@@ -679,14 +679,14 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       ////End of replica swap process
     }// End loop of iterations
     // Store result of the simulation
-    full_pi_est.col(s)=pi_est;
+    
     full_first_visit.col(s)=first_visit;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
-  ret["est_pi"]=full_pi_est;
+  
   ret["ip"]=ind_pro_hist;
   ret["visits"]=full_first_visit;
   ret["swap_rate"]=swap_rate;
