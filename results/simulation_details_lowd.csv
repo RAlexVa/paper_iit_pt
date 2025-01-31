@@ -1,4 +1,5 @@
 id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf1,bf2,bf3,bf4,t1,t2,t3,t4
+0,IIT,5,1000,1001,NA,5,13,sq,sq,sq,sq,1,0.18,0.09,0.001
 1,PT_IIT_Z,100,500000,2000,NA,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001
 2,PT_IIT_no_Z,100,500000,2000,NA,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001
 3,PT_A_IIT,100,NA,2000,200,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001
