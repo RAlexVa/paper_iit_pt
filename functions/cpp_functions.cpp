@@ -415,7 +415,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
     swap_count=0; //Reset swap count
     // X.zeros();//Reset the starting point of all chains
     vec initialX=num_to_vec(initial_state,p);
-    for(int c=1;c<T;c++){
+    for(int c=0;c<T;c++){
       X.col(c)=initialX;
     }
     pi_est.zeros(); // Reset the estimated distribution
@@ -579,7 +579,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     swap_count=0; //Reset swap count
     // X.zeros();//Reset the starting point of all chains
     vec initialX=num_to_vec(initial_state,p);
-    for(int c=1;c<T;c++){
+    for(int c=0;c<T;c++){
       X.col(c)=initialX;
     }
     pi_est.zeros(); // Reset the estimated distribution
