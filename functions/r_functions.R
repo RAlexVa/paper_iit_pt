@@ -3,6 +3,12 @@ library(readr)
 ##### General functions #####
 
 #Reads file to create sparse matrix
+readParameters <- function(path){
+  parameters <- readLines(path,n=1)
+  parameters <- as.numeric(strsplit(parameters, " ")[[1]])
+  return(parameters[1])
+}
+
 readMatrix <- function(path){
   parameters <- readLines(path,n=1)
   parameters <- as.numeric(strsplit(parameters, " ")[[1]])
