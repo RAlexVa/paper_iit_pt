@@ -47,7 +47,7 @@ list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
 
 for(id_chosen in list_ids){
 sim_chosen <- parameters |> filter(id==id_chosen)
-if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist")); next;}
+if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
 # Parameters for all algorithms
 total_simulations <- sim_chosen$simulations
 temperatures <- as.numeric(sim_chosen[paste0("t",1:4)])
@@ -77,7 +77,8 @@ export <- list();
                paste0("Samples in-between swaps: ",sample_inter_swap),
                paste0("Total swaps:",total_swap),"","","Confirm below"))
   
-  check <- as.numeric(readline('ok? 1 Yes/ 0 No'))
+  # check <- as.numeric(readline('ok? 1 Yes/ 0 No'))
+check <- 1;
   if(check!=1){print("modify parameters")}else{
   if(alg=="IIT"){
     # Only IIT
