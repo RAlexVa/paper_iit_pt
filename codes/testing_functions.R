@@ -236,3 +236,39 @@ v3 <- rep(0:1,400)
 check <- testing_loglik("gset/G1.txt",v)
 
 
+##### Testing minimum #####
+library(Rcpp)
+library(RcppArmadillo)
+# setwd('..')
+Rcpp::sourceCpp("functions/testing_cpp_functions.cpp")
+
+x <- c(0,0,0,0,0)
+
+find_min(x,5);x;
+find_min(x,4);x;
+find_min(x,2);x;
+find_min(x,1);x;
+find_min(x,40);x;
+find_min(x,65);x;
+find_min(x,-1);x;
+find_min(x,100);x
+ 
+
+
+
+##### Testing simualtions for high dimensional
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+p <- 800
+temperature <- c(1,0.18,0.09)
+bal_f <- c("sq","sq","sq")
+set.seed(123)
+check <- PT_IIT_sim(p,1,2,100,50,temperature,bal_f,TRUE,"gset/G1.txt",20)
+#(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
+set.seed(123)
+check2 <- PT_IIT_sim(p,1,2,100,50,temperature,bal_f,FALSE,"gset/G1.txt",20)
+
+# PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
+set.seed(123)
+check3 <- PT_a_IIT_sim(p,1,2,5,100,temperature,bal_f,"gset/G1.txt",20)
