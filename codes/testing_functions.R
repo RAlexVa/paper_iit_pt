@@ -272,3 +272,34 @@ check2 <- PT_IIT_sim(p,1,2,100,50,temperature,bal_f,FALSE,"gset/G1.txt",20)
 # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
 set.seed(123)
 check3 <- PT_a_IIT_sim(p,1,2,5,100,temperature,bal_f,"gset/G1.txt",20)
+
+# id	algorithm	simulations	iterations	interswap	total_swap	start_state	seed	bf1	bf2	bf3	t1	t2	t3
+# 4	PT_A_IIT	50	NA	1000	200	0	123	sq	sq	sq	1	0.18	0.09
+rm(list=ls())
+source("functions/r_functions.R")
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+id_chosen <- 4
+p <- 800
+temperature <- c(1,0.18,0.09)
+bal_f <- c("sq","sq","sq")
+total_simulations <- 50
+total_swap <- 200
+set.seed(123)
+output <- PT_a_IIT_sim(p,1,50,200,1000,temperature,bal_f,"gset/G1.txt",30)
+
+output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f)
+export <- list();
+#Number of iterations needed between swaps for each replica
+export[["total_iter"]] <- output[["total_iter"]]
+#round trip rate (NA for IIT)
+export[["round_trips"]] <- PT_RT(output[["ip"]],total_swap,total_simulations)
+export[["swap_rate"]] <- output[["swap_rate"]]
+
+
+
+export[["states"]] <- output[["states"]]
+export[["loglik_visited"]] <- output[["loglik_visited"]]
+export[["iter_visit"]]<- output[["iter_visit"]]
+output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
+saveRDS(export,file=file.path("results",output_name))
+
