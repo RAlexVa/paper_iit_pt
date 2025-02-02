@@ -60,4 +60,11 @@ void entries_vec(uword& replica, vec& vector){
 
 
 
+// [[Rcpp::export]]
+void find_min(vec& X, double& new_value){
+  uword mm=X.index_min();
+  X(mm)=new_value;
+  
+}
+
 ////////// testing functions //////////
