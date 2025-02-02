@@ -31,6 +31,9 @@ iterswap <- sim_chosen$interswap #Total iterations before trying a replica swap
 sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
 total_swap <- sim_chosen$total_swap #Total number of swaps to try
 
+file_matrix <- paste0("gset/",sim_chosen$file,".txt")
+p <- readParameters(file_matrix)
+states_visited <- sim_chosen$states_visited
 # start_state <- sim_chosen$start_state;
 alg <- sim_chosen$algorithm
 
@@ -45,35 +48,36 @@ writeLines(c("Parameters:",paste0("Algorithm: ",alg),
              paste0("Total iterations: ",total_iter),
              paste0("Try swaps:",iterswap),
              paste0("Samples in-between swaps: ",sample_inter_swap),
-             paste0("Total swaps:",total_swap),"","","Confirm below"))
+             paste0("Total swaps:",total_swap),
+             paste0("File: ",file_matrix),
+             paste0("States to keep track: ",states_visited)))
 
 # check <- as.numeric(readline('ok? 1 Yes/ 0 No'))
 check <- 1;
 if(check!=1){print("modify parameters")}else{
   if(alg=="IIT"){
     # Only IIT
-    # output_name <- paste0("IIT_","sim_",total_simulations,"_iter_",total_iter,"_s_",defined_seed,".Rds");
-    output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap=total_iter+1,temp=temperatures[1],bal_function=bal_f[1], bias_fix = TRUE,initial_state = start_state)
+    # PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
+    output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap=total_iter+1,temp=temperatures[1],bal_function=bal_f[1], bias_fix = TRUE, filename=file_matrix,num_states_visited=states_visited)
   }else{
     
     if(alg=="PT_IIT_Z"){
-      # output_name <- paste0("PT_IIT_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
       # Using Z factor bias correction
-      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = TRUE,initial_state = start_state)
+      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = TRUE, filename=file_matrix,num_states_visited=states_visited)
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
     }
     if(alg=="PT_IIT_no_Z"){
       # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
       # Without Z factor bias correction
-      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = FALSE,initial_state = start_state)
+      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = FALSE, filename=file_matrix,num_states_visited=states_visited)
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT in each replica
-      # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
-      output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f,initial_state = start_state)
+      #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
+      output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f, filename=file_matrix,num_states_visited=states_visited)
       #Number of iterations needed between swaps for each replica
       export[["total_iter"]] <- output[["total_iter"]]
       #round trip rate (NA for IIT)
