@@ -633,6 +633,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
             Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+            new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
             new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
