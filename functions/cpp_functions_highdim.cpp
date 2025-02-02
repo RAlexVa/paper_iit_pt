@@ -381,7 +381,7 @@ void IPT_update(mat& logprob_matrix, mat& states_matrix,sp_mat M, vec& temp,vec&
 ////////// Code for Parallel Tempering simulations //////////
 
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
@@ -411,7 +411,14 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
   double swap_prob;
   vec Xtemp_from(p);
   vec Xtemp_to(p);
-  // Variables to count modes visited
+  // Variables to register visits to high probability states
+  //Number of states to keep track
+  mat iter_to_visit(num_states_visited,total_sim);
+  mat loglikelihood_visited(num_states_visited,total_sim);
+  cube states_visited(p,num_states_visited,total_sim,fill::zeros);
+  Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
+  double temporal_loglik;
+  uword found_min; // to find the minimum
   // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
 //// Read matrix
   sp_mat Q_matrix=readSparseMatrix(filename);
@@ -445,12 +452,22 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
         output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
         //// Store Z factor of replica with temperature 1
         if(current_temp==1){ // For the original temperature replica
-          // Rcpp::Rcout << "Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
-          Z = output(1); //Extract the Z-factor
-          // Rcpp::Rcout << "Printing Z: " << Z << std::endl;
-          int state=vec_to_num(X.col(replica));
-          // Rcpp::Rcout << "Printing state: " << state << std::endl;
-          // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
+          // Rcpp::Rcout << "Starts update of visited states" << std::endl;
+        vec curr_loglik_visited=loglikelihood_visited.col(s);
+        found_min=curr_loglik_visited.index_min();
+        temporal_loglik=loglik(X.col(replica),Q_matrix);
+          if(curr_loglik_visited(found_min)<temporal_loglik){
+            // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
+            loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
+            // Rcpp::Rcout << "Stores likelihood" << std::endl;
+            iter_to_visit(found_min,s)=i;//Record iterations taken to visit the state
+            // Rcpp::Rcout << "Stores iterations" << std::endl;
+            //Record the new state
+            for(int c=0;c<p;c++){
+              // Rcpp::Rcout << "Stores entry "  <<c<<" of the cube"<< std::endl;
+              states_visited(c,found_min,s)=X(c,replica);
+            }
+          }
         }
         X.col(replica)=vec(output(0)); //Update current state of the chain
       }//End loop to update replicas
@@ -526,14 +543,16 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
   List ret;
   
   ret["ip"]=ind_pro_hist;
-  
   ret["swap_rate"]=swap_rate;
+  ret["states"]=states_visited;
+  ret["loglik_visited"]=loglikelihood_visited;
+  ret["iter_visit"]=iter_to_visit;
   return ret;
 }
 
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function,const std::string& filename){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -568,8 +587,14 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   double swap_prob;
   vec Xtemp_from(p);
   vec Xtemp_to(p);
-  // Variables to count modes visited
-  // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
+  // Variables to register visits to high probability states
+  //Number of states to keep track
+  mat iter_to_visit(num_states_visited,total_sim);
+  mat loglikelihood_visited(num_states_visited,total_sim);
+  cube states_visited(p,num_states_visited,total_sim,fill::zeros);
+  Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
+  double temporal_loglik;
+  uword found_min; // to find the minimum
 //// Read matrix
   sp_mat Q_matrix=readSparseMatrix(filename);
   
@@ -615,11 +640,26 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           samples_replica+=new_samples; // Update number of samples obtained from the replica
           //// Store weight of replica with temperature 1
           if(current_temp==1){ // For the original temperature replica
-            int state=vec_to_num(X.col(replica));
-            
-            //// Check if it's the first time that replica with temperature 1 visits this state
-            
+            // Rcpp::Rcout << "Starts update of visited states" << std::endl;
+            vec curr_loglik_visited=loglikelihood_visited.col(s);
+            found_min=curr_loglik_visited.index_min();
+            temporal_loglik=loglik(X.col(replica),Q_matrix);
+            if(curr_loglik_visited(found_min)<temporal_loglik){
+              // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
+              loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
+              // Rcpp::Rcout << "Stores likelihood" << std::endl;
+              mat current_slice=total_iterations.slice(s);//Extract current slice
+              //Record iterations taken to visit the state
+              iter_to_visit(found_min,s)=sum(current_slice.col(index_process(replica)));
+              //Record the new state
+              for(int c=0;c<p;c++){
+                // Rcpp::Rcout << "Stores entry "  <<c<<" of the cube"<< std::endl;
+                states_visited(c,found_min,s)=X(c,replica);
+              }
+            }
           }
+          
+          
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
         }
@@ -674,8 +714,10 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   List ret;
   
   ret["ip"]=ind_pro_hist;
-  
   ret["swap_rate"]=swap_rate;
+  ret["states"]=states_visited;
+  ret["loglik_visited"]=loglikelihood_visited;
+  ret["iter_visit"]=iter_to_visit;
   ret["total_iter"]=total_iterations;
   return ret;
 }
