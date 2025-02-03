@@ -67,4 +67,10 @@ void find_min(vec& X, double& new_value){
   
 }
 
+
+// [[Rcpp::export]]
+void print_geom(double& Z){
+  Rcpp::Rcout << "Geom value: " << R::rgeom(Z) << std::endl;
+}
+
 ////////// testing functions //////////
