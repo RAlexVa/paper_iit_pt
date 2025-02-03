@@ -252,8 +252,12 @@ find_min(x,40);x;
 find_min(x,65);x;
 find_min(x,-1);x;
 find_min(x,100);x
- 
+##### Testing geometric distribution
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/testing_cpp_functions.cpp")
 
+print_geom(0.5)
 
 
 ##### Testing simualtions for high dimensional
