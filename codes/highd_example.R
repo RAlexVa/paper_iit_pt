@@ -3,7 +3,10 @@ library(Rcpp)
 library(RcppArmadillo)
 library(dplyr)
 library(readr)
-
+# install.packages("Rcpp")
+# install.packages("RcppArmadillo")
+# install.packages("readr")
+# install.packages("tidyverse")
 ##### import functions #####
 Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
 source("functions/r_functions.R")
