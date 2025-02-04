@@ -8,8 +8,8 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-# chosen_dim <- "highdim"; file_dime <- "highd"
-chosen_dim <- "lowdim";file_dim <- "lowd"
+chosen_dim <- "highdim"; file_dim <- "highd"
+# chosen_dim <- "lowdim";file_dim <- "lowd"
 
 #List of files
 parameters <- read_csv(paste0("results/simulation_details_",file_dim,".csv"))
@@ -22,28 +22,46 @@ data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.
   
 
 
-tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
-mode_visit <- as.data.frame(matrix(NA,ncol=9)); colnames(mode_visit) <- c("alg","sim",1:7)
-round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
-swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
-iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4)
+# filter IDs to compare
+chosen_ids <- 4#c(13,14,15,16)#c(9,10,11,12)
+data_sum <- data_sum |> filter(id %in% chosen_ids)
+
+if(chosen_dim=="lowdim"){
+  #Low dim is the example with 7 modes and 4 temperatures
+  tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
+  mode_visit <- as.data.frame(matrix(NA,ncol=9)); colnames(mode_visit) <- c("alg","sim",1:7)
+  round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
+  swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
+  iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4)
+}
+if(chosen_dim=="highdim"){
+  #High dim we have 3 temperatures
+  #we dont track distribution convergence
+  #we track visit to high probability states
+  round_trip <- as.data.frame(matrix(NA,ncol=5)); colnames(round_trip) <- c("alg","sim",1:3)
+  swap_rate <- as.data.frame(matrix(NA,ncol=4)); colnames(swap_rate) <- c("alg","sim",1:2)
+  iterations <- as.data.frame(matrix(NA,ncol=5)); colnames(iterations) <- c("alg","sim",1:3)
+  
+  list_of_states <- list()
+  iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
+  loglik_visited <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(loglik_visited) <- c("alg","state",1:max(data_sum$simulations))
+}
+
 full_iter <- list()
 k <- 1
+Q <- 1
 
-# filter IDs to compare
-chosen_ids <- c(9,10,11,12)
-data_sum <- data_sum |> filter(id %in% chosen_ids)
 # Start creating datasets with information
 for(i in 1:nrow(data_sum)){
   data <- readRDS(file.path("results",data_sum[i,1]))
   tot_sim <- data_sum |> slice(i)|> pull(simulations)
   algorithm <- data_sum |> slice(i) |> pull(algorithm)
-  if(algorithm=="PT_A_IIT"){algorithm <- "A-IIT"}
-  if(algorithm=="PT_IIT_no_Z"){algorithm <- "IIT no Z"}
-  if(algorithm=="PT_IIT_Z"){algorithm <- "IIT w Z"}
+  if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT"}
+  if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
+  if(algorithm=="PT_IIT_Z"){algorithm <- "PT-IIT w Z"}
   print(data_sum[i,"algorithm"])
   print(names(data))
-  
+if(chosen_dim=="lowdim"){
   # Extract TVD
   temp <- tibble(alg=algorithm,sim=1:tot_sim,tvd=data[["tvd"]])
   tvd <- rbind(tvd,temp)
@@ -55,6 +73,27 @@ for(i in 1:nrow(data_sum)){
   temp$alg <- algorithm
   temp <- temp |> select(alg,sim,everything())
   mode_visit <- rbind(mode_visit,temp)
+}
+  if(chosen_dim=="highdim"){
+    #Storing number of iterations to visit modes
+    temp <- as.data.frame(data[["iter_visit"]])
+    colnames(temp) <- 1:ncol(temp)
+    temp$state <- 1:nrow(temp)
+    temp$alg <- algorithm
+    temp <- temp |> select(alg,state,everything())
+    iter_visit <- rbind(iter_visit,temp)
+    #Storing likelihood of visited states
+    temp <- as.data.frame(data[["loglik_visited"]])
+    colnames(temp) <- 1:ncol(temp)
+    temp$state <- 1:nrow(temp)
+    temp$alg <- algorithm
+    temp <- temp |> select(alg,state,everything())
+    loglik_visited <- rbind(loglik_visited,temp)
+    #Storing full list of states
+    list_of_states[[Q]] <- data[["states"]]
+    Q <- Q+1
+  }
+  
   
   if(algorithm!='IIT'){
     #Extract number of round trips rate
@@ -72,7 +111,7 @@ for(i in 1:nrow(data_sum)){
     temp <- temp |> select(alg,sim,everything())
     swap_rate <- rbind(swap_rate,temp)
   }
-  if(algorithm=="A-IIT"){ 
+  if(algorithm=="PT A-IIT"){ 
     # Extract total iterations
     dims<- dim(data[["total_iter"]])
     full_iter[[k]] <- data[["total_iter"]]
@@ -92,6 +131,8 @@ mode_visit <- mode_visit |> filter(!is.na(alg))
 round_trip <- round_trip |> filter(!is.na(alg))
 swap_rate <- swap_rate |> filter(!is.na(alg))
 iterations <- iterations |> filter(!is.na(alg))
+loglik_visited <- loglik_visited |> filter(!is.na(alg))
+iter_visit <- iter_visit
 
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/images/",chosen_dim,"_ex")
@@ -183,8 +224,6 @@ swaps_to_explore <- rbind(swaps_to_explore,temp)
 jpeg(file.path(export_path,paste0("table_swaps_",export_file_name,".jpg")),width=140*nrow(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
-
-
 ##### Report on average swap rate
 swap_report <- swap_rate |> 
   group_by(alg) |>
@@ -194,8 +233,6 @@ swap_report <- swap_rate |>
 jpeg(file.path(export_path,paste0("table_swap_rate",export_file_name,".jpg")),width=140*nrow(swap_report),height=40*nrow(swap_report),pointsize = 30)
 grid.arrange(tableGrob(swap_report))
 dev.off()
-
-
 ##### Report on average swap rate
 rt_report <- round_trip |> 
   group_by(alg) |>
