@@ -16,9 +16,11 @@ source("functions/r_functions.R")
 parameters <- as.data.frame(read_csv("results/simulation_details_highd.csv"))
 
 #### Prompt to choose which simulation to run
-# writeLines("You can write various IDs separated by commas")
-id_chosen <- as.numeric(readline('Choose id:'))
-
+writeLines("You can write various IDs separated by commas")
+list_ids <- readline('Choose id:')
+list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
+# id_chosen <- as.numeric(readline('Choose id:'))
+for(id_chosen in list_ids){
 sim_chosen <- parameters |> filter(id==id_chosen)
 if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
 # Parameters for all algorithms
@@ -96,4 +98,5 @@ if(check!=1){print("modify parameters")}else{
   export[["iter_visit"]]<- output[["iter_visit"]]
   output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
   saveRDS(export,file=file.path("results",output_name))
+}
 }
