@@ -235,6 +235,14 @@ v3 <- rep(0:1,400)
 
 check <- testing_loglik("gset/G1.txt",v)
 
+######### testing updating functions
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+
+check <- testing_loglik("gset/G1.txt",rep(0,800))
+
+testing_a_IIT_update("gset/G1.txt",rep(0,800),"sq",1,0)
+
+
 
 ##### Testing minimum #####
 library(Rcpp)
