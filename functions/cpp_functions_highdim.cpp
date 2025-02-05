@@ -131,7 +131,10 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 
 ////////// loglikelihood functions //////////
 double loglik(const arma::vec& X,const arma::sp_mat& M){
-  return log(arma::as_scalar(X.t() * M * X));
+  if(sum(X)==0){return(-0.05);
+    }else{
+    return log(arma::as_scalar(X.t() * M * X)); 
+  }
 }
 
 
@@ -689,7 +692,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
-            Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Burn in period after " << track_burn_in <<"simulations,  temperature:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
             new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
@@ -745,7 +749,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
-            Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
             new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
@@ -852,6 +857,7 @@ vec testing_loglik(const std::string& filename, vec X){
   int n=X.n_rows;
   vec tempX(n);
   vec loglik_vector(n);
+  Rcpp::Rcout <<"Current loglikelihood: " <<loglik(X,M)<< std::endl;
   for(int i=0;i<n;i++){
     tempX=X;
     tempX(i)=1-tempX(i);
@@ -862,6 +868,13 @@ vec testing_loglik(const std::string& filename, vec X){
   }
   return(loglik_vector);
 }
+
+// [[Rcpp::export]]
+List testing_a_IIT_update(const std::string& filename,vec X, String chosen_bf, double temperature, double log_bound){
+  sp_mat M=readSparseMatrix(filename);
+  return(a_IIT_update(X,M,chosen_bf, temperature,log_bound));
+}
+
 
 // [[Rcpp::export]]
 void print_matrix(const std::string& filename){
