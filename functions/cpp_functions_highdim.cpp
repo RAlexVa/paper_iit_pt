@@ -131,7 +131,7 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 
 ////////// loglikelihood functions //////////
 double loglik(const arma::vec& X,const arma::sp_mat& M){
-  return arma::as_scalar(X.t() * M * X);
+  return log(arma::as_scalar(X.t() * M * X));
 }
 
 
@@ -754,5 +754,6 @@ vec testing_loglik(const std::string& filename, vec X){
 void print_matrix(const std::string& filename){
   sp_mat M=readSparseMatrix(filename);
   Rcpp::Rcout <<"Matrix\n " <<M<< std::endl;
-  
+  Rcpp::Rcout <<"Maximum = " <<M.max()<< std::endl;
+  Rcpp::Rcout <<"Minimum = " <<M.min()<< std::endl;
 }
