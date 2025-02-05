@@ -1,7 +1,7 @@
 id,algorithm,simulations,iterations,interswap,total_swap,start_state,states_visited,seed,file,bf1,bf2,bf3,t1,t2,t3,burn_in,comments
-1,PT_A_IIT,2,NA,1000,50,0,25,35,G1,sq,sq,sq,1,0.6,0.4,5000,
-2,PT_IIT_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.6,0.4,5000,
-3,PT_IIT_no_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.6,0.4,5000,
+1,PT_A_IIT,2,NA,1000,50,0,20,35,G1,sq,sq,sq,1,0.6,0.4,5000,running pt1
+2,PT_IIT_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.6,0.4,5000,running pt1
+3,PT_IIT_no_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.6,0.4,5000,running pt1
 4,PT_IIT_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.7,0.5,5000,
 5,PT_IIT_no_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.7,0.5,5000,
 6,PT_A_IIT,2,NA,1000,50,0,20,445,G1,sq,sq,sq,1,0.7,0.5,5000,
