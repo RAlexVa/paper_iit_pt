@@ -1,14 +1,23 @@
-id,algorithm,simulations,iterations,interswap,total_swap,start_state,states_visited,seed,file,bf1,bf2,bf3,t1,t2,t3
-1,IIT,50,200000,1000,NA,0,20,123,G1,sq,sq,sq,1,0.18,0.09
-2,PT_IIT_Z,50,200000,1000,NA,0,20,123,G1,sq,sq,sq,1,0.18,0.09
-3,PT_IIT_no_Z,50,200000,1000,NA,0,20,123,G1,sq,sq,sq,1,0.18,0.09
-4,PT_A_IIT,50,NA,1000,200,0,20,123,G1,sq,sq,sq,1,0.18,0.09
-5,IIT,50,500000,2500,NA,0,25,669,G1,sq,sq,sq,1,0.18,0.09
-6,PT_IIT_Z,50,500000,2500,NA,0,25,669,G1,sq,sq,sq,1,0.18,0.09
-7,PT_IIT_no_Z,50,500000,2500,NA,0,25,669,G1,sq,sq,sq,1,0.18,0.09
-8,PT_A_IIT,50,NA,2500,200,0,25,669,G1,sq,sq,sq,1,0.18,0.09
-9,IIT,2,1000,100,NA,0,30,55,G1,sq,sq,sq,1,0.18,0.09
-10,PT_IIT_Z,2,1000,100,NA,0,30,55,G1,sq,sq,sq,1,0.18,0.09
-11,PT_IIT_no_Z,2,1000,100,NA,0,30,55,G1,sq,sq,sq,1,0.18,0.09
-12,PT_A_IIT,2,NA,100,10,0,30,55,G1,sq,sq,sq,1,0.18,0.09
-13,PT_A_IIT,50,NA,3000,300,0,25,35,G1,sq,sq,sq,1,0.18,0.09
+id,algorithm,simulations,iterations,interswap,total_swap,start_state,states_visited,seed,file,bf1,bf2,bf3,t1,t2,t3,comments
+1,IIT,2,200000,1000,NA,0,20,123,G1,sq,sq,sq,1,0.18,0.09,
+2,PT_IIT_Z,2,100000,1000,NA,0,20,123,G1,sq,sq,sq,1,0.5,0.3,
+3,PT_IIT_no_Z,2,100000,1000,NA,0,20,123,G1,sq,sq,sq,1,0.5,0.3,
+4,PT_A_IIT,50,NA,1000,200,0,20,123,G1,sq,sq,sq,1,0.18,0.09,swap rate of .04-.05
+5,IIT,50,500000,2500,NA,0,25,669,G1,sq,sq,sq,1,0.18,0.09,
+6,PT_IIT_Z,50,500000,2500,NA,0,25,669,G1,sq,sq,sq,1,0.18,0.09,
+7,PT_IIT_no_Z,50,500000,2500,NA,0,25,669,G1,sq,sq,sq,1,0.18,0.09,
+8,PT_A_IIT,50,NA,2500,200,0,25,669,G1,sq,sq,sq,1,0.18,0.09,swap rate of .02
+9,IIT,2,1000,100,NA,0,30,55,G1,sq,sq,sq,1,0.18,0.09,just test
+10,PT_IIT_Z,2,1000,100,NA,0,30,55,G1,sq,sq,sq,1,0.18,0.09,just test
+11,PT_IIT_no_Z,2,1000,100,NA,0,30,55,G1,sq,sq,sq,1,0.18,0.09,just test
+12,PT_A_IIT,2,NA,100,10,0,30,55,G1,sq,sq,sq,1,0.18,0.09,just test
+13,PT_A_IIT,2,NA,1000,100,0,25,35,G1,sq,sq,sq,1,0.6,0.4,
+14,PT_IIT_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.7,0.5,
+15,PT_IIT_no_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.7,0.5,
+16,PT_A_IIT,2,NA,1000,50,0,20,445,G1,sq,sq,sq,1,0.7,0.5,
+17,PT_IIT_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.5,0.25,
+18,PT_IIT_no_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.5,0.25,
+19,PT_A_IIT,2,NA,1000,50,0,20,445,G1,sq,sq,sq,1,0.5,0.25,
+20,PT_IIT_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.75,0.55,
+21,PT_IIT_no_Z,2,50000,1000,NA,0,20,445,G1,sq,sq,sq,1,0.75,0.55,
+22,PT_A_IIT,2,NA,1000,50,0,20,445,G1,sq,sq,sq,1,0.75,0.55,
