@@ -273,17 +273,21 @@ library(Rcpp)
 library(RcppArmadillo)
 Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
 p <- 800
-temperature <- c(1,0.18,0.09)
+temperature <- c(1,0.6,0.4)
 bal_f <- c("sq","sq","sq")
 set.seed(123)
-check <- PT_IIT_sim(p,1,2,100,50,temperature,bal_f,TRUE,"gset/G1.txt",20)
+#PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
+check3 <- PT_a_IIT_sim(p,1,2,5,100,200,temperature,bal_f,"gset/G1.txt",20)
+
+#PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
+set.seed(123)
+check <- PT_IIT_sim(p,1,2,500,100,200,temperature,bal_f,TRUE,"gset/G1.txt",20)
 #(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
 set.seed(123)
-check2 <- PT_IIT_sim(p,1,2,100,50,temperature,bal_f,FALSE,"gset/G1.txt",20)
+check2 <- PT_IIT_sim(p,1,2,500,100,200,temperature,bal_f,FALSE,"gset/G1.txt",20)
 
-# PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
-set.seed(123)
-check3 <- PT_a_IIT_sim(p,1,2,5,100,temperature,bal_f,"gset/G1.txt",20)
+
+
 
 # id	algorithm	simulations	iterations	interswap	total_swap	start_state	seed	bf1	bf2	bf3	t1	t2	t3
 # 4	PT_A_IIT	50	NA	1000	200	0	123	sq	sq	sq	1	0.18	0.09
