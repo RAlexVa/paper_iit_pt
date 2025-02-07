@@ -1,5 +1,6 @@
 //#include <Rcpp.h>
 #include <RcppArmadillo.h>
+#include <ctime> 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
@@ -404,7 +405,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
   vec Xtemp_to(p);
   // Variables to count modes visited
   // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
-  
+  std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   
 //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -484,7 +485,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
     }// Finish burn-in period
     swap_count=0; //Reset swap count
     
-    
+    std::clock_t start = std::clock(); // Start timer for simulation s
 //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
@@ -575,6 +576,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
         // Rcpp::Rcout <<"Store index process " << std::endl;
       }//End of replica swap process
     }// End loop of iterations
+    std::clock_t end = std::clock(); // Stop timer
+    // Calculate the time taken in seconds
+    double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+    time_taken[s] = duration;
 // Store result of the simulation
 full_pi_est.col(s)=pi_est;
 full_first_visit.col(s)=first_visit;
@@ -587,6 +592,7 @@ swap_rate.row(s)=temp_rate.t();
   ret["ip"]=ind_pro_hist;
   ret["visits"]=full_first_visit;
   ret["swap_rate"]=swap_rate;
+  ret["time_taken"]=time_taken;
   return ret;
 }
 
@@ -631,7 +637,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   vec Xtemp_to(p);
   // Variables to count modes visited
   // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
-  
+  std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -705,6 +711,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
     
+    std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
@@ -783,6 +790,10 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         // Rcpp::Rcout <<"Store index process " << std::endl;
 ////End of replica swap process
     }// End loop of iterations
+    std::clock_t end = std::clock(); // Stop timer
+    // Calculate the time taken in seconds
+    double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+    time_taken[s] = duration;
     // Store result of the simulation
     full_pi_est.col(s)=pi_est;
     full_first_visit.col(s)=first_visit;
@@ -796,6 +807,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["visits"]=full_first_visit;
   ret["swap_rate"]=swap_rate;
   ret["total_iter"]=total_iterations;
+  ret["time_taken"]=time_taken;
   return ret;
 }
 
