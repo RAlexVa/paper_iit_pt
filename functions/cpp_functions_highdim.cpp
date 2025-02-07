@@ -850,13 +850,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   return ret;
 }
 
-
-
-
-
-
-
-
 ////////// Some testing functions //////////
 
 // [[Rcpp::export]]
