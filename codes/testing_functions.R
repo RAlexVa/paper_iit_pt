@@ -305,7 +305,7 @@ check2 <- PT_IIT_sim(p,1,2,10000,1000,5000,temperature,bal_f,FALSE,20)
 
 set.seed(123)
 #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state)
-check3 <- PT_a_IIT_sim(p,1,2,10000,1000,5000,temperature,bal_f,20)
+check3 <- PT_a_IIT_sim(p,1,2,10,1000,5000,temperature,bal_f,20)
 
 
 
