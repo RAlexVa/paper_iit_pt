@@ -286,6 +286,30 @@ check <- PT_IIT_sim(p,1,2,500,100,200,temperature,bal_f,TRUE,"gset/G1.txt",20)
 set.seed(123)
 check2 <- PT_IIT_sim(p,1,2,500,100,200,temperature,bal_f,FALSE,"gset/G1.txt",20)
 
+##### Testing burn-in period for low dimensional
+rm(list=ls())
+source("functions/r_functions.R")
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+
+temperature <- c(1,0.18,0.09,.001)
+bal_f <- c("sq","sq","sq","sq")
+p <- 16
+
+#PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+set.seed(123)
+check <- PT_IIT_sim(p,1,2,10000,1000,5000,temperature,bal_f,TRUE,20)
+
+#PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+set.seed(123)
+check2 <- PT_IIT_sim(p,1,2,10000,1000,5000,temperature,bal_f,FALSE,20)
+
+set.seed(123)
+#PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state)
+check3 <- PT_a_IIT_sim(p,1,2,10000,1000,5000,temperature,bal_f,20)
+
+
+
+
 
 
 
