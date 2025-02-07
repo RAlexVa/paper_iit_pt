@@ -46,8 +46,10 @@ export <- list();
 #### Function depending on algorithm to use
 
 writeLines(c("Parameters:",paste0("Algorithm: ",alg),
+             paste0("ID: ",id_chosen),
              paste0("Seed: ",defined_seed),
              paste0("Total simulations: ",total_simulations),
+             paste0("Burn-in iterations: ",burnin_iter),
              paste0("Temperatures: ",paste(temperatures,collapse=',')),
              paste0("Balancing functions: ",paste(bal_f,collapse = ',')),
              paste0("Total iterations: ",total_iter),
@@ -98,6 +100,7 @@ if(check!=1){print("modify parameters")}else{
   export[["states"]] <- output[["states"]]
   export[["loglik_visited"]] <- output[["loglik_visited"]]
   export[["iter_visit"]]<- output[["iter_visit"]]
+  export[["time_taken"]] <- output[["time_taken"]]
   output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
   saveRDS(export,file=file.path("results",output_name))
 }
