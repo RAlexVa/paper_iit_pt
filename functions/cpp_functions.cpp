@@ -36,7 +36,7 @@ vec num_to_vec(int n, int d){
   X.zeros();
   int temp;
   if(n<0 | n>=std::pow(2,d)){
-    Rcpp::Rcout <<"Error, number bigger than dimension " << std::endl;
+    Rcpp::Rcout <<"Error, number bigger than dimension.\n Returning vector of 0s " << std::endl;
     return(X);
   }else{
     for(int i=0;i<d;i++){
