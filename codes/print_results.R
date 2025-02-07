@@ -8,8 +8,8 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-# chosen_dim <- "highdim"; file_dim <- "highd"
-chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_dim <- "highdim"; file_dim <- "highd"
+# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 
 #List of files
 parameters <- read_csv(paste0("results/simulation_details_",file_dim,".csv"))
@@ -23,7 +23,7 @@ data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.
 
 
 # filter IDs to compare
-chosen_ids <- c(13,14,15,16)#c(9,10,11,12)   c(20,21,22)
+chosen_ids <-c(1,2,3)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 data_sum <- data_sum |> filter(id %in% chosen_ids)
 
 if(chosen_dim=="lowdim"){
@@ -127,34 +127,38 @@ if(chosen_dim=="lowdim"){
   }
 }
 ##### Delete first row with NA#####
-tvd <-  tvd |> filter(!is.na(alg))
-mode_visit <- mode_visit |> filter(!is.na(alg))
 round_trip <- round_trip |> filter(!is.na(alg))
 swap_rate <- swap_rate |> filter(!is.na(alg))
 iterations <- iterations |> filter(!is.na(alg))
-loglik_visited <- loglik_visited |> filter(!is.na(alg))
-iter_visit <- iter_visit|> filter(!is.na(alg))
+
 
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/images/",chosen_dim,"_ex")
 export_file_name <- paste0(chosen_dim,"_",paste0(chosen_ids,collapse="_"))
 # full_path <- file.path(export_path,paste0("tvd_",export_file_name,".jpg"))
-##### Total Variation Distance #####
 
-tvd_plot <- tvd |>  filter(alg!='IIT') |> 
-  ggplot(aes(x=alg,y=tvd,fill=alg)) +
-  geom_boxplot(show.legend = FALSE)+
-  labs(fill='Algortihm',x="",y="Total Variation Distance")+
-  theme_minimal(base_size = 17)+
-  theme(legend.key.size = unit(1, 'cm'))
-tvd_plot
 
-jpeg(file.path(export_path,paste0("tvd_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
-tvd_plot
-dev.off()
 
-##### First visit to modes #####
 if(chosen_dim=="lowdim"){
+  ##### Delete first row with NA#####
+  tvd <-  tvd |> filter(!is.na(alg)) 
+  mode_visit <- mode_visit |> filter(!is.na(alg))
+  
+  
+##### Total Variation Distance #####
+  
+  tvd_plot <- tvd |>  filter(alg!='IIT') |> 
+    ggplot(aes(x=alg,y=tvd,fill=alg)) +
+    geom_boxplot(show.legend = FALSE)+
+    labs(fill='Algortihm',x="",y="Total Variation Distance")+
+    theme_minimal(base_size = 17)+
+    theme(legend.key.size = unit(1, 'cm'))
+  tvd_plot
+  
+  jpeg(file.path(export_path,paste0("tvd_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+  tvd_plot
+  dev.off()
+##### First visit to modes #####
 col_names <- c("1","2","3","4","5","6","7")
 
 mode_sum <- mode_visit |> 
@@ -177,9 +181,6 @@ table_visited <- mode_sum |> rename(algorithm=alg) |>
 jpeg(file.path(export_path,paste0("table_visited_modes_",export_file_name,".jpg")),width=50*nrow(table_visited),height=40*nrow(table_visited),pointsize = 30)
 grid.arrange(tableGrob(table_visited))
 dev.off()
-}
-
-
 
 ##### Report on number of iterations for the original replica to visit all modes (most of the times after a swap)
 iterations_to_explore <- mode_sum |> filter(alg!='IIT') |> 
@@ -227,6 +228,7 @@ swaps_to_explore <- rbind(swaps_to_explore,temp)
 jpeg(file.path(export_path,paste0("table_swaps_",export_file_name,".jpg")),width=140*nrow(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
+
 ##### Report on average swap rate
 swap_report <- swap_rate |> 
   group_by(alg) |>
@@ -244,5 +246,32 @@ rt_report <- round_trip |>
 jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
 grid.arrange(tableGrob(rt_report))
 dev.off()
+}
+
+
+if(chosen_dim=="highdim"){
+  ##### Delete first row with NA#####
+  loglik_visited <- loglik_visited |> filter(!is.na(alg))
+  iter_visit <- iter_visit|> filter(!is.na(alg))
+  ##### Report on average swap rate
+  swap_report <- swap_rate |> 
+    group_by(alg) |>
+    summarise(`1↔2`=mean(`1`),`2↔3`=mean(`2`))
+  
+  
+  jpeg(file.path(export_path,paste0("table_swap_rate_",export_file_name,".jpg")),width=140*nrow(swap_report),height=40*nrow(swap_report),pointsize = 30)
+  grid.arrange(tableGrob(swap_report))
+  dev.off()
+  ##### Report on average swap rate
+  rt_report <- round_trip |> 
+    group_by(alg) |>
+    summarise(`R1`=mean(`1`),`R2`=mean(`2`),`R3`=mean(`3`),)
+  
+  jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
+  grid.arrange(tableGrob(rt_report))
+  dev.off()
+}
+
+
 
 
