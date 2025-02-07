@@ -730,7 +730,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       track_burn_in+=sample_inter_swap;
       Rcpp::Rcout << "Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
-    
+    ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
