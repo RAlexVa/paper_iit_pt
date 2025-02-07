@@ -23,7 +23,7 @@ data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.
 
 
 # filter IDs to compare
-chosen_ids <- 4#c(13,14,15,16)#c(9,10,11,12)
+chosen_ids <- c(20,21,22)#c(13,14,15,16)#c(9,10,11,12)
 data_sum <- data_sum |> filter(id %in% chosen_ids)
 
 if(chosen_dim=="lowdim"){
@@ -132,7 +132,7 @@ round_trip <- round_trip |> filter(!is.na(alg))
 swap_rate <- swap_rate |> filter(!is.na(alg))
 iterations <- iterations |> filter(!is.na(alg))
 loglik_visited <- loglik_visited |> filter(!is.na(alg))
-iter_visit <- iter_visit
+iter_visit <- iter_visit|> filter(!is.na(alg))
 
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/images/",chosen_dim,"_ex")
