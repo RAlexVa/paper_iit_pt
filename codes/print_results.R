@@ -10,6 +10,9 @@ library(latex2exp) #For using latex
 # Choose dimension
 chosen_dim <- "highdim"; file_dim <- "highd"
 # chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(10,11,12)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+
+
 
 #List of files
 parameters <- read_csv(paste0("results/simulation_details_",file_dim,".csv"))
@@ -23,7 +26,6 @@ data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.
 
 
 # filter IDs to compare
-chosen_ids <-c(1,2,3)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 data_sum <- data_sum |> filter(id %in% chosen_ids)
 
 if(chosen_dim=="lowdim"){
