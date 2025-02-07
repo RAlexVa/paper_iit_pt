@@ -101,6 +101,7 @@ if(check!=1){print("modify parameters")}else{
   export[["loglik_visited"]] <- output[["loglik_visited"]]
   export[["iter_visit"]]<- output[["iter_visit"]]
   export[["time_taken"]] <- output[["time_taken"]]
+  export[["ip"]] <- output[["ip"]]
   output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
   saveRDS(export,file=file.path("results",output_name))
 }

@@ -125,6 +125,7 @@ check <- 1;
   # Time of first visit
   export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
   export[["time_taken"]] <- output[["time_taken"]]
+  export[["ip"]] <- output[["ip"]]
   output_name <- paste0("sim_lowdim_id_",id_chosen,".Rds")
   saveRDS(export,file=file.path("results",output_name))
   }
