@@ -60,7 +60,7 @@ iterswap <- sim_chosen$interswap #Total iterations before trying a replica swap
 #Parameters for PT with a-IIT
 sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
 total_swap <- sim_chosen$total_swap #Total number of swaps to try
-
+burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
 start_state <- sim_chosen$start_state;
 alg <- sim_chosen$algorithm
 
@@ -68,8 +68,10 @@ export <- list();
 #### Function depending on algorithm to use
 
   writeLines(c("Parameters:",paste0("Algorithm: ",alg),
+               paste0("ID: ",id_chosen),
                paste0("Seed: ",defined_seed),
                paste0("Total simulations: ",total_simulations),
+               paste0("Burn-in iterations: ",burnin_iter),
                paste0("Temperatures: ",paste(temperatures,collapse=',')),
                paste0("Balancing functions: ",paste(bal_f,collapse = ',')),
                paste0("Total iterations: ",total_iter),
@@ -82,28 +84,28 @@ check <- 1;
   if(check!=1){print("modify parameters")}else{
   if(alg=="IIT"){
     # Only IIT
-    # output_name <- paste0("IIT_","sim_",total_simulations,"_iter_",total_iter,"_s_",defined_seed,".Rds");
-    output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap=total_iter+1,temp=temperatures[1],bal_function=bal_f[1], bias_fix = TRUE,initial_state = start_state)
+    #PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+    output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap=total_iter+1,burnin_iter,temp=temperatures[1],bal_function=bal_f[1], bias_fix = TRUE,initial_state = start_state)
   }else{
     
     if(alg=="PT_IIT_Z"){
-      # output_name <- paste0("PT_IIT_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
       # Using Z factor bias correction
-      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = TRUE,initial_state = start_state)
+      #PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,burnin_iter,temperatures,bal_f, bias_fix = TRUE,initial_state = start_state)
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
     }
     if(alg=="PT_IIT_no_Z"){
       # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
       # Without Z factor bias correction
-      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,temperatures,bal_f, bias_fix = FALSE,initial_state = start_state)
+      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,burnin_iter,temperatures,bal_f, bias_fix = FALSE,initial_state = start_state)
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT in each replica
       # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
-      output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f,initial_state = start_state)
+      output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,initial_state = start_state)
       #Number of iterations needed between swaps for each replica
       export[["total_iter"]] <- output[["total_iter"]]
       #round trip rate (NA for IIT)
@@ -122,7 +124,7 @@ check <- 1;
   
   # Time of first visit
   export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
-  
+  export[["time_taken"]] <- output[["time_taken"]]
   output_name <- paste0("sim_lowdim_id_",id_chosen,".Rds")
   saveRDS(export,file=file.path("results",output_name))
   }
