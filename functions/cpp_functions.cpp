@@ -370,7 +370,7 @@ for(int r=0;r<cols;r++){
 ////////// Code for Parallel Tempering simulations //////////
 
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state){
 //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
@@ -422,6 +422,69 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap, vec tem
     first_visit.zeros(); //Reset the vector of first visits
     swap_total.zeros();
     swap_success.zeros();
+    
+    //// Start loop for burn_in period
+    for(int i=0;i<burn_in;i++){
+      if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      for(int replica=0;replica<T;replica++){//For loop for replica update
+        current_temp=temp(index_process(replica));
+        output=IIT_update_w(X.col(replica),bal_function[index_process(replica)],current_temp);
+        X.col(replica)=vec(output(0)); //Update current state of the chain
+      }
+      //End replica update in burn-in period
+      
+      //In the burn-in period we don't modify the index process
+      //Just directly swap replicas
+      //This way when the simulation starts after burn-in period starts we have the original starting index process
+      //Start replica swap in burn-in period
+      if ((i+1) % iterswap == 0){
+        swap_count+=1;
+        int starting=swap_count%2;
+        for(int t=starting;t<J;t+=2){// For loop that runs over temperature indexes to swap
+          
+          epsilon_indic.elem(find(index_process==t)).ones();
+          prop_swap.elem(find(index_process==t)).ones(); //we swap temperature t
+          prop_swap.elem(find(index_process==t+1)).ones(); //With t+1
+          //Compute swap probability
+          Xtemp_from=X.col(t);
+          Xtemp_to=X.col(t+1);
+          
+          
+          //// Optional Computation of Z factors to correct bias
+          double Z_fact_correc=1;//to temporarily store Z_factor correction
+          if(bias_fix){
+            double Z_temp11;
+            double Z_temp12;
+            double Z_temp21;
+            double Z_temp22;
+            
+            output=IIT_update_w(Xtemp_from,bal_function[t],temp(t));
+            Z_temp11=output(1);
+            output=IIT_update_w(Xtemp_to,bal_function[t+1],temp(t+1));
+            Z_temp22=output(1);
+            output=IIT_update_w(Xtemp_from,bal_function[t+1],temp(t+1));
+            Z_temp12=output(1);
+            output=IIT_update_w(Xtemp_to,bal_function[t],temp(t));
+            Z_temp21=output(1);
+            
+            Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
+          }
+          //// Computing swap probability
+          swap_prob=(temp(t)-temp(t+1))*(loglik(Xtemp_to) - loglik(Xtemp_from)); 
+          swap_prob=Z_fact_correc*exp(swap_prob);
+          // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
+          ppp=Rcpp::runif(1);
+          if(ppp(0)<swap_prob){//In case the swap is accepted
+            //Swap vectors in the matrix X
+            X.col(t+1)=Xtemp_from;
+            X.col(t)=Xtemp_to;
+          }
+        }
+      }
+    }// Finish burn-in period
+    swap_count=0; //Reset swap count
+    
+    
 //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
@@ -529,7 +592,7 @@ swap_rate.row(s)=temp_rate.t();
 
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap, vec temp, const std::vector<std::string>& bal_function, int initial_state){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -586,6 +649,62 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     first_visit.zeros(); //Reset the vector of first visits
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
+    
+    ////Start the loop for burn-in period
+    int track_burn_in=0;
+    while(track_burn_in<burn_in){
+      for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
+        int samples_replica=0;
+        while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
+          current_temp=temp(replica);// Extract temperature of the replica
+          current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
+          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound);
+          
+          //// Compute weight
+          Z = output(1); //Extract the Z-factor
+          new_samples=1+R::rgeom(Z);
+          if(new_samples<1){
+            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            new_samples=sample_inter_swap;
+          }
+          if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
+            new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
+          }
+          samples_replica+=new_samples; // Update number of samples obtained from the replica
+          X.col(replica)=vec(output(0)); //Update current state of the chain
+          log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+        }
+      }//End loop to update replicas in the burn-in
+      
+      //// Start replica swap process
+      
+      swap_count+=1;//Increase the count of swaps
+      //Try a replica swap after reaching sample_inter_swap in each replica
+      //We're doing non-reversible parallel tempering
+      int starting=swap_count%2; // Detect if it's even or odd
+      // Rcpp::Rcout <<"Trying replica swap "<<swap_count<<" start: "<<starting <<" at iteration: "<< i << std::endl;
+      for(int t=starting;t<J;t+=2){// For loop that runs over temperature indexes to swap
+        Xtemp_from=X.col(t);
+        Xtemp_to=X.col(t+1);
+        
+        //// Computing swap probability
+        swap_prob=(temp(t)-temp(t+1))*(loglik(Xtemp_to) - loglik(Xtemp_from)); 
+        swap_prob=exp(swap_prob);
+        // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
+        ppp=Rcpp::runif(1);
+        if(ppp(0)<swap_prob){//In case the swap is accepted
+          //Swap vectors in the matrix X
+          X.col(t+1)=Xtemp_from;
+          X.col(t)=Xtemp_to;
+        }
+      }
+      track_burn_in+=sample_inter_swap;
+      Rcpp::Rcout << "Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
+    }
+    ////Finish the loop for burn-in period
+    swap_count=0; //Reset swap count
+    
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
