@@ -1,6 +1,7 @@
 //#include <Rcpp.h>
 #include <RcppArmadillo.h>
 #include <fstream>
+#include <ctime> 
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
@@ -425,7 +426,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
 //// Read matrix
   sp_mat Q_matrix=readSparseMatrix(filename);
-  
+  std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -502,6 +503,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
       }
     }// Finish burn-in period
     swap_count=0; //Reset swap count
+    std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
@@ -596,9 +598,11 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         // Rcpp::Rcout <<"Store index process " << std::endl;
       }//End of replica swap process
     }// End loop of iterations
+    std::clock_t end = std::clock(); // Stop timer
+    // Calculate the time taken in seconds
+    double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+    time_taken[s] = duration;
     // Store result of the simulation
-    
-    
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
@@ -610,6 +614,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   ret["states"]=states_visited;
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
+  ret["time_taken"]=time_taken;
   return ret;
 }
 
@@ -661,7 +666,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 //// Read matrix
   sp_mat Q_matrix=readSparseMatrix(filename);
   
-  
+  std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -732,6 +737,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }
     ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
+    std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
@@ -784,7 +790,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
         }
       }//End loop to update replicas
-      
       //// Start replica swap process
       
       swap_count+=1;//Increase the count of swaps
@@ -824,9 +829,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       // Rcpp::Rcout <<"Store index process " << std::endl;
       ////End of replica swap process
     }// End loop of iterations
+    std::clock_t end = std::clock(); // Stop timer
+    // Calculate the time taken in seconds
+    double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+    time_taken[s] = duration;
     // Store result of the simulation
-    
-    
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
@@ -839,6 +846,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
   ret["total_iter"]=total_iterations;
+  ret["time_taken"]=time_taken;
   return ret;
 }
 
