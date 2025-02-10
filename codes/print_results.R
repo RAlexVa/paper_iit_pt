@@ -8,9 +8,9 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(10,11,12)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+# chosen_dim <- "highdim"; file_dim <- "highd"
+chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -48,6 +48,7 @@ if(chosen_dim=="highdim"){
   iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
   loglik_visited <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(loglik_visited) <- c("alg","state",1:max(data_sum$simulations))
 }
+time_taken <- as.data.frame(matrix(NA,ncol=2));colnames(time_taken) <- c("alg","time")
 
 full_iter <- list()
 k <- 1
@@ -63,6 +64,13 @@ for(i in 1:nrow(data_sum)){
   if(algorithm=="PT_IIT_Z"){algorithm <- "PT-IIT w Z"}
   print(data_sum[i,"algorithm"])
   print(names(data))
+
+#Extract time
+temp <- as.data.frame(data[["time_taken"]])
+temp$alg <- algorithm
+temp <- temp |> select(alg,everything())
+colnames(temp) <- c("alg","time")
+time_taken <- rbind(time_taken,temp)
 if(chosen_dim=="lowdim"){
   # Extract TVD
   temp <- tibble(alg=algorithm,sim=1:tot_sim,tvd=data[["tvd"]])
@@ -76,6 +84,15 @@ if(chosen_dim=="lowdim"){
   temp$interswap <- data_sum |> slice(i) |> pull(interswap)
   temp <- temp |> select(alg,sim,interswap,everything())
   mode_visit <- rbind(mode_visit,temp)
+  
+  #Extract dist. estimation for modes
+  temp <- data[["est_pi"]]
+  if(max(colSums(temp))>1){  #check if distribution estimate is not normalized
+    temp <- t(t(temp)/colSums(temp))
+  }
+  
+check <-   t(t(temp)/colSums(temp))
+
 }
   if(chosen_dim=="highdim"){
     #Storing number of iterations to visit modes
@@ -132,12 +149,35 @@ if(chosen_dim=="lowdim"){
 round_trip <- round_trip |> filter(!is.na(alg))
 swap_rate <- swap_rate |> filter(!is.na(alg))
 iterations <- iterations |> filter(!is.na(alg))
+time_taken <- time_taken |> filter(!is.na(alg))
 
 
 ##### Export plots and tables #####
-export_path <- paste0("C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/images/",chosen_dim,"_ex")
+export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen_dim,"_ex")
 export_file_name <- paste0(chosen_dim,"_",paste0(chosen_ids,collapse="_"))
 # full_path <- file.path(export_path,paste0("tvd_",export_file_name,".jpg"))
+
+
+##### Time taken #####
+# time_plot <- time_taken|>  filter(alg!='IIT') |> 
+#   ggplot(aes(x=alg,y=time,fill=alg)) +
+#   geom_boxplot(show.legend = FALSE)+
+#   labs(fill='Algortihm',x="",y="Time in seconds")+
+#   theme_minimal(base_size = 17)+
+#   theme(legend.key.size = unit(1, 'cm'))
+# time_plot
+time_table <- time_taken |> filter(alg!='IIT') |> 
+  group_by(alg) |> 
+  summarise(min=min(time),
+            q1=quantile(time,probs=0.25),
+            median=quantile(time,probs=0.5),
+            mean=mean(time),
+            q3=quantile(time,probs=0.75),
+            max=max(time))
+
+jpeg(file.path(export_path,paste0("time_table_",export_file_name,".jpg")),width=150*nrow(time_table),height=40*nrow(time_table),pointsize = 30)
+grid.arrange(tableGrob(time_table))
+dev.off()
 
 
 
@@ -145,8 +185,6 @@ if(chosen_dim=="lowdim"){
   ##### Delete first row with NA#####
   tvd <-  tvd |> filter(!is.na(alg)) 
   mode_visit <- mode_visit |> filter(!is.na(alg))
-  
-  
 ##### Total Variation Distance #####
   
   tvd_plot <- tvd |>  filter(alg!='IIT') |> 
@@ -248,9 +286,9 @@ rt_report <- round_trip |>
 jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
 grid.arrange(tableGrob(rt_report))
 dev.off()
-}
+}# Finish low dim reports
 
-
+#Starts high dim reports
 if(chosen_dim=="highdim"){
   ##### Delete first row with NA#####
   loglik_visited <- loglik_visited |> filter(!is.na(alg))
