@@ -853,6 +853,12 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 ////////// Some testing functions //////////
 
 // [[Rcpp::export]]
+double eval_lik(const std::string& filename, vec X){
+  sp_mat M=readSparseMatrix(filename);
+  return(arma::as_scalar(X.t() * M * X));
+}
+
+// [[Rcpp::export]]
 vec testing_loglik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
   double temp;
