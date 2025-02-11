@@ -597,8 +597,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
           swap_prob=Z_fact_correc*exp(swap_prob);
           // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
           ppp=Rcpp::runif(1);
-          Rcpp::Rcout <<"Swap prob "<< swap_prob <<" RN: "<<ppp<< std::endl;
-          Rcpp::Rcout <<"Z correction "<< Z_fact_correc<< std::endl;
+          // Rcpp::Rcout <<"Swap prob "<< swap_prob <<" RN: "<<ppp<< std::endl;
+          // Rcpp::Rcout <<"Z correction "<< Z_fact_correc<< std::endl;
           if(ppp(0)<swap_prob){//In case the swap is accepted
             swap_success(t)+=1;//Increase the number of successful swaps of temp t
             // Rcpp::Rcout <<"Accepted swap " << std::endl;
