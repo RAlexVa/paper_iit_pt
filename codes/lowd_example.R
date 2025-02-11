@@ -117,14 +117,17 @@ check <- 1;
   }
   
   #Compute estimated density
-  # output[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]]))
-  export[["est_pi"]] <- output[["est_pi"]]
+  output[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]]))
+  # export[["est_pi"]] <- output[["est_pi"]]
   # Total Variation Distance
   export[["tvd"]] <- apply(output[["est_pi"]], 2,TVD,pi.est=pi.true)
-  
+  # estimated density on the modes
+  export[["pi_modes"]] <- output[["est_pi"]][modes+1,]
   # Time of first visit
   export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
+  #Running time
   export[["time_taken"]] <- output[["time_taken"]]
+  #Index process
   export[["ip"]] <- output[["ip"]]
   output_name <- paste0("sim_lowdim_id_",id_chosen,".Rds")
   saveRDS(export,file=file.path("results",output_name))
