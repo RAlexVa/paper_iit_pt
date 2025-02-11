@@ -51,6 +51,7 @@ vec num_to_vec(int n, int d){
   return(X);
 }
 // Take coordinates and create a binary vector with 1 in the defined coordinates
+
 // [[Rcpp::export]]
 vec createBinaryVector(const std::vector<int>& coordinates, int size) {
   vec binaryVector(size, fill::zeros); // Initialize vector with 0s
@@ -60,6 +61,18 @@ vec createBinaryVector(const std::vector<int>& coordinates, int size) {
     }
   }
   return binaryVector;
+}
+
+// [[Rcpp::export]]
+mat initializeMatrix(const std::vector<int>& coordinates, int size, int num_replicas) {
+  // vec createBinaryVector(coordinates,size);
+  mat ini_M(size,num_replicas);
+  for (int coord : coordinates) {
+    if (coord >= 0 && coord < size) {
+    ini_M.row(coord).fill(1);
+    }
+  }
+  return ini_M;
 }
 
 ////////// Balancing functions //////////
@@ -392,7 +405,7 @@ void IPT_update(mat& logprob_matrix, mat& states_matrix,sp_mat M, vec& temp,vec&
 ////////// Code for Parallel Tempering simulations //////////
 
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
@@ -441,13 +454,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-     X.zeros();//Reset the starting point of all chains
-    // vec initialX=num_to_vec(initial_state,p);
-    // for(int c=1;c<T;c++){
-    //   X.col(c)=initialX;
-    // }
-    
-
+    X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
     swap_total.zeros();
     swap_success.zeros();
     //// Start loop for burn_in period
@@ -627,9 +634,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   return ret;
 }
 
-
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -683,11 +689,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X.zeros();//Reset the starting point of all chains
-    // vec initialX=num_to_vec(initial_state,p);
-    // for(int c=1;c<T;c++){
-    //   X.col(c)=initialX;
-    // }
+    X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
     
 
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
@@ -860,7 +862,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited){
+List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -911,11 +913,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X.zeros();//Reset the starting point of all chains
-    // vec initialX=num_to_vec(initial_state,p);
-    // for(int c=1;c<T;c++){
-    //   X.col(c)=initialX;
-    // }
+    X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
     
     
     swap_total.zeros();
@@ -1118,7 +1116,7 @@ double eval_lik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
   return(arma::as_scalar(X.t() * M * X));
 }
-
+// [[Rcpp::export]]
 double eval_loglik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
   return(loglik(X,M));
