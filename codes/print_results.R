@@ -5,12 +5,13 @@ library(tidyverse)
 library(gridExtra)# For tables
 library(latex2exp) #For using latex
 
+
 ### Process simulation results ###
 
 # Choose dimension
-# chosen_dim <- "highdim"; file_dim <- "highd"
-chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_dim <- "highdim"; file_dim <- "highd"
+# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(14)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -35,8 +36,38 @@ if(chosen_dim=="lowdim"){
   round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
   swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
   iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4)
+  pi_modes <- as.data.frame(matrix(NA,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
+  # Low dimensional true probability setup
+  {
+    Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
+    source("functions/r_functions.R")
+    p <- 16 #dimension
+    theta <- 8 #tail weight parameter
+    
+    # Modes definition
+    mod1 <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)#rep(1,p)
+    mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+    mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+    mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+    mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+    mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+    mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+    modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+    modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+    
+    ### Compute true probability
+    pi.true <- rep(0,2^p)
+    for(i in 0:(2^p -1)){
+      pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+    }
+    pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+  }
+
+  
+  
 }
 if(chosen_dim=="highdim"){
+  Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp") #To use eval_lik function
   #High dim we have 3 temperatures
   #we dont track distribution convergence
   #we track visit to high probability states
@@ -88,10 +119,14 @@ if(chosen_dim=="lowdim"){
   #Extract dist. estimation for modes
   temp <- data[["est_pi"]]
   if(max(colSums(temp))>1){  #check if distribution estimate is not normalized
-    temp <- t(t(temp)/colSums(temp))
+    temp <- t(temp)/colSums(temp)
   }
-  
-check <-   t(t(temp)/colSums(temp))
+  temp <- as.data.frame(temp[,modes+1])
+  colnames(temp) <- 1:ncol(temp)
+  temp$sim <- 1:tot_sim
+  temp$alg <- algorithm
+  temp <- temp |> select(alg,sim,everything())
+  pi_modes <- rbind(pi_modes,temp)
 
 }
   if(chosen_dim=="highdim"){
@@ -112,6 +147,8 @@ check <-   t(t(temp)/colSums(temp))
     #Storing full list of states
     list_of_states[[Q]] <- data[["states"]]
     Q <- Q+1
+    #Re-Compute likelihood 
+    eval_lik("gset/G1.txt",data$states[,1,1])
   }
   
   
@@ -185,6 +222,32 @@ if(chosen_dim=="lowdim"){
   ##### Delete first row with NA#####
   tvd <-  tvd |> filter(!is.na(alg)) 
   mode_visit <- mode_visit |> filter(!is.na(alg))
+  pi_modes <- pi_modes|> filter(!is.na(alg))
+##### Compare estimation of modes #####  
+  # pi_modes |> pivot_longer(cols = -(alg:sim), names_to = "mode", values_to = "pi_est") |> 
+  #   ggplot(aes(x=alg,y=pi_est,fill=alg))+
+  #   geom_boxplot(show.legend = FALSE)+
+  #   facet_wrap(~mode)
+  
+  pi_modes |> pivot_longer(cols = -(alg:sim), names_to = "mode", values_to = "pi_est") |> 
+    ggplot(aes(x=mode,y=pi_est,fill=alg))+
+    geom_boxplot(show.legend = FALSE)+
+    geom_hline(yintercept = pi.true[modes[1]+1], color = "red", linetype = "dashed", size = 1)+
+    facet_wrap(~alg)+
+    theme_minimal(base_size = 17)+
+    theme(legend.key.size = unit(1, 'cm'))
+  
+  
+  pi_modes |> rowwise() |> 
+    mutate(tvd=0.5*sum(abs(pi.true[modes[1]+1]-c_across(`1`:`7`)))) |> 
+    ungroup() |> 
+    select(alg,tvd) |> 
+    ggplot(aes(x=alg,y=tvd,fill=alg)) +
+    geom_boxplot(show.legend = FALSE)+
+    labs(fill='Algortihm',x="",y="Total Variation Distance")+
+    theme_minimal(base_size = 17)+
+    theme(legend.key.size = unit(1, 'cm'))
+  
 ##### Total Variation Distance #####
   
   tvd_plot <- tvd |>  filter(alg!='IIT') |> 
