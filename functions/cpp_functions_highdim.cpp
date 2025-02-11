@@ -18,7 +18,7 @@ double ret_max(double a,double b,double c){
   vec temp={a,b,c};
   return(max(temp));
 }
-
+// Transform vector representation of base 2 into decimal representation
 // [[Rcpp::export]]
 int vec_to_num(vec X){
   int n=X.n_rows;
@@ -30,7 +30,7 @@ int vec_to_num(vec X){
   }
   return number;
 }
-
+// Transform number in decimal base to vector in base 2 representation
 // [[Rcpp::export]]
 vec num_to_vec(int n, int d){
   vec X(d);
@@ -50,7 +50,17 @@ vec num_to_vec(int n, int d){
   }
   return(X);
 }
-
+// Take coordinates and create a binary vector with 1 in the defined coordinates
+// [[Rcpp::export]]
+vec createBinaryVector(const std::vector<int>& coordinates, int size) {
+  vec binaryVector(size, fill::zeros); // Initialize vector with 0s
+  for (int coord : coordinates) {
+    if (coord >= 0 && coord < size) {
+      binaryVector(coord) = 1; // Set the specified coordinates to 1
+    }
+  }
+  return binaryVector;
+}
 
 ////////// Balancing functions //////////
 
@@ -94,7 +104,6 @@ double bal_func(double x,String chosen){
 
 
 ////////// Creating sparse matrix from file //////////
-
 arma::sp_mat readSparseMatrix(const std::string& filename){
   // Open the file
   std::ifstream file(filename);
@@ -132,10 +141,8 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 
 ////////// loglikelihood functions //////////
 double loglik(const arma::vec& X,const arma::sp_mat& M){
-  if(sum(X)==0){return(-0.05);
-    }else{
-    return log(arma::as_scalar(X.t() * M * X)); 
-  }
+  double temporal=arma::as_scalar(X.t() * M * X);
+  if(temporal==0){return(-0.05);}else{return(log(temporal));}
 }
 
 
@@ -583,6 +590,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
           swap_prob=Z_fact_correc*exp(swap_prob);
           // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
           ppp=Rcpp::runif(1);
+          Rcpp::Rcout <<"Swap prob "<< swap_prob <<" RN: "<<ppp<< std::endl;
+          Rcpp::Rcout <<"Z correction "<< Z_fact_correc<< std::endl;
           if(ppp(0)<swap_prob){//In case the swap is accepted
             swap_success(t)+=1;//Increase the number of successful swaps of temp t
             // Rcpp::Rcout <<"Accepted swap " << std::endl;
@@ -1110,6 +1119,11 @@ double eval_lik(const std::string& filename, vec X){
   return(arma::as_scalar(X.t() * M * X));
 }
 
+double eval_loglik(const std::string& filename, vec X){
+  sp_mat M=readSparseMatrix(filename);
+  return(loglik(X,M));
+}
+
 // [[Rcpp::export]]
 vec testing_loglik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
@@ -1134,7 +1148,6 @@ List testing_a_IIT_update(const std::string& filename,vec X, String chosen_bf, d
   sp_mat M=readSparseMatrix(filename);
   return(a_IIT_update(X,M,chosen_bf, temperature,log_bound));
 }
-
 
 // [[Rcpp::export]]
 void print_matrix(const std::string& filename){
