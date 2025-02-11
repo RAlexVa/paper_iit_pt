@@ -307,7 +307,9 @@ set.seed(123)
 #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state)
 check3 <- PT_a_IIT_sim(p,1,2,10,1000,5000,temperature,bal_f,20)
 
-
+set.seed(123)
+#PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state)
+check4 <- PT_a_IIT_sim_RF(p,1,2,10000,1000,5000,temperature,bal_f,TRUE,20)
 
 
 
@@ -325,9 +327,15 @@ bal_f <- c("sq","sq","sq")
 total_simulations <- 50
 total_swap <- 200
 set.seed(123)
+
+output <- PT_a_IIT_sim_RF(p,startsim=1, endsim=2,numiter=100,iterswap=25,burn_in=100,temperature,bal_f,TRUE,"gset/G1.txt",20)
+
+
 output <- PT_a_IIT_sim(p,1,50,200,1000,temperature,bal_f,"gset/G1.txt",30)
 
 output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,temperatures,bal_f)
+
+
 export <- list();
 #Number of iterations needed between swaps for each replica
 export[["total_iter"]] <- output[["total_iter"]]
@@ -343,3 +351,35 @@ export[["iter_visit"]]<- output[["iter_visit"]]
 output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
 saveRDS(export,file=file.path("results",output_name))
 
+
+
+##### Testing binary vector #####
+rm(list=ls())
+source("functions/r_functions.R")
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+
+a <- createBinaryVector(c(1,500,800,350,850,-1),800)
+
+
+
+##### Checking swap rate #####
+rm(list=ls())
+source("functions/r_functions.R")
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+id_chosen <- 4
+p <- 800
+temperature <- c(1,0.18,0.09)
+bal_f <- c("sq","sq","sq")
+total_simulations <- 50
+total_swap <- 200
+set.seed(123)
+
+output <- PT_IIT_sim(p,startsim=1, endsim=2,numiter=100,iterswap=25,burn_in=100,temperature,bal_f,TRUE,"gset/G1.txt",20)
+
+
+#### Testing initializing the high dimensional problem
+rm(list=ls())
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+createBinaryVector(c(1,4,5,10)-1,10)
+
+initializeMatrix(c(1,4,5,10)-1,10,5)
