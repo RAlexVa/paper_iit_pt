@@ -383,3 +383,17 @@ Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
 createBinaryVector(c(1,4,5,10)-1,10)
 
 initializeMatrix(c(1,4,5,10)-1,10,5)
+
+
+
+#### Testing random likelihoods
+rm(list=ls())
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+check <- hist_lik("gset/G1.txt",500000,0.3)
+hist(check)
+max(check)
+min(check)
+check <- hist_lik("gset/G1.txt",500000,0.7)
+hist(check)
+max(check)
+min(check)
