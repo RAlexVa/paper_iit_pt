@@ -1115,27 +1115,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   return ret;
 }
 
-
-
-////////// Some testing functions //////////
-
-
-// [[Rcpp::export]]
-vec hist_lik(const std::string& filename, int N,double p){
-  sp_mat M=readSparseMatrix(filename);
-  vec evaluated_likelihood(N);
-  int dim=M.n_rows;
-  
-  for(int sim=0;sim<N;sim++){
-    vec ppp=Rcpp::runif(dim);
-    vec state(dim,fill::zeros);
-    for(int i=0;i<dim;i++){
-      if(ppp(i)<p){state(i)=1;}
-    }
-    evaluated_likelihood(sim)=arma::as_scalar(state.t() * M * state);
-  }
-  return(evaluated_likelihood);
-}
+////////// Function to evaluate likelihood //////////
 
 // [[Rcpp::export]]
 double eval_lik(const std::string& filename, vec X){
@@ -1164,6 +1144,27 @@ vec eval_lik_matrix(const std::string& filename, mat mX){
 double eval_loglik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
   return(loglik(X,M));
+}
+
+
+
+////////// Some testing functions //////////
+
+// [[Rcpp::export]]
+vec hist_lik(const std::string& filename, int N,double p){
+  sp_mat M=readSparseMatrix(filename);
+  vec evaluated_likelihood(N);
+  int dim=M.n_rows;
+  
+  for(int sim=0;sim<N;sim++){
+    vec ppp=Rcpp::runif(dim);
+    vec state(dim,fill::zeros);
+    for(int i=0;i<dim;i++){
+      if(ppp(i)<p){state(i)=1;}
+    }
+    evaluated_likelihood(sim)=arma::as_scalar(state.t() * M * state);
+  }
+  return(evaluated_likelihood);
 }
 
 // [[Rcpp::export]]
