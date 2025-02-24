@@ -1142,6 +1142,24 @@ double eval_lik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
   return(arma::as_scalar(X.t() * M * X));
 }
+
+// [[Rcpp::export]]
+vec eval_lik_matrix(const std::string& filename, mat mX){
+  sp_mat M=readSparseMatrix(filename);
+  int sizeM=M.n_cols;
+  int number_vectors=mX.n_cols;
+  vec likelihoods(number_vectors);
+  vec X(sizeM);
+  // Rcpp::Rcout <<"Initialized correctly: "<< std::endl;
+  for(int i=0;i<number_vectors;i++){
+    // Rcpp::Rcout <<"iteration: "<<i<< std::endl;
+    X=mX.col(i);
+    likelihoods(i)=arma::as_scalar(X.t() * M * X);
+    // Rcpp::Rcout <<"Finish iteration: "<<i<< std::endl;
+  }
+  return(likelihoods);
+}
+
 // [[Rcpp::export]]
 double eval_loglik(const std::string& filename, vec X){
   sp_mat M=readSparseMatrix(filename);
