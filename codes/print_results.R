@@ -9,9 +9,9 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(31,32)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+# chosen_dim <- "highdim"; file_dim <- "highd"
+chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -35,7 +35,7 @@ if(chosen_dim=="lowdim"){
   mode_visit <- as.data.frame(matrix(NA,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
   round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
   swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
-  iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4)
+  iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4) #For the 4 replicas
   pi_modes <- as.data.frame(matrix(NA,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
   # Low dimensional true probability setup
   {
@@ -92,9 +92,14 @@ for(i in 1:nrow(data_sum)){
   data <- readRDS(file.path("results",data_sum[i,1]))
   tot_sim <- data_sum |> slice(i)|> pull(simulations)
   algorithm <- data_sum |> slice(i) |> pull(algorithm)
-  if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT"}
+  if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT m"}
   if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
-  if(algorithm=="PT_IIT_Z"){algorithm <- "PT-IIT w Z"}
+  if(algorithm=="PT_IIT_Z"){algorithm <- "PT-IIT"}
+  if(algorithm=="PT_A_IIT_RF"){algorithm <- "PT A-IIT w"}
+  
+##### Optinal add the ID of the simulation into the name of the algorithm
+  algorithm <- paste0(algorithm,"(",data_sum |> slice(i) |> pull(id),")")
+  
   print(data_sum[i,"algorithm"])
   print(names(data))
 
@@ -127,7 +132,7 @@ if(chosen_dim=="lowdim"){
   if(max(colSums(temp))>1){  #check if distribution estimate is not normalized
     temp <- t(temp)/colSums(temp)
   }
-  temp <- as.data.frame(temp[,modes+1])
+  temp <- as.data.frame(t(temp[modes+1,]))
   colnames(temp) <- 1:ncol(temp)
   temp$sim <- 1:tot_sim
   temp$alg <- algorithm
@@ -180,7 +185,6 @@ if(chosen_dim=="lowdim"){
 #     temp$alg <- algorithm
 #     temp <- temp |> select(alg,state,everything())
 #     loglik_visited <- rbind(loglik_visited,temp)
-    
 
     #Storing full list of states
     list_of_states[[Q]] <- data[["states"]]
@@ -188,7 +192,7 @@ if(chosen_dim=="lowdim"){
   }
   
   
-  if(algorithm!='IIT'){
+  if(!is_empty(data[["round_trips"]])){
     #Extract number of round trips rate
     temp <- as.data.frame(data[["round_trips"]])
     colnames(temp) <- 1:ncol(temp)
@@ -204,7 +208,7 @@ if(chosen_dim=="lowdim"){
     temp <- temp |> select(alg,sim,everything())
     swap_rate <- rbind(swap_rate,temp)
   }
-  if(algorithm=="PT A-IIT"){ 
+  if(!is_empty(data[["total_iter"]])){ 
     # Extract total iterations
     dims<- dim(data[["total_iter"]])
     full_iter[[k]] <- data[["total_iter"]]
@@ -239,7 +243,7 @@ export_file_name <- paste0(chosen_dim,"_",paste0(chosen_ids,collapse="_"))
 #   theme_minimal(base_size = 17)+
 #   theme(legend.key.size = unit(1, 'cm'))
 # time_plot
-time_table <- time_taken |> filter(alg!='IIT') |> 
+time_table <- time_taken |> filter(!str_starts(alg,'IIT')) |> 
   group_by(alg) |> 
   summarise(min=min(time),
             q1=quantile(time,probs=0.25),
@@ -286,7 +290,7 @@ if(chosen_dim=="lowdim"){
   
 ##### Total Variation Distance #####
   
-  tvd_plot <- tvd |>  filter(alg!='IIT') |> 
+  tvd_plot <- tvd |>  filter(!str_starts(alg,'IIT')) |> 
     ggplot(aes(x=alg,y=tvd,fill=alg)) +
     geom_boxplot(show.legend = FALSE)+
     labs(fill='Algortihm',x="",y="Total Variation Distance")+
@@ -322,7 +326,7 @@ grid.arrange(tableGrob(table_visited))
 dev.off()
 
 ##### Report on number of iterations for the original replica to visit all modes (most of the times after a swap)
-iterations_to_explore <- mode_sum |> filter(alg!='IIT') |> 
+iterations_to_explore <- mode_sum |> filter(!str_starts(alg,'IIT')) |> 
   group_by(alg) |> 
   summarise(min=min(last_visit),
             q1=quantile(last_visit,probs=0.25),
@@ -338,7 +342,7 @@ dev.off()
 
 ##### Report on number of replica swaps needed to visit all modes
 # First algorithms do 2k iterations before trying a replica swap
-swaps_to_explore <- mode_sum |> filter(alg!='IIT',alg!="PT A-IIT") |> 
+swaps_to_explore <- mode_sum |> filter(!str_starts(alg,'IIT'),!str_starts(alg,'PT A-IIT m')) |> 
   mutate(last_visit=last_visit/interswap) |> 
   group_by(alg) |> 
   summarise(min=min(last_visit),
@@ -348,7 +352,7 @@ swaps_to_explore <- mode_sum |> filter(alg!='IIT',alg!="PT A-IIT") |>
             q3=quantile(last_visit,probs=0.75),
             max=max(last_visit))
 
-temp <- mode_sum |> filter(alg=="PT A-IIT") |>
+temp <- mode_sum |> filter(str_starts(alg,'PT A-IIT m')) |>
   select(alg,sim,last_visit) |> 
   left_join(iterations,by=c("alg","sim")) |> 
   mutate(last_visit=last_visit/`1`) |> 
