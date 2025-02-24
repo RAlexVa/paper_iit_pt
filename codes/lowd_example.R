@@ -91,29 +91,35 @@ check <- 1;
     if(alg=="PT_IIT_Z"){
       # Using Z factor bias correction
       #PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
-      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,burnin_iter,temperatures,bal_f, bias_fix = TRUE,initial_state = start_state)
+      output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f, TRUE,start_state)
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
     }
     if(alg=="PT_IIT_no_Z"){
       # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
       # Without Z factor bias correction
-      output <- PT_IIT_sim(p,startsim=1, endsim=total_simulations,numiter=total_iter,iterswap,burnin_iter,temperatures,bal_f, bias_fix = FALSE,initial_state = start_state)
+      output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f, FALSE,start_state)
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
     }
     if(alg=="PT_A_IIT"){
-      # Using A-IIT in each replica
+      # Using A-IIT with multiplicity list in each replica
       # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
-      output <- PT_a_IIT_sim(p,startsim=1, endsim=total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,initial_state = start_state)
+      output <- PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state)
       #Number of iterations needed between swaps for each replica
       export[["total_iter"]] <- output[["total_iter"]]
       #round trip rate (NA for IIT)
       export[["round_trips"]] <- PT_RT(output[["ip"]],total_swap,total_simulations)
     }
+    if(alg=="PT_A_IIT_RF"){
+      # Using A-IIT with weights in each replica
+      #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+      output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,start_state)
+      #round trip rate (NA for IIT)
+      export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+    }
     # Replica swap acceptance rate (NA for IIT)
     export[["swap_rate"]] <- output[["swap_rate"]]
-    
   }
   
   #Compute estimated density
