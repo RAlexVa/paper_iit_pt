@@ -93,10 +93,6 @@ double bal_func(double x,String chosen){
 
 
 ////////// loglikelihood functions //////////
-// [[Rcpp::export]]
-double mod0_loglik(vec X){
-  return(-sum(X));
-}
 
 
 // 7 modes log-likelihood, dimension 16
