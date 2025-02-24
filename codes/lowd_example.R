@@ -126,7 +126,7 @@ run_lowd <- function(list_ids){
         }
         
         #Compute estimated density
-        output[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]]))
+        export[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]]))
         # export[["est_pi"]] <- output[["est_pi"]]
         # Total Variation Distance
         export[["tvd"]] <- apply(output[["est_pi"]], 2,TVD,pi.est=pi.true)
