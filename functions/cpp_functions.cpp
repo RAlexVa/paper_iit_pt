@@ -214,7 +214,6 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound)
   return ret;
 }
 
-
 // [[Rcpp::export]]
 void IPT_update(mat& logprob_matrix, mat& states_matrix, vec& temp,vec& index_process, const std::vector<std::string>& bal_function){
   int rows=logprob_matrix.n_rows;
