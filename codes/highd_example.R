@@ -20,9 +20,8 @@ run_highd <- function(list_ids){
     #### Prompt to choose which simulation to run
     writeLines("You can write various IDs separated by commas")
     list_ids <- readline('Choose id:')
-    list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
   }
-  
+    list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
   ##### Read file for parameters #####
   parameters <- as.data.frame(read_csv("results/simulation_details_highd.csv"))
   
@@ -99,6 +98,16 @@ run_highd <- function(list_ids){
           #round trip rate (NA for IIT)
           export[["round_trips"]] <- PT_RT(output[["ip"]],total_swap,total_simulations)
         }
+        if(alg=="PT_A_IIT_RF"){
+          # Using A-IIT with weights in each replica
+          #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+          output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,start_state)
+          #round trip rate (NA for IIT)
+          export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+        }
+        # Replica swap acceptance rate (NA for IIT)
+        export[["swap_rate"]] <- output[["swap_rate"]]
+      }
         # Replica swap acceptance rate (NA for IIT)
         export[["swap_rate"]] <- output[["swap_rate"]]
         
