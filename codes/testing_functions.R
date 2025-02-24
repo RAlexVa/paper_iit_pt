@@ -397,3 +397,18 @@ check <- hist_lik("gset/G1.txt",500000,0.7)
 hist(check)
 max(check)
 min(check)
+
+
+
+#### Testing likelihoods of multimodal highdimensional
+rm(list=ls())
+Rcpp::sourceCpp("functions/cpp_func_multihigh.cpp")
+vec1 <- c(rep(0,400),rep(1,400))
+vec2 <- c(rep(1,400),rep(0,400))
+vec3 <- rep(0:1,400)
+
+eval_loglik("gset/G1.txt",vec1)
+eval_loglik("gset/G1.txt",vec2)
+eval_loglik("gset/G1.txt",vec3)
+
+
