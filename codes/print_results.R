@@ -11,7 +11,7 @@ library(latex2exp) #For using latex
 # Choose dimension
 chosen_dim <- "highdim"; file_dim <- "highd"
 # chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(28)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_ids <-c(31,32)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -68,6 +68,7 @@ if(chosen_dim=="lowdim"){
 }
 if(chosen_dim=="highdim"){
   Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp") #To use eval_lik function
+  source("functions/r_functions.R") #To get dimension of the problem
   #High dim we have 3 temperatures
   #we dont track distribution convergence
   #we track visit to high probability states
@@ -78,6 +79,7 @@ if(chosen_dim=="highdim"){
   list_of_states <- list()
   iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
   loglik_visited <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(loglik_visited) <- c("alg","state",1:max(data_sum$simulations))
+  max_lik <- as.data.frame(matrix(NA,ncol=4));colnames(max_lik) <- c("alg","sim","iteration","lik")
 }
 time_taken <- as.data.frame(matrix(NA,ncol=2));colnames(time_taken) <- c("alg","time")
 
@@ -98,10 +100,14 @@ for(i in 1:nrow(data_sum)){
 
 #Extract time
 temp <- as.data.frame(data[["time_taken"]])
-temp$alg <- algorithm
-temp <- temp |> select(alg,everything())
-colnames(temp) <- c("alg","time")
-time_taken <- rbind(time_taken,temp)
+if(!is_empty(temp)){
+  temp$alg <- algorithm
+  temp <- temp |> select(alg,everything())
+  colnames(temp) <- c("alg","time")
+  time_taken <- rbind(time_taken,temp)
+}
+
+### Specific extractions for lowdim example
 if(chosen_dim=="lowdim"){
   # Extract TVD
   temp <- tibble(alg=algorithm,sim=1:tot_sim,tvd=data[["tvd"]])
@@ -130,25 +136,55 @@ if(chosen_dim=="lowdim"){
 
 }
   if(chosen_dim=="highdim"){
-    #Storing number of iterations to visit modes
-    temp <- as.data.frame(data[["iter_visit"]])
-    colnames(temp) <- 1:ncol(temp)
-    temp$state <- 1:nrow(temp)
+### Specific extractions for highdim example
+    file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
+    p <- readParameters(file_matrix)
+# Each column is a simulation   
+# Identifying maximum likelihood visited in each simulation
+    index_max <- apply(data[["loglik_visited"]],2,which.max)
+    full_index_max <- cbind(index_max,1:tot_sim)
+    
+    
+    #Storing number of iterations to visit the state with max likelihood and the value of likelihood
+    temp <- data[["iter_visit"]]
+    temp <- as.data.frame(temp[full_index_max])
+    colnames(temp) <- "iteration"
+    temp$sim <- 1:tot_sim
     temp$alg <- algorithm
-    temp <- temp |> select(alg,state,everything())
-    iter_visit <- rbind(iter_visit,temp)
-    #Storing likelihood of visited states
-    temp <- as.data.frame(data[["loglik_visited"]])
-    colnames(temp) <- 1:ncol(temp)
-    temp$state <- 1:nrow(temp)
-    temp$alg <- algorithm
-    temp <- temp |> select(alg,state,everything())
-    loglik_visited <- rbind(loglik_visited,temp)
+    temp <- temp |> select(alg,sim,everything())
+    
+    state_max <- matrix(NA,nrow=p,ncol=tot_sim)
+    likelihood_max <- rep(0,tot_sim)
+    #Extract specific state
+    for(i in 1:tot_sim){#Extract 1 state for each simulation
+      vec_temp <- data[["states"]][,index_max[i],i]
+      state_max[,i] <- vec_temp
+      # likelihood_max[i] <- eval_lik(file_matrix,vec_temp)
+    }
+    likelihood_max <- eval_lik_matrix(file_matrix,state_max)
+    temp$lik <- likelihood_max
+    max_lik <- rbind(max_lik,temp)
+    
+    
+# ###### Storing number of iterations to visit modes
+#     temp <- as.data.frame(data[["iter_visit"]])
+#     colnames(temp) <- 1:ncol(temp)
+#     temp$state <- 1:nrow(temp)
+#     temp$alg <- algorithm
+#     temp <- temp |> select(alg,state,everything())
+#     iter_visit <- rbind(iter_visit,temp)
+# ###### Storing likelihood of visited states
+#     temp <- as.data.frame(data[["loglik_visited"]])
+#     colnames(temp) <- 1:ncol(temp)
+#     temp$state <- 1:nrow(temp)
+#     temp$alg <- algorithm
+#     temp <- temp |> select(alg,state,everything())
+#     loglik_visited <- rbind(loglik_visited,temp)
+    
+
     #Storing full list of states
     list_of_states[[Q]] <- data[["states"]]
     Q <- Q+1
-    #Re-Compute likelihood 
-    eval_lik("gset/G1.txt",data$states[,1,1])
   }
   
   
@@ -212,7 +248,7 @@ time_table <- time_taken |> filter(alg!='IIT') |>
             q3=quantile(time,probs=0.75),
             max=max(time))
 
-jpeg(file.path(export_path,paste0("time_table_",export_file_name,".jpg")),width=150*nrow(time_table),height=40*nrow(time_table),pointsize = 30)
+jpeg(file.path(export_path,paste0("time_table_",export_file_name,".jpg")),width=250*nrow(time_table),height=35*nrow(time_table),pointsize = 30)
 grid.arrange(tableGrob(time_table))
 dev.off()
 
@@ -354,6 +390,7 @@ dev.off()
 #Starts high dim reports
 if(chosen_dim=="highdim"){
   ##### Delete first row with NA#####
+  max_lik <- max_lik|> filter(!is.na(alg))
   loglik_visited <- loglik_visited |> filter(!is.na(alg))
   iter_visit <- iter_visit|> filter(!is.na(alg))
   ##### Report on average swap rate
