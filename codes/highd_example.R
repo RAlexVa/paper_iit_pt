@@ -42,7 +42,7 @@ run_highd <- function(list_ids){
     if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
 #In case there are more than 1 model, I need to re-read functions depending on model
     if(!only_1_model){
-      print(paste0("Reding C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
+      print(paste0("Reading C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
       if(sim_chosen$model=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
       if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multihigh.cpp")}
     }
@@ -117,8 +117,8 @@ run_highd <- function(list_ids){
         }
         if(alg=="PT_A_IIT_RF"){
           # Using A-IIT with weights in each replica
-          #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
-          output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,start_state)
+          #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
+          output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
           export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
         }
