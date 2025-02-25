@@ -9,7 +9,7 @@ library(readr)
 # install.packages("tidyverse")
 
 ##### import functions #####
-Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+
 source("functions/r_functions.R")
 run_highd <- function(list_ids){
   if(!("./results" %in% list.dirs(recursive=F))){
@@ -26,10 +26,26 @@ run_highd <- function(list_ids){
   ##### Read file for parameters #####
   parameters <- as.data.frame(read_csv("results/simulation_details_highd.csv"))
   
+#Check how many models we're doing
+    tot_models <- unique(parameters|> filter(id %in% list_ids) |> pull(model))
+    if(length(tot_models)==1){only_1_model <- TRUE;}else{only_1_model <- FALSE}
+# In case only 1 model is chosen, we only read 1 model for all the IDs    
+    if(only_1_model){
+      print("Reading one set of C++ functions")
+      if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
+      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multihigh.cpp")}
+    }
   #Start process for algorithms
   for(id_chosen in list_ids){
+
     sim_chosen <- parameters |> filter(id==id_chosen)
     if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
+#In case there are more than 1 model, I need to re-read functions depending on model
+    if(!only_1_model){
+      print(paste0("Reding C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
+      if(sim_chosen$model=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
+      if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multihigh.cpp")}
+    }
     # Parameters for all algorithms
     total_simulations <- sim_chosen$simulations
     temperatures <- as.numeric(sim_chosen |> select(matches("^t\\d+$")))
