@@ -44,6 +44,7 @@ run_lowd <- function(list_ids){
       writeLines("You can write various IDs separated by commas")
       list_ids <- readline('Choose id:')
     }
+    if(!is.character(list_ids)){ list_ids <- as.character(list_ids)}
     list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
     ##### Read file for parameters #####
     parameters <- as.data.frame(read_csv("results/simulation_details_lowd.csv"))
