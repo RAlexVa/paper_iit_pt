@@ -11,7 +11,7 @@ library(latex2exp) #For using latex
 # Choose dimension
 # chosen_dim <- "highdim"; file_dim <- "highd"
 chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-9#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_ids <-c(21,22,23,24)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -130,7 +130,7 @@ if(chosen_dim=="lowdim"){
   #Extract dist. estimation for modes
   temp <- data[["est_pi"]]
   if(max(colSums(temp))>1){  #check if distribution estimate is not normalized
-    temp <- t(temp)/colSums(temp)
+    temp <- temp/colSums(temp)
   }
   temp <- as.data.frame(t(temp[modes+1,]))
   colnames(temp) <- 1:ncol(temp)
