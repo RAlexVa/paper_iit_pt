@@ -34,6 +34,16 @@ data_u |> pivot_longer(-r,names_to = "b.fun",values_to = 'h(r)') |>
   geom_line(size=1)
 
 
+x <- seq(0.1,5,by=0.1)
+#### Random balancing functions
+data_u <- tibble(r=x,
+                 f1=sapply(x,bf,f=sqrt,bb=1.5),
+                 f2=sapply(x,bf,f=sqrt,bb=2))
+data_u |> pivot_longer(-r,names_to = "b.fun",values_to = 'h(r)') |>  
+  ggplot(aes(x=r,y=`h(r)`,color = `b.fun`))+
+  geom_line(size=1)
+
+
 # data_u <- tibble(r=x,
 #                  f1=sapply(x,bf,f=function(x){1+x},bb=.1),
 #                  f2=sapply(x,bf,f=function(x){1+x},bb=1),
