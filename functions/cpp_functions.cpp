@@ -676,12 +676,15 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   
   // Probability to update
-  double prob_to_dec;
-    if(reduc_model=="always"){
-      prob_to_dec=1;
-    }else{
-      prob_to_dec=0.5;
-    }
+  bool update_prob=false;
+  double prob_to_dec=0;
+  double percentage_start=0.05;
+  double percentage_end=0.70;
+  int total_replica_iterations=sample_inter_swap*total_swaps;
+  int sample_iterations_count;
+    if(reduc_model=="always"){prob_to_dec=1;}
+    if(reduc_model=="never"){prob_to_dec=0;}
+    if(reduc_model=="iterations"){update_prob=true;}
   
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -699,7 +702,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     first_visit.zeros(); //Reset the vector of first visits
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
-    
+    if(reduc_model=="iterations"){update_prob=true;} //Reset the bool to update probability
+    prob_to_dec=1;     //Reset the probability to reduce the bounding constant
+    sample_iterations_count=0; // Reset the counting of iterations (or samples)
     ////Start the loop for burn-in period
     int track_burn_in=0;
     while(track_burn_in<burn_in){
@@ -758,7 +763,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 10 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Swap: " << i << std::endl;}
+      if (i % 10 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Swap: " << i<< " Prob_decrease_bound: " << prob_to_dec << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
@@ -766,6 +771,24 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           total_iterations(i,index_process(replica),s)+=1;//increase the number of iterations
           current_temp=temp(index_process(replica));// Extract temperature of the replica
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
+          
+          if(update_prob){//Check if we need to update the probability
+            if(current_temp==1){//The original replica defines the speed to modify the probabilty to decrease bounding constant
+              sample_iterations_count+=samples_replica; //Add the number of iterations (or samples) from the previous step
+              if(sample_iterations_count>total_replica_iterations*percentage_start){//Check if we start decreasing the probability
+                if(sample_iterations_count>total_replica_iterations*percentage_end){//Check if we stop decreasing the probability
+                  prob_to_dec=0;
+                  update_prob=false;
+                }else{//In case we haven't finished updating the probability
+                  //Probability is proportional 
+                  double progress=sample_iterations_count/total_replica_iterations;
+                  prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
+                }
+              }
+            }
+          }
+          
+          
           output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
           
           //// Compute weight
@@ -894,12 +917,15 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   
   // Probability to update
-  double prob_to_dec;
-  if(reduc_model=="always"){
-    prob_to_dec=1;
-  }else{
-    prob_to_dec=0.5;
-  }
+  bool update_prob=false;
+  double prob_to_dec=0;
+  double percentage_start=0.05;
+  double percentage_end=0.70;
+  int total_replica_iterations=numiter;
+  int sample_iterations_count;
+  if(reduc_model=="always"){prob_to_dec=1;}
+  if(reduc_model=="never"){prob_to_dec=0;}
+  if(reduc_model=="iterations"){update_prob=true;}
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -918,6 +944,9 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
     swap_total.zeros();
     swap_success.zeros();
     
+    if(reduc_model=="iterations"){update_prob=true;} //Reset the bool to update probability
+    prob_to_dec=1;     //Reset the probability to reduce the bounding constant
+    sample_iterations_count=0; // Reset the counting of iterations (or samples)
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
@@ -985,13 +1014,27 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
+      if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i <<"Prob_decrease_bound: "<<prob_to_dec<< std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
-        //Depending on the chosen method
-        //// Update each replica independently
+        
+        if(update_prob){//Check if we need to update the probability
+          if(current_temp==1){//The original replica defines the speed to modify the probabilty to decrease bounding constant
+            sample_iterations_count=i; //Add the number of iterations (or samples) from the previous step
+            if(sample_iterations_count>total_replica_iterations*percentage_start){//Check if we start decreasing the probability
+              if(sample_iterations_count>total_replica_iterations*percentage_end){//Check if we stop decreasing the probability
+                prob_to_dec=0;
+                update_prob=false;
+              }else{//In case we haven't finished updating the probability
+                //Probability is proportional 
+                double progress=sample_iterations_count/total_replica_iterations;
+                prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
+              }
+            }
+          }
+        }
         output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
         //// Store Z factor of replica with temperature 1
         if(current_temp==1){ // For the original temperature replica
