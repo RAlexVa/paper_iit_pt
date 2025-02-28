@@ -462,7 +462,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
     
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
-      if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "PT-IIT - Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         output=IIT_update_w(X.col(replica),bal_function[index_process(replica)],current_temp);
@@ -702,8 +702,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     first_visit.zeros(); //Reset the vector of first visits
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
-    if(reduc_model=="iterations"){update_prob=true;} //Reset the bool to update probability
-    prob_to_dec=1;     //Reset the probability to reduce the bounding constant
+    //Reset the probability to reduce the bounding constant
+    if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
     ////Start the loop for burn-in period
     int track_burn_in=0;
@@ -754,7 +754,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         }
       }
       track_burn_in+=sample_inter_swap;
-      Rcpp::Rcout << "Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
+      Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
     ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
@@ -763,7 +763,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 10 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Swap: " << i<< " Prob_decrease_bound: " << prob_to_dec << std::endl;}
+      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i<< " Prob_decrease_bound: " << prob_to_dec << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
@@ -944,12 +944,12 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
     swap_total.zeros();
     swap_success.zeros();
     
-    if(reduc_model=="iterations"){update_prob=true;} //Reset the bool to update probability
-    prob_to_dec=1;     //Reset the probability to reduce the bounding constant
+    //Reset the probability to reduce the bounding constant
+    if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
-      if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IITw - Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
@@ -1014,7 +1014,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i <<"Prob_decrease_bound: "<<prob_to_dec<< std::endl;}
+      if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IITw - Simulation: " << s+startsim << " Iteration: " << i <<"...Prob_decrease_bound: "<<prob_to_dec<< std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
