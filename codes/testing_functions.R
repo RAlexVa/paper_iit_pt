@@ -412,3 +412,28 @@ eval_loglik("gset/G1.txt",vec2)
 eval_loglik("gset/G1.txt",vec3)
 
 
+
+#### Testing bounded balancing function
+rm(list=ls())
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+bound_sq(1,2)
+
+#Using bound 2 we get 
+library(ggplot2)
+exp(bound_sq(log(0.1),log(2)))
+exp(bound_sq(log(0.2),log(2)))
+exp(bound_sq(log(0.25),log(2)))
+exp(bound_sq(log(0.5),log(2)))
+exp(bound_sq(log(3),log(2)))
+exp(bound_sq(log(54),log(2)))
+exp(bound_sq(log(55),log(2)))
+exp(bound_sq(log(155),log(2)))
+exp(bound_sq(log(12355),log(2)))
+y <- c()
+x <- c(seq(0.01,0.25,by=0.01),seq(0.25,5,by=0.1))
+x <- c(seq(0.01,0.25,by=0.001))
+for(i in 1:length(x)){
+  y[i] <- exp(bound_sq(log(x[i]),log(2)))
+}
+
+as.data.frame(x=x,y=y) |> ggplot(aes(x=x,y=y))+geom_point()
