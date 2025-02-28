@@ -54,8 +54,11 @@ run_lowd <- function(list_ids){
       if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
       # Parameters for all algorithms
       total_simulations <- sim_chosen$simulations
-      temperatures <- as.numeric(sim_chosen[paste0("t",1:4)])
-      bal_f <- as.character(sim_chosen[paste0("bf",1:4)])
+      temperatures <- as.numeric(sim_chosen[paste0("t",1:4)])#vector with temperatures
+      bal_f <- as.character(sim_chosen[paste0("bf",1:4)])#vector with balancing functions
+      burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
+      start_state <- sim_chosen$start_state;#starting point
+      alg <- sim_chosen$algorithm # algorithm
       defined_seed <- sim_chosen$seed
       set.seed(defined_seed)
       #Parameters for PT with IIT
@@ -64,9 +67,9 @@ run_lowd <- function(list_ids){
       #Parameters for PT with a-IIT
       sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
       total_swap <- sim_chosen$total_swap #Total number of swaps to try
-      burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
-      start_state <- sim_chosen$start_state;
-      alg <- sim_chosen$algorithm
+      reduc_constant <- sim_chosen$reduc_constant
+      apply_reduction <- (reduc_constant>0)
+      reduc_model <- sim_chosen$reduc_model
       
       export <- list();
       #### Function depending on algorithm to use
@@ -81,7 +84,9 @@ run_lowd <- function(list_ids){
                    paste0("Total iterations: ",total_iter),
                    paste0("Try swaps:",iterswap),
                    paste0("Samples in-between swaps: ",sample_inter_swap),
-                   paste0("Total swaps:",total_swap),"","","Confirm below"))
+                   paste0("Total swaps:",total_swap),
+                   paste0("Reduction constant:",reduc_constant),
+                   paste0("bound reduction method:",reduc_model)))
       
       # check <- as.numeric(readline('ok? 1 Yes/ 0 No'))
       check <- 1;
@@ -109,7 +114,7 @@ run_lowd <- function(list_ids){
           if(alg=="PT_A_IIT"){
             # Using A-IIT with multiplicity list in each replica
             # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
-            output <- PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state)
+            output <- PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state,apply_reduction,reduc_constant,reduc_model)
             #Number of iterations needed between swaps for each replica
             export[["total_iter"]] <- output[["total_iter"]]
             #round trip rate (NA for IIT)
@@ -118,7 +123,7 @@ run_lowd <- function(list_ids){
           if(alg=="PT_A_IIT_RF"){
             # Using A-IIT with weights in each replica
             #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
-            output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,start_state)
+            output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,start_state,apply_reduction,reduc_constant,reduc_model)
             #round trip rate (NA for IIT)
             export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
           }
