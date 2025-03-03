@@ -49,3 +49,4 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf1,bf
 47,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,keeping temperatures from 36
 48,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0,iterations,
 49,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,iterations,
+50,PT_A_IIT,10,NA,1000,500,0,13,sq,sq,sq,sq,1,0.155,0.1,0.05,75000,0,0,Copying 36 with less simulations
