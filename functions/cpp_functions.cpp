@@ -817,7 +817,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
                     // Rcpp::Rcout <<""<< sample_iterations_count <<" / "<<total_replica_iterations<<"="<<progress<< std::endl;
                     // Rcpp::Rcout <<"progress: "<< progress << std::endl;
                     prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
-                    Rcpp::Rcout <<"New prob: "<< prob_to_dec << std::endl;
+                    // Rcpp::Rcout <<"New prob: "<< prob_to_dec << std::endl;
                   }
                 }
               }
