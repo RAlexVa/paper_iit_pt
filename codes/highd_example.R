@@ -49,7 +49,9 @@ run_highd <- function(list_ids){
     # Parameters for all algorithms
     total_simulations <- sim_chosen$simulations
     temperatures <- as.numeric(sim_chosen |> select(matches("^t\\d+$")))
+    temperatures <- temperatures[!is.na(temperatures)]
     bal_f <- as.character(sim_chosen|> select(matches("^bf")))
+    bal_f <- bal_f[!is.na(bal_f)]
     defined_seed <- sim_chosen$seed
     set.seed(defined_seed)
     #Parameters for PT with IIT
