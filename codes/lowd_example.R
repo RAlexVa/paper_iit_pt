@@ -11,34 +11,6 @@ run_lowd <- function(list_ids){
   if(!("./results" %in% list.dirs(recursive=F))){
     print("Wrong directory. There's no results folder for the output")
   }else{
-    ##### Low-dimensional multimodal example setup #####
-    {
-      p <- 16 #dimension
-      theta <- 8 #tail weight parameter
-      
-      # Modes definition
-      mod1 <- rep(1,p)
-      mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
-      mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
-      mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
-      mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
-      mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
-      mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
-      modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
-      modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
-      
-      ### Compute true probability
-      pi.true <- rep(0,2^p)
-      for(i in 0:(2^p -1)){
-        pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
-      }
-      pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
-      # pi.true[modes+1] #True probability of the modes
-      # sum(pi.true[modes+1]) #Accumulated probability of the modes
-      # plot(pi.true)
-      # plot(pi.true[-(modes+1)])
-    }
-    
     if(missing(list_ids)){
       #### Prompt to choose which simulation to run
       writeLines("You can write various IDs separated by commas")
@@ -48,10 +20,126 @@ run_lowd <- function(list_ids){
     list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
     ##### Read file for parameters #####
     parameters <- as.data.frame(read_csv("results/simulation_details_lowd.csv"))
-    
+
+    #Check how many models we're doing
+    tot_models <- unique(parameters|> filter(id %in% list_ids) |> pull(model))
+    if(length(tot_models)==1){only_1_model <- TRUE;}else{only_1_model <- FALSE}
+    # In case only 1 model is chosen, we only read 1 model for all the IDs    
+    if(only_1_model){
+      print("Reading one set of C++ functions")
+      if(tot_models=="7_mode"){Rcpp::sourceCpp("functions/cpp_functions.cpp")
+        ##### Low-dimensional multimodal setup #####
+        {
+          p <- 16 #dimension
+          theta <- 15 #tail weight parameter
+          
+          # Modes definition
+          mod1 <- rep(1,p)
+          mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+          mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+          mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+          mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+          mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+          mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+          modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+          modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+          
+          ### Compute true probability
+          pi.true <- rep(0,2^p)
+          for(i in 0:(2^p -1)){
+            pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+          }
+          pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+        }
+        }
+      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multilow.cpp")
+        ##### Low-dimensional multimodal setup #####
+        {
+          p <- 16 #dimension
+          theta <- 15 #tail weight parameter
+          
+          # Modes definition
+          # mod1 <- rep(1,p)
+          mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+          mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+          # mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+          # mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+          # mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+          # mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+          modes <- c(vec_to_num(mod2),  vec_to_num(mod3))
+          # modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+          modes_list <- list(mod2,mod3)
+          # modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+          
+          ### Compute true probability
+          pi.true <- rep(0,2^p)
+          for(i in 0:(2^p -1)){
+            pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+          }
+          pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+        }
+        }
+    }
+    #Start process for algorithms        
     for(id_chosen in list_ids){
       sim_chosen <- parameters |> filter(id==id_chosen)
       if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
+      #In case there are more than 1 model, I need to re-read functions depending on model
+      if(!only_1_model){
+        print(paste0("Reading C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
+        if(tot_models=="7_mode"){Rcpp::sourceCpp("functions/cpp_functions.cpp")
+          ##### Low-dimensional multimodal setup #####
+          {
+            p <- 16 #dimension
+            theta <- 15 #tail weight parameter
+            
+            # Modes definition
+            mod1 <- rep(1,p)
+            mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+            mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+            mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+            mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+            mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+            mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+            modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+            modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+            
+            ### Compute true probability
+            pi.true <- rep(0,2^p)
+            for(i in 0:(2^p -1)){
+              pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+            }
+            pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+          }
+        }
+        if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multilow.cpp")
+          ##### Low-dimensional multimodal setup #####
+          {
+            p <- 16 #dimension
+            theta <- 15 #tail weight parameter
+            
+            # Modes definition
+            # mod1 <- rep(1,p)
+            mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+            mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+            # mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+            # mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+            # mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+            # mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+            modes <- c(vec_to_num(mod2),  vec_to_num(mod3))
+            # modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+            modes_list <- list(mod2,mod3)
+            # modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+            
+            ### Compute true probability
+            pi.true <- rep(0,2^p)
+            for(i in 0:(2^p -1)){
+              pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+            }
+            pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+          }
+        }
+      }      
       # Parameters for all algorithms
       total_simulations <- sim_chosen$simulations
       temperatures <- as.numeric(sim_chosen[paste0("t",1:4)])#vector with temperatures
