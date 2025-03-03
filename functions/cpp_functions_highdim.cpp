@@ -1187,6 +1187,22 @@ vec testing_loglik(const std::string& filename, vec X){
 }
 
 // [[Rcpp::export]]
+vec testing_lik(const std::string& filename, vec X){
+  sp_mat M=readSparseMatrix(filename);
+  double temp;
+  int n=X.n_rows;
+  vec tempX(n);
+  vec lik_vector(n);
+  Rcpp::Rcout <<"Current likelihood: " <<arma::as_scalar(X.t() * M * X)<< std::endl;
+  for(int i=0;i<n;i++){
+    tempX=X;
+    tempX(i)=1-tempX(i);
+    lik_vector(i)=arma::as_scalar(tempX.t() * M * tempX);
+  }
+  return(lik_vector);
+}
+
+// [[Rcpp::export]]
 List testing_a_IIT_update(const std::string& filename,vec X, String chosen_bf, double temperature, double log_bound){
   sp_mat M=readSparseMatrix(filename);
   return(a_IIT_update(X,M,chosen_bf, temperature,log_bound));
