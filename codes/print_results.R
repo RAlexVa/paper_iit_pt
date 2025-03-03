@@ -11,7 +11,7 @@ library(latex2exp) #For using latex
 # Choose dimension
 # chosen_dim <- "highdim"; file_dim <- "highd"
 chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(21,22,23,24)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_ids <-c(51,52,53)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -30,39 +30,85 @@ data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.
 data_sum <- data_sum |> filter(id %in% chosen_ids)
 
 if(chosen_dim=="lowdim"){
-  #Low dim is the example with 7 modes and 4 temperatures
-  tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
-  mode_visit <- as.data.frame(matrix(NA,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
-  round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
-  swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
-  iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4) #For the 4 replicas
-  pi_modes <- as.data.frame(matrix(NA,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
-  # Low dimensional true probability setup
-  {
-    Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
-    source("functions/r_functions.R")
-    p <- 16 #dimension
-    theta <- 8 #tail weight parameter
-    
-    # Modes definition
-    mod1 <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)#rep(1,p)
-    mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
-    mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
-    mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
-    mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
-    mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
-    mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
-    modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
-    modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
-    
-    ### Compute true probability
-    pi.true <- rep(0,2^p)
-    for(i in 0:(2^p -1)){
-      pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
+source("functions/r_functions.R")  
+check_number_modes <- unique(data_sum |> pull(model))
+if(length(check_number_modes)==1){only_1_model <- TRUE;}else{only_1_model <- FALSE}
+if(!only_1_model){stop("You have low_dim models with different number of modes")}else{
+  
+  if(check_number_modes=="7_model"){
+    #Low dim is the example with 7 modes and 4 temperatures
+    tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
+    mode_visit <- as.data.frame(matrix(NA,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
+    round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
+    swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
+    iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4) #For the 4 replicas
+    pi_modes <- as.data.frame(matrix(NA,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
+    # Low dimensional true probability setup
+    {
+      Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
+      source("functions/r_functions.R")
+      p <- 16 #dimension
+      theta <- 8 #tail weight parameter
+      
+      # Modes definition
+      mod1 <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)#rep(1,p)
+      mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+      mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+      mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+      mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+      mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+      mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+      modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+      modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+      
+      ### Compute true probability
+      pi.true <- rep(0,2^p)
+      for(i in 0:(2^p -1)){
+        pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+      }
+      pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
     }
-    pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+    
   }
+  if(check_number_modes=="bimodal"){
+    #Low dim is the example with 2 modes and 4 temperatures
+    tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
+    mode_visit <- as.data.frame(matrix(NA,ncol=5)); colnames(mode_visit) <- c("alg","sim","interswap",1:2)
+    round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
+    swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
+    iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4) #For the 4 replicas
+    pi_modes <- as.data.frame(matrix(NA,ncol=4));colnames(pi_modes) <- c("alg","sim",1:2)
+    
+    ##### Low-dimensional multimodal setup #####
+    {
+      p <- 16 #dimension
+      theta <- 15 #tail weight parameter
+      
+      # Modes definition
+      # mod1 <- rep(1,p)
+      mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
+      mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
+      # mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
+      # mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
+      # mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
+      # mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
+      modes <- c(vec_to_num(mod2),  vec_to_num(mod3))
+      # modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
+      modes_list <- list(mod2,mod3)
+      # modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
+      
+      ### Compute true probability
+      pi.true <- rep(0,2^p)
+      for(i in 0:(2^p -1)){
+        pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+      }
+      pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+    }
+  }
+}
 
+  
   
   
 }
@@ -264,10 +310,6 @@ if(chosen_dim=="lowdim"){
   mode_visit <- mode_visit |> filter(!is.na(alg))
   pi_modes <- pi_modes|> filter(!is.na(alg))
 ##### Compare estimation of modes #####  
-  # pi_modes |> pivot_longer(cols = -(alg:sim), names_to = "mode", values_to = "pi_est") |> 
-  #   ggplot(aes(x=alg,y=pi_est,fill=alg))+
-  #   geom_boxplot(show.legend = FALSE)+
-  #   facet_wrap(~mode)
   
   pi_modes |> pivot_longer(cols = -(alg:sim), names_to = "mode", values_to = "pi_est") |> 
     ggplot(aes(x=mode,y=pi_est,fill=alg))+
@@ -277,9 +319,11 @@ if(chosen_dim=="lowdim"){
     theme_minimal(base_size = 17)+
     theme(legend.key.size = unit(1, 'cm'))
   
-  
+#### TVD computed only with the modes
+  col_selected <- colnames(pi_modes)
+  col_selected <- col_selected[col_selected!="alg" & col_selected!="sim"]
   pi_modes |> rowwise() |> 
-    mutate(tvd=0.5*sum(abs(pi.true[modes[1]+1]-c_across(`1`:`7`)))) |> 
+    mutate(tvd=0.5*sum(abs(pi.true[modes+1]-c_across(col_selected)))) |> 
     ungroup() |> 
     select(alg,tvd) |> 
     ggplot(aes(x=alg,y=tvd,fill=alg)) +
@@ -287,7 +331,26 @@ if(chosen_dim=="lowdim"){
     labs(fill='Algortihm',x="",y="Total Variation Distance")+
     theme_minimal(base_size = 17)+
     theme(legend.key.size = unit(1, 'cm'))
+
+#Min and max values in TVD
+ min_tvd_1 <-  pi_modes |> rowwise() |> 
+    mutate(tvd=0.5*sum(abs(pi.true[modes+1]-c_across(col_selected)))) |> 
+    select(alg,tvd) |> 
+    group_by(alg) |> slice(which.min(tvd))
   
+ max_tvd_1 <-  pi_modes |> rowwise() |> 
+    mutate(tvd=0.5*sum(abs(pi.true[modes+1]-c_across(col_selected)))) |> 
+    select(alg,tvd) |> 
+    group_by(alg) |> slice(which.max(tvd))
+  
+  
+min_tvd_2 <- tvd |> select(alg,tvd) |> group_by(alg) |> slice(which.min(tvd))
+max_tvd_2 <- tvd |> select(alg,tvd) |> group_by(alg) |> slice(which.max(tvd))
+  
+min_tvd_compare <- left_join(min_tvd_1,min_tvd_2,by=c("alg"),suffix = c("_modes","_full"))
+max_tvd_compare <- left_join(max_tvd_1,max_tvd_2,by=c("alg"),suffix = c("_modes","_full"))
+grid.arrange(tableGrob(min_tvd_compare))
+grid.arrange(tableGrob(max_tvd_compare))
 ##### Total Variation Distance #####
   
   tvd_plot <- tvd |>  filter(!str_starts(alg,'IIT')) |> 
@@ -299,10 +362,10 @@ if(chosen_dim=="lowdim"){
   tvd_plot
   
   jpeg(file.path(export_path,paste0("tvd_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
-  tvd_plot
+  print(tvd_plot)
   dev.off()
 ##### First visit to modes #####
-col_names <- c("1","2","3","4","5","6","7")
+col_names <- col_selected
 
 mode_sum <- mode_visit |> 
   rowwise()|> 
