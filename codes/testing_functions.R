@@ -437,3 +437,19 @@ for(i in 1:length(x)){
 }
 
 as.data.frame(x=x,y=y) |> ggplot(aes(x=x,y=y))+geom_point()
+
+
+
+######
+##### Testing adaptivve PT (decreasing of bounding constant)
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+p <- 16
+temperature <- c(1,0.155,0.1,0.05)
+bal_f <- c("sq","sq","sq","sq")
+set.seed(123)
+#PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state,apply_reduction,reduc_constant,reduc_model)
+check <- PT_a_IIT_sim(p,1,1,total_swap=100,sample_inter_swap=10000,200,temperature,bal_f,0,TRUE,.1,"iterations")
+
+
