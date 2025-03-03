@@ -111,16 +111,22 @@ double bal_func(double x,String chosen){
 // 7 modes log-likelihood, dimension 16
 // [[Rcpp::export]]
 double loglik(const arma::vec& X){
+  int size=X.n_rows;
+  if(size!=16){
+   Rcpp::Rcout <<"Error:Size is not 16" << std::endl;
+  return -std::numeric_limits<double>::infinity();
+  }
+  
   double theta=15;
 
   // Defined modes
-    arma::vec  mod1 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-    arma::vec  mod2 = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};
-    arma::vec  mod3 = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};
-    arma::vec  mod4 = {1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0};
-    arma::vec  mod5 = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1};
-    arma::vec  mod6 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    arma::vec  mod7 = {0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0};
+    arma::vec  mod1 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};// 16 1s
+    arma::vec  mod2 = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};// 8 1s
+    arma::vec  mod3 = {0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1};// 8 1s
+    arma::vec  mod4 = {1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0};// 8 1s
+    arma::vec  mod5 = {0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1};// 8 1s
+    arma::vec  mod6 = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};// 2 1s
+    arma::vec  mod7 = {0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0};// 2 1s
   
   double loglik_comp=0;
   
@@ -196,7 +202,7 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound,
   for(int j=0; j<total_neighbors;j++){
     newX = X;
     newX.row(j) = 1-X.row(j); //Change coordinate of the state to define new neighbor
-    temporal = loglik(newX)-logpi_current;
+    temporal = temperature*(loglik(newX)-logpi_current);
     logprobs(j)=temporal; //Store raw log_probability
     max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
   }// End of loop to compute raw log-probability of neighbors
@@ -763,8 +769,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i<< " Prob_decrease_bound: " << prob_to_dec << std::endl;}
-      // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
+      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+//<< " log-bound:\n " << log_bound_vector
+    // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
@@ -1136,5 +1143,5 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   return ret;
 }
 
-
+// Rcpp::Rcout <<"log-probs vector: \n"<< logprobs << std::endl;
 
