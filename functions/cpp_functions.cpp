@@ -651,7 +651,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   int swap_count; //to keep track of even-odd swaps
   double current_temp; // to temporarily store the temperature
   double current_log_bound; //to temporarily store the log-bound
-  int new_samples;//temporal variable to store weight with multiplicity list
+  int new_samples=0;//temporal variable to store weight with multiplicity list
   //// Initialize arrays to store information
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
@@ -711,7 +711,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
-    ////Start the loop for burn-in period
+  ////Start the loop for burn-in period
     int track_burn_in=0;
     while(track_burn_in<burn_in){
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
@@ -778,24 +778,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           total_iterations(i,index_process(replica),s)+=1;//increase the number of iterations
           current_temp=temp(index_process(replica));// Extract temperature of the replica
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
-          
-          if(update_prob){//Check if we need to update the probability
-            if(current_temp==1){//The original replica defines the speed to modify the probabilty to decrease bounding constant
-              sample_iterations_count+=samples_replica; //Add the number of iterations (or samples) from the previous step
-              if(sample_iterations_count>total_replica_iterations*percentage_start){//Check if we start decreasing the probability
-                if(sample_iterations_count>total_replica_iterations*percentage_end){//Check if we stop decreasing the probability
-                  prob_to_dec=0;
-                  update_prob=false;
-                }else{//In case we haven't finished updating the probability
-                  //Probability is proportional 
-                  double progress=sample_iterations_count/total_replica_iterations;
-                  prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
-                }
-              }
-            }
-          }
-          
-          
+///// Process to update probability of decreasing the bounding constant
+
           output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
           
           //// Compute weight
@@ -818,6 +802,26 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               //Store the first time the state is visited 
               first_visit(state)=sum(current_slice.col(index_process(replica)));
             }
+            if(update_prob){//Check if we need to update the probability
+              if(current_temp==1){//The original replica defines the speed to modify the probability to decrease bounding constant
+                sample_iterations_count+=new_samples; //Add the number of iterations (or samples) from the previous step
+                // Rcpp::Rcout <<" New samples: "<<new_samples<<" sample_iterations_count= "<<sample_iterations_count<< std::endl;
+                // Rcpp::Rcout <<"Update prob samples: "<< sample_iterations_count <<" total iterations: "<<total_replica_iterations<< std::endl;
+                if(sample_iterations_count>(total_replica_iterations*percentage_start)){//Check if we start decreasing the probability
+                  if(sample_iterations_count>(total_replica_iterations*percentage_end)){//Check if we stop decreasing the probability
+                    prob_to_dec=0;
+                    update_prob=false;
+                  }else{//In case we haven't finished updating the probability
+                    //Probability is proportional 
+                    double progress = static_cast<double>(sample_iterations_count) / total_replica_iterations;
+                    // Rcpp::Rcout <<""<< sample_iterations_count <<" / "<<total_replica_iterations<<"="<<progress<< std::endl;
+                    // Rcpp::Rcout <<"progress: "<< progress << std::endl;
+                    prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
+                    Rcpp::Rcout <<"New prob: "<< prob_to_dec << std::endl;
+                  }
+                }
+              }
+            } 
           }
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
@@ -1027,21 +1031,6 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
         
-        if(update_prob){//Check if we need to update the probability
-          if(current_temp==1){//The original replica defines the speed to modify the probabilty to decrease bounding constant
-            sample_iterations_count=i; //Add the number of iterations (or samples) from the previous step
-            if(sample_iterations_count>total_replica_iterations*percentage_start){//Check if we start decreasing the probability
-              if(sample_iterations_count>total_replica_iterations*percentage_end){//Check if we stop decreasing the probability
-                prob_to_dec=0;
-                update_prob=false;
-              }else{//In case we haven't finished updating the probability
-                //Probability is proportional 
-                double progress=sample_iterations_count/total_replica_iterations;
-                prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
-              }
-            }
-          }
-        }
         output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
         //// Store Z factor of replica with temperature 1
         if(current_temp==1){ // For the original temperature replica
@@ -1057,6 +1046,26 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
           }
           // Rcpp::Rcout << "Printing pi_est: " << pi_est << std::endl;
           // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
+          if(update_prob){//Check if we need to update the probability
+            if(current_temp==1){//The original replica defines the speed to modify the probability to decrease bounding constant
+              sample_iterations_count+=1; //Add the number of iterations (or samples) from the previous step
+              // Rcpp::Rcout <<" New samples: "<<new_samples<<" sample_iterations_count= "<<sample_iterations_count<< std::endl;
+              // Rcpp::Rcout <<"Update prob samples: "<< sample_iterations_count <<" total iterations: "<<total_replica_iterations<< std::endl;
+              if(sample_iterations_count>(total_replica_iterations*percentage_start)){//Check if we start decreasing the probability
+                if(sample_iterations_count>(total_replica_iterations*percentage_end)){//Check if we stop decreasing the probability
+                  prob_to_dec=0;
+                  update_prob=false;
+                }else{//In case we haven't finished updating the probability
+                  //Probability is proportional 
+                  double progress = static_cast<double>(sample_iterations_count) / total_replica_iterations;
+                  // Rcpp::Rcout <<""<< sample_iterations_count <<" / "<<total_replica_iterations<<"="<<progress<< std::endl;
+                  // Rcpp::Rcout <<"progress: "<< progress << std::endl;
+                  prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
+                  Rcpp::Rcout <<"New prob: "<< prob_to_dec << std::endl;
+                }
+              }
+            }
+          } 
         }
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound 
