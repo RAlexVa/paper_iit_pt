@@ -46,16 +46,23 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf1,bf
 44,PT_IIT_Z,100,1000000,1000,NA,0,4589,sq,sq,sq,sq,1,0.155,0.05,0.0000001,100000,0,0,7_mode,Modify temperatures based on results from 34
 45,PT_IIT_Z,100,1000000,1000,NA,0,4589,min,min,min,min,1,0.155,0.05,0.0000001,100000,0,0,7_mode,Copying tempertaures from 42
 46,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0,never,7_mode,Copying tempertaures from 42
-47,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,7_mode,keeping temperatures from 36
+47,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,7_mode,Seem to be good temperatures for this algorithm
 48,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0.1,iterations,7_mode,
-49,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0.1,iterations,7_mode,
+49,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0.1,iterations,7_mode,Seem to be good temperatures for this algorithm
 50,PT_A_IIT,10,NA,1000,500,0,13,sq,sq,sq,sq,1,0.155,0.1,0.05,75000,0,0,7_mode,Copying 36 with less simulations
 51,PT_A_IIT_RF,4,50000,500,NA,98,6698,,,,,1,0.155,0.07,0.00001,10000,0.1,iterations,bimodal,
 52,PT_A_IIT,4,NA,500,100,98,6698,,,,,1,0.155,0.1,0.05,10000,0.1,iterations,bimodal,
-53,PT_IIT_Z,4,50000,500,NA,98,6698,sq,sq,sq,sq,1,0.155,0.05,0.0000001,10000,0.1,iterations,bimodal,
+53,PT_IIT_Z,4,50000,500,NA,98,6698,sq,sq,sq,sq,1,0.155,0.05,0.0000001,10000,0.1,0,bimodal,
 54,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0,never,bimodal,
-55,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,bimodal,
+55,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,bimodal,swap rate between 3-4 needs to increase (currenlty 0.20)
 56,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0.1,iterations,bimodal,
-57,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0.1,iterations,bimodal,
+57,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0.1,iterations,bimodal,swap rate between 3-4 needs to increase (currenlty 0.20)
 58,PT_IIT_Z,100,1000000,1000,NA,0,4589,sq,sq,sq,sq,1,0.155,0.05,0.0000001,100000,0,0,bimodal,
 59,PT_IIT_Z,100,1000000,1000,NA,0,4589,min,min,min,min,1,0.155,0.05,0.0000001,100000,0,0,bimodal,
+60,PT_A_IIT,1,NA,1,1810,0,4589,,,,,1,0.155,0.1,0.05,100,1,always,7_mode,To fix numerical errors while decreasing bound
+61,PT_IIT_Z,100,1000000,1000,NA,0,886,sq,sq,sq,sq,1,0.155,0.06,0.0000001,100000,0,0,7_mode,Modify temperature 3 based on 44
+62,PT_IIT_Z,100,1000000,1000,NA,0,886,min,min,min,min,1,0.155,0.06,0.0000001,100000,0,0,7_mode,Modify temperature 3 based on 45
+63,PT_A_IIT_RF,100,1000000,1000,NA,0,886,,,,,1,0.155,0.06,0.0000001,100000,0,never,7_mode,Copying temperatures of PT_IIT
+64,PT_A_IIT_RF,100,1000000,1000,NA,0,886,,,,,1,0.155,0.06,0.0000001,100000,0.001,iterations,7_mode,Copying temperatures of PT_IIT
+65,PT_A_IIT,100,NA,1000,1000,0,886,,,,,1,0.155,0.1,0.05,100000,0,never,7_mode,
+66,PT_A_IIT,100,NA,1000,1000,0,886,,,,,1,0.155,0.1,0.05,100000,0.001,iterations,7_mode,

@@ -41,5 +41,6 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,states_visi
 40,PT_A_IIT_RF,50,75000,1000,NA,-1,20,741,G1,sq,sq,sq,,450,225,1,,5000,bimodal,
 41,PT_IIT_Z,10,75000,1000,NA,-1,5,111,G1,sq,sq,sq,,450,225,1,,5000,bimodal,
 42,PT_A_IIT_RF,10,75000,1000,NA,-1,5,111,G1,sq,sq,sq,,450,225,1,,5000,bimodal,
-43,PT_IIT_Z,1,10000000,500,NA,-1,5,9978,G1,sq,sq,sq,sq,780,520,260,1,0,gset,
-44,PT_A_IIT,1,NA,500,20000,-1,5,9978,G1,sq,sq,sq,sq,570,380,190,1,0,gset,Using temperatures from 30
+43,PT_IIT_Z,1,10000000,500,NA,-1,5,9978,G1,sq,sq,sq,sq,780,520,260,1,0,gset,"pt7, creo que está muy grande 10millones"
+44,PT_A_IIT,1,NA,500,20000,-1,5,9978,G1,sq,sq,sq,sq,570,380,190,1,0,gset,pt8 Using temperatures from 30
+45,PT_IIT_Z,1,1000000,500,NA,-1,5,9978,G1,sq,sq,sq,sq,780,520,260,1,0,gset,pt8
