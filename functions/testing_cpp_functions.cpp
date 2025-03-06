@@ -74,3 +74,53 @@ void print_geom(double& Z){
 }
 
 ////////// testing functions //////////
+
+// [[Rcpp::export]]
+double test_update(double log_bound,bool update, double prob_to_dec, double temperature, double decreasing_constant){
+  if(update){//If it's defined to keep updating the bounding constant
+    //Then try Arithmetic reduction of the bounding constant
+    if(prob_to_dec>0){//If we consider a probability to decrease the constant
+      double test_prob=0;
+      if(prob_to_dec<1){
+        vec ppp=Rcpp::runif(1);//Get a random number
+        test_prob=ppp(0);
+      }
+      if(test_prob<prob_to_dec){//In case the update is accepted
+        double temporal_log_b=log_bound/temperature;
+        // Rcpp::Rcout <<"log_b= "<<log_bound<<" temp: "<<temperature<<" temporal_log_b: "<< temporal_log_b<<std::endl;
+        double delta_bound = decreasing_constant/exp(temporal_log_b);
+        // Rcpp::Rcout <<"delta bound: "<< delta_bound<<std::endl;
+        //log(a-b)=log(a)+log(1-b/a) ≈ log(a) - b/a if b/a is very small
+        //a=exp(log_bound), b=delta_bound
+        if(delta_bound<.06){
+          log_bound=temperature*(temporal_log_b - delta_bound);
+        }else{
+          log_bound = temperature*log(exp(temporal_log_b)-(decreasing_constant)); //Reduce constant
+        }
+        
+        // if(temperature==0.05){
+        //   Rcpp::Rcout <<"Decreasing delta: "<< delta_bound<<" Current bound: "<<exp(log_bound)<<" new bound: "<<log_bound<<std::endl;
+        //   Rcpp::Rcout <<"Decreasing log-bound to "<< log_bound<<std::endl;
+        // }
+        if(log_bound<0){log_bound=0;} //Minimum bound is 1, minimum log_bound is 0
+        
+      }else{
+        // Rcpp::Rcout <<"Rejected a bounding constant decrease"<< std::endl;
+      }
+    }
+  }
+  
+  return log_bound;
+}
+
+// [[Rcpp::export]]
+void print_log_bound(int iterations, double initial_bound, double prob_to_dec, double temperature, double decreasing_constant){
+  Rcpp::Rcout <<"Initial bound: "<< initial_bound<<std::endl;
+  double current_bound=initial_bound;
+  for(int i=0; i<iterations;i++){
+    current_bound=test_update(current_bound,true,prob_to_dec, temperature, decreasing_constant);
+    Rcpp::Rcout <<(i+1)<<" New bound: "<< current_bound<<std::endl;
+  }
+}
+
+
