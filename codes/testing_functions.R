@@ -489,3 +489,10 @@ n <- 1815
 initial_bound <- 7.5
 # print_log_bound(int iterations, double initial_bound, double prob_to_dec, double temperature, double decreasing_constant)
 print_log_bound(n,initial_bound,1,1,1)
+
+n <- 1000
+initial_bound <- 0.375
+# print_log_bound(int iterations, double initial_bound, double prob_to_dec, double temperature, double decreasing_constant)
+print_log_bound(n,initial_bound,1,.05,.1)
+
+
