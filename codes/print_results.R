@@ -11,7 +11,7 @@ library(latex2exp) #For using latex
 # Choose dimension
 # chosen_dim <- "highdim"; file_dim <- "highd"
 chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(51,52,53)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_ids <-54:59#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -36,7 +36,7 @@ check_number_modes <- unique(data_sum |> pull(model))
 if(length(check_number_modes)==1){only_1_model <- TRUE;}else{only_1_model <- FALSE}
 if(!only_1_model){stop("You have low_dim models with different number of modes")}else{
   
-  if(check_number_modes=="7_model"){
+  if(check_number_modes=="7_mode"){
     #Low dim is the example with 7 modes and 4 temperatures
     tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
     mode_visit <- as.data.frame(matrix(NA,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
@@ -49,7 +49,7 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
       Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
       source("functions/r_functions.R")
       p <- 16 #dimension
-      theta <- 8 #tail weight parameter
+      theta <- 15 #tail weight parameter
       
       # Modes definition
       mod1 <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)#rep(1,p)
@@ -82,6 +82,8 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
     
     ##### Low-dimensional multimodal setup #####
     {
+      Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
+      source("functions/r_functions.R")
       p <- 16 #dimension
       theta <- 15 #tail weight parameter
       
