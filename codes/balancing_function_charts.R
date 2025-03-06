@@ -34,6 +34,8 @@ data_u |> pivot_longer(-r,names_to = "b.fun",values_to = 'h(r)') |>
   geom_line(size=1)
 
 
+
+
 x <- seq(0.1,5,by=0.1)
 #### Random balancing functions
 data_u <- tibble(r=x,
@@ -100,8 +102,8 @@ data_u <- tibble(r=x,
                  sq=sqrt(x),
                  max=sapply(x,max,1))
 
-(plot1 <- data_u |> pivot_longer(-r,names_to = "b.fun",values_to = 'h(r)') |>  
-    ggplot(aes(x=r,y=`h(r)`,color = `b.fun`))+
+(plot1 <- data_u |> pivot_longer(-r,names_to = "h",values_to = 'h(r)') |>  
+    ggplot(aes(x=r,y=`h(r)`,color = `h`))+
     geom_line(size=1)+
     geom_segment(aes(x=2,y=0,xend=2,yend=2),color = "blue", linetype = "dashed", size = 1)+
     geom_segment(aes(x=3,y=0,xend=3,yend=3),color = "red", linetype = "dashed", size = 1)+
@@ -112,4 +114,26 @@ data_u <- tibble(r=x,
 
 jpeg(file.path(here(),"fig","compare_balancing.jpg"), width = 850, height = 300)
 plot1
+dev.off()
+
+###### Bounded version of sqrt balancing function ######
+x <- seq(0.1,10,by=0.1)
+#### Random balancing functions
+data_u <- tibble(r=x,
+                 `1`=sapply(x,bf,f=sqrt,bb=1),
+                 `1.3`=sapply(x,bf,f=sqrt,bb=1.3),
+                 `1.5`=sapply(x,bf,f=sqrt,bb=1.5),
+                 `1.7`=sapply(x,bf,f=sqrt,bb=1.7),
+                 `2`=sapply(x,bf,f=sqrt,bb=2),
+                 `2.5`=sapply(x,bf,f=sqrt,bb=2.5),
+                 `3`=sapply(x,bf,f=sqrt,bb=3))
+(plot_sqrt <- data_u |> pivot_longer(-r,names_to = "b.fun",values_to = 'h(r)') |>  
+  ggplot(aes(x=r,y=`h(r)`,color = `b.fun`))+
+  geom_line(size=1)+
+  labs(y = TeX("$h_{\\gamma}(r)$"),color=TeX("$\\gamma$"))+
+  theme(axis.text=element_text(size=15),axis.title=element_text(size=14))+
+  theme_minimal())
+
+jpeg(file.path(here(),"fig","bounded_sqrt.jpg"), width = 850, height = 300)
+plot_sqrt
 dev.off()
