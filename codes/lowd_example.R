@@ -5,7 +5,7 @@ library(dplyr)
 library(readr)
 
 ##### import functions #####
-Rcpp::sourceCpp("functions/cpp_functions.cpp")
+# Rcpp::sourceCpp("functions/cpp_functions.cpp")
 source("functions/r_functions.R")
 run_lowd <- function(list_ids){
   if(!("./results" %in% list.dirs(recursive=F))){
@@ -173,6 +173,7 @@ run_lowd <- function(list_ids){
                    paste0("Try swaps:",iterswap),
                    paste0("Samples in-between swaps: ",sample_inter_swap),
                    paste0("Total swaps:",total_swap),
+                   paste0("Apply reduction:",apply_reduction),
                    paste0("Reduction constant:",reduc_constant),
                    paste0("bound reduction method:",reduc_model)))
       
