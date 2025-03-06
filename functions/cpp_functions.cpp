@@ -188,7 +188,8 @@ List IIT_update_w(vec X, String chosen_bf, double temperature){
 }
 
 // [[Rcpp::export]]
-List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound, bool decrease, double prob_to_dec, double decreasing_constant){
+List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound, bool update, double prob_to_dec, double decreasing_constant, double max_logbound_found){
+  const double threshold = 1e-5;//Threshold for updating maximum bound. It has to change at least this
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
   vec logprobs(total_neighbors, fill::zeros); //vector to store log-probabilities
   vec max_logprobs(total_neighbors,fill::zeros);//vector to store max-log-probabilities
@@ -206,12 +207,22 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound,
     logprobs(j)=temporal; //Store raw log_probability
     max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
   }// End of loop to compute raw log-probability of neighbors
-  
+  // Rcpp::Rcout <<"Max log probs: "<< bal_func(max(max_logprobs),"sq")<<std::endl;
   //Updating the log-bound
-  log_bound=ret_max(bal_func(max(max_logprobs),"sq"),log_bound,0);
   
-  //Arithmetic reduction of the bounding constant
-  if(decrease){//If it's defined to reduce the bounding constant
+  
+  
+  if(update){//If it's defined to keep updating the bounding constant
+    // Rcpp::Rcout <<"Temp: "<< temperature<<" C_max_bound: "<<max_logbound_found<<" new max bound: "<<bal_func(max(max_logprobs),"sq")<<std::endl;
+double checking_max_logprob=bal_func(max(max_logprobs),"sq");
+    if(max_logbound_found<checking_max_logprob && (checking_max_logprob-max_logbound_found)>=threshold){
+      // Rcpp::Rcout <<"Diff en log bound: "<< checking_max_logprob-max_logbound_found<<std::endl;
+      // Rcpp::Rcout <<"Previous max log bound: "<< max_logbound_found*1000000<<std::endl;
+      max_logbound_found=checking_max_logprob;
+      // Rcpp::Rcout <<"New max log bound: "<< max_logbound_found*1000000<<std::endl;
+      log_bound=max_logbound_found;//First update according to the maximum 
+    }
+    //Then try Arithmetic reduction of the bounding constant
     if(prob_to_dec>0){//If we consider a probability to decrease the constant
       double test_prob=0;
       if(prob_to_dec<1){
@@ -219,11 +230,30 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound,
         test_prob=ppp(0);
       }
       if(test_prob<prob_to_dec){//In case the update is accepted
-        if(exp(log_bound)<1+decreasing_constant){//If the bound is less than 1+constant then we can only decrease it to 1 
-          log_bound=0;
-        }else{
-          log_bound-=decreasing_constant; //Reduce the constant by decreasing_constant units
-        }  
+          double temporal_log_b=log_bound/temperature;
+          double delta_bound = decreasing_constant/exp(temporal_log_b);
+          //log(a-b)=log(a)+log(1-b/a) ≈ log(a) - b/a if b/a is very small
+          //a=exp(log_bound), b=delta_bound
+          // Rcpp::Rcout<<"Temp: "<< temperature<< " Decreasing delta: "<< delta_bound<<" C_bound: "<<exp(log_bound)<<" C_log_bound: "<<log_bound<<" temporal_log_b: "<<temporal_log_b<<std::endl;
+          // if(delta_bound<.06){
+          //   log_bound=temperature*(temporal_log_b - delta_bound);
+          // }else{
+          //   log_bound = temperature*log1p(exp(temporal_log_b)-(decreasing_constant)); //Reduce constant
+          //   // log_bound = temperature*log(exp(temporal_log_b)-(decreasing_constant)); //Reduce constant
+          // }
+          //Second option to update the log_bound
+          
+          log_bound = temperature*(temporal_log_b + log1p(-delta_bound));
+          
+          // Rcpp::Rcout <<"New log_b: "<< log_bound<<std::endl;
+          // if(temperature==0.05){
+          //   Rcpp::Rcout <<"Decreasing delta: "<< delta_bound<<" Current bound: "<<exp(log_bound)<<" new bound: "<<log_bound<<std::endl;
+          //   Rcpp::Rcout <<"Decreasing log-bound to "<< log_bound<<std::endl;
+          // }
+          if(log_bound<0){log_bound=0;} //Minimum bound is 1, minimum log_bound is 0
+         
+      }else{
+        // Rcpp::Rcout <<"Rejected a bounding constant decrease"<< std::endl;
       }
     }
   }
@@ -252,6 +282,7 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound,
   ret["X"]=X;
   ret["Z"]=sum(exp(logprobs))/total_neighbors; // Compute Z factor with uniform proposal distribution
   ret["logbound"]=log_bound;
+  ret["max_logbound"]=max_logbound_found;
   return ret;
 }
 
@@ -644,6 +675,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
+  vec max_log_bound_vector(T); // vector to store a the maximum log-bound for each replica
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   List output; // To store output of the update function
@@ -707,6 +739,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     pi_est.zeros(); // Reset the estimated distribution
     first_visit.zeros(); //Reset the vector of first visits
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
+    max_log_bound_vector.zeros();//Reset max log-bounds, all log-bounds start at 0
     swap_success.zeros();
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
@@ -719,7 +752,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
           current_temp=temp(replica);// Extract temperature of the replica
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
-          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
+//// In burn-in we update (increase) the constant but we don't decrease it.
+          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
           //// Compute weight
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
@@ -734,6 +768,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           samples_replica+=new_samples; // Update number of samples obtained from the replica
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+          max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
         }
       }//End loop to update replicas in the burn-in
       
@@ -764,14 +799,20 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }
     ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
-    
+    // Rcpp::Rcout <<"After burn-in log-bound vector:\n "<< log_bound_vector << std::endl;
+    // Rcpp::Rcout <<"After burn-in  MAX log-bound vector:\n "<< max_log_bound_vector << std::endl;
     std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
       if (i % 10 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
-//<< " log-bound:\n " << log_bound_vector
+      // if (i % 10 == 1) {Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;}
+      Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;
+      //   bool check_bool= log_bound_vector(J)==0;
+      // Rcpp::Rcout <<"Check if bound is 0 already :"<< check_bool<< std::endl;
+      //<< " log-bound:\n " << log_bound_vector
     // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
+    // Rcpp::Rcout <<"Iter "<<i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
@@ -779,8 +820,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_temp=temp(index_process(replica));// Extract temperature of the replica
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
 ///// Process to update probability of decreasing the bounding constant
-
-          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
+// Rcpp::Rcout <<"Temp: "<<current_temp<<" Current log_bound: "<< current_log_bound<<" C_max_log_bound: "<<max_log_bound_vector(index_process(replica))<< std::endl;
+          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
           
           //// Compute weight
           Z = output(1); //Extract the Z-factor
@@ -809,6 +850,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
                 // Rcpp::Rcout <<"Update prob samples: "<< sample_iterations_count <<" total iterations: "<<total_replica_iterations<< std::endl;
                 if(sample_iterations_count>(total_replica_iterations*percentage_start)){//Check if we start decreasing the probability
                   if(sample_iterations_count>(total_replica_iterations*percentage_end)){//Check if we stop decreasing the probability
+                    Rcpp::Rcout <<"Stop decreasing bounds. Last bound vector:\n"<< log_bound_vector<< std::endl;
                     prob_to_dec=0;
                     update_prob=false;
                   }else{//In case we haven't finished updating the probability
@@ -824,12 +866,25 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             } 
           }
           X.col(replica)=vec(output(0)); //Update current state of the chain
+          
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+          max_log_bound_vector(index_process(replica))=output(3); //Update maximum log-bound found
         }
       }//End loop to update replicas
+//// Before replica swap, align the bounds
+// vec min_bound_vec(4);      
+// for(int k=0;k<T;k++){
+//   min_bound_vec(k)=log_bound_vector(k)/temp(k);
+// }
+// 
+// double aligned_bound = max(min_bound_vec);
+// 
+// for(int k=0;k<T;k++){
+//   log_bound_vector(k)=aligned_bound*temp(k);
+// }
+// Rcpp::Rcout <<"Harmonized log_bounds:\n"<< log_bound_vector<< std::endl;      
       
 //// Start replica swap process
-
         swap_count+=1;//Increase the count of swaps
         // Rcpp::Rcout << "Trying swap: " << swap_count << std::endl;
         epsilon_indic.fill(-1); //Epsilon indic starts as -1
@@ -876,7 +931,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     full_first_visit.col(s)=first_visit;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
-    // Rcpp::Rcout <<"Final state "<< X << std::endl;
+    Rcpp::Rcout <<"Final log-bound vector:\n "<< log_bound_vector << std::endl;
+    Rcpp::Rcout <<"MAX log-bound vector:\n "<< max_log_bound_vector << std::endl;
   }//End loop simulations
   List ret;
   ret["est_pi"]=full_pi_est;
@@ -893,6 +949,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
+  vec max_log_bound_vector(T); // vector to store the MAX log-bound found for each replica
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   int total_swaps=trunc(numiter/iterswap);
@@ -964,9 +1021,11 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
-        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
+//// During burn-in we update the constant (increase) but we don't decrease it.
+        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,true,0,decreasing_constant,max_log_bound_vector(replica));
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+        max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
       }
       //End replica update in burn-in period
       
@@ -995,13 +1054,13 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
             double Z_temp21;
             double Z_temp22;
             
-            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,0,decreasing_constant,max_log_bound_vector(t));
             Z_temp11=output(1);
-              output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant);
+              output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,decreasing_constant,max_log_bound_vector(t+1));
             Z_temp22=output(1);
-            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,decreasing_constant,max_log_bound_vector(t+1));
             Z_temp12=output(1);
-            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,0,decreasing_constant,max_log_bound_vector(t));
             Z_temp21=output(1);
             
             Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
@@ -1031,7 +1090,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
         
-        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant);
+        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
         //// Store Z factor of replica with temperature 1
         if(current_temp==1){ // For the original temperature replica
           // Rcpp::Rcout << "Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
@@ -1069,6 +1128,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
         }
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+        max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
       }//End loop to update replicas
       
       //// Start replica swap process
@@ -1101,13 +1161,13 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
             double Z_temp22;
             
 
-            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant,max_log_bound_vector(t));
             Z_temp11=output(1);
-            output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant,max_log_bound_vector(t+1));
             Z_temp22=output(1);
-            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant,log_bound_vector(t+1));
             Z_temp12=output(1);
-            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant);
+            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant,log_bound_vector(t));
             Z_temp21=output(1);
             
             Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
@@ -1154,3 +1214,4 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
 
 // Rcpp::Rcout <<"log-probs vector: \n"<< logprobs << std::endl;
 
+///// 
