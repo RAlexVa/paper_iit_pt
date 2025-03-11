@@ -109,15 +109,18 @@ data_u <- tibble(r=x,
     geom_segment(aes(x=3,y=0,xend=3,yend=3),color = "red", linetype = "dashed", size = 1)+
     annotate("text", x=2.1, y=0, label= TeX("$y_1$"),size=6, color='blue')+
     annotate("text", x=3.1, y=0, label= TeX("$y_2$"),size=6, color='red')+
-    theme(axis.text=element_text(size=15),axis.title=element_text(size=14))+
-  theme_minimal())
+    theme_minimal()+
+    theme(axis.text=element_text(size=18),
+          axis.title=element_text(size=18),
+          legend.title = element_text(size = 25),
+          legend.text=element_text(size = 20)))
 
 jpeg(file.path(here(),"fig","compare_balancing.jpg"), width = 850, height = 300)
 plot1
 dev.off()
 
 ###### Bounded version of sqrt balancing function ######
-x <- seq(0.1,10,by=0.1)
+x <- seq(0.1,6,by=0.1)
 #### Random balancing functions
 data_u <- tibble(r=x,
                  `1`=sapply(x,bf,f=sqrt,bb=1),
@@ -131,8 +134,11 @@ data_u <- tibble(r=x,
   ggplot(aes(x=r,y=`h(r)`,color = `b.fun`))+
   geom_line(size=1)+
   labs(y = TeX("$h_{\\gamma}(r)$"),color=TeX("$\\gamma$"))+
-  theme(axis.text=element_text(size=15),axis.title=element_text(size=14))+
-  theme_minimal())
+  theme_minimal()+
+  theme(axis.text=element_text(size=18),
+        axis.title=element_text(size=18),
+        legend.title = element_text(size = 25),
+        legend.text=element_text(size = 20)))
 
 jpeg(file.path(here(),"fig","bounded_sqrt.jpg"), width = 850, height = 300)
 plot_sqrt
