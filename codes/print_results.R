@@ -9,9 +9,9 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-# chosen_dim <- "highdim"; file_dim <- "highd"
-chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-54:59#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_dim <- "highdim"; file_dim <- "highd"
+# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(44,45)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -109,25 +109,46 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
     }
   }
 }
-
-  
-  
-  
 }
 if(chosen_dim=="highdim"){
   Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp") #To use eval_lik function
   source("functions/r_functions.R") #To get dimension of the problem
-  #High dim we have 3 temperatures
+  #High dim we can have multiple temperatures
   #we dont track distribution convergence
   #we track visit to high probability states
-  round_trip <- as.data.frame(matrix(NA,ncol=5)); colnames(round_trip) <- c("alg","sim",1:3)
-  swap_rate <- as.data.frame(matrix(NA,ncol=4)); colnames(swap_rate) <- c("alg","sim",1:2)
-  iterations <- as.data.frame(matrix(NA,ncol=5)); colnames(iterations) <- c("alg","sim",1:3)
   
-  list_of_states <- list()
-  iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
-  loglik_visited <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(loglik_visited) <- c("alg","state",1:max(data_sum$simulations))
-  max_lik <- as.data.frame(matrix(NA,ncol=4));colnames(max_lik) <- c("alg","sim","iteration","lik")
+  
+  check_number_replicas <- data_sum |> select(id,matches("^t\\d+")) #Select all temperatures columns
+
+  #Check which columns are full of NAs to exclude them
+  na_temps <- data_sum |> 
+    select(matches("^t\\d+$")) |>  # Select columns of the form tX
+    summarize(across(everything(), ~ all(is.na(.x)))) |>   # Check if all values are NA
+    pivot_longer(everything(), names_to = "column", values_to = "is_all_na") |>   # Convert to long format
+    filter(is_all_na) |>   # Keep only columns where is_all_na is TRUE
+    pull(column) 
+  
+  na_bf <- paste0("bf",na_temps |> str_extract("\\d+"))
+  check_number_replicas <- check_number_replicas|> select(-all_of(na_temps))
+  check_dif_num_replica <- any(is.na(check_number_replicas))
+  
+  
+  if(check_dif_num_replica){#In case there's some ids with different number of replicas
+    ind_rep <- which(is.na(check_number_replicas),T)[1]
+    writeLines(paste0("id: ",check_number_replicas[ind_rep,1]," has less replicas"))
+    stop("Some of the chosen simulations have different number of replicas")
+  }else{
+    num_replicas <- ncol(check_number_replicas |> select(-id))
+    round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
+    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
+    iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas)
+    
+    list_of_states <- list()
+    iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
+    loglik_visited <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(loglik_visited) <- c("alg","state",1:max(data_sum$simulations))
+    max_lik <- as.data.frame(matrix(NA,ncol=4));colnames(max_lik) <- c("alg","sim","iteration","lik")
+  }
+
 }
 time_taken <- as.data.frame(matrix(NA,ncol=2));colnames(time_taken) <- c("alg","time")
 
@@ -300,9 +321,14 @@ time_table <- time_taken |> filter(!str_starts(alg,'IIT')) |>
             q3=quantile(time,probs=0.75),
             max=max(time))
 
-jpeg(file.path(export_path,paste0("time_table_",export_file_name,".jpg")),width=250*nrow(time_table),height=35*nrow(time_table),pointsize = 30)
+jpeg(file.path(export_path,paste0("time_table_",export_file_name,".jpg")),width=80*ncol(time_table),height=35*nrow(time_table),pointsize = 30)
 grid.arrange(tableGrob(time_table))
 dev.off()
+
+(time_boxplot <- time_taken |> 
+  filter(!str_starts(alg,'IIT')) |>
+  ggplot(aes(x=alg,y=time))+
+  geom_boxplot())
 
 
 
@@ -417,21 +443,25 @@ swaps_to_explore <- mode_sum |> filter(!str_starts(alg,'IIT'),!str_starts(alg,'P
             q3=quantile(last_visit,probs=0.75),
             max=max(last_visit))
 
-temp <- mode_sum |> filter(str_starts(alg,'PT A-IIT m')) |>
-  select(alg,sim,last_visit) |> 
-  left_join(iterations,by=c("alg","sim")) |> 
-  mutate(last_visit=last_visit/`1`) |> 
-  select(alg,last_visit) |> 
-  group_by(alg) |> 
-  summarise(min=round(min(last_visit),2),
-            q1=round(quantile(last_visit,probs=0.25),2),
-            median=round(quantile(last_visit,probs=0.5),2),
-            mean=round(mean(last_visit),2),
-            q3=round(quantile(last_visit,probs=0.75),2),
-            max=round(max(last_visit),2))
+if(nrow(iterations)>0){
+  temp <- mode_sum |> filter(str_starts(alg,'PT A-IIT m')) |>
+    select(alg,sim,last_visit) |> 
+    left_join(iterations,by=c("alg","sim")) |> 
+    mutate(last_visit=last_visit/`1`) |> 
+    select(alg,last_visit) |> 
+    group_by(alg) |> 
+    summarise(min=round(min(last_visit),2),
+              q1=round(quantile(last_visit,probs=0.25),2),
+              median=round(quantile(last_visit,probs=0.5),2),
+              mean=round(mean(last_visit),2),
+              q3=round(quantile(last_visit,probs=0.75),2),
+              max=round(max(last_visit),2))
+  swaps_to_explore <- rbind(swaps_to_explore,temp)
+}
 
 
-swaps_to_explore <- rbind(swaps_to_explore,temp)
+
+
 
 jpeg(file.path(export_path,paste0("table_swaps_",export_file_name,".jpg")),width=140*nrow(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
@@ -463,10 +493,17 @@ if(chosen_dim=="highdim"){
   loglik_visited <- loglik_visited |> filter(!is.na(alg))
   iter_visit <- iter_visit|> filter(!is.na(alg))
   ##### Report on average swap rate
+  
+  #First create column names depending on the number of replicas
+  swap_names <- c()
+  for(i in 1:(num_replicas-1)){
+    swap_names <- c(swap_names,paste0(i,"↔",i+1))
+  }
+  
   swap_report <- swap_rate |> 
     group_by(alg) |>
-    summarise(`1↔2`=mean(`1`),`2↔3`=mean(`2`))
-  
+    summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
+  colnames(swap_report) <- c("alg",swap_names)
   
   jpeg(file.path(export_path,paste0("table_swap_rate_",export_file_name,".jpg")),width=140*nrow(swap_report),height=40*nrow(swap_report),pointsize = 30)
   grid.arrange(tableGrob(swap_report))
@@ -474,7 +511,8 @@ if(chosen_dim=="highdim"){
   ##### Report on average swap rate
   rt_report <- round_trip |> 
     group_by(alg) |>
-    summarise(`R1`=mean(`1`),`R2`=mean(`2`),`R3`=mean(`3`),)
+    summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
+  colnames(rt_report) <- c("alg",paste0("R",1:num_replicas))
   
   jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
   grid.arrange(tableGrob(rt_report))
