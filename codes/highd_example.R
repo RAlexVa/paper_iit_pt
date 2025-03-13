@@ -49,9 +49,9 @@ run_highd <- function(list_ids){
     # Parameters for all algorithms
     total_simulations <- sim_chosen$simulations
     temperatures <- as.numeric(sim_chosen |> select(matches("^t\\d+$")))
-    temperatures <- temperatures[!is.na(temperatures)]
+    temperatures <- temperatures[!is.na(temperatures)] #Ignore NA temperatures
     bal_f <- as.character(sim_chosen|> select(matches("^bf")))
-    bal_f <- bal_f[!is.na(bal_f)]
+    bal_f <- bal_f[!is.na(bal_f)] #Ignore NA balancing functions
     defined_seed <- sim_chosen$seed
     set.seed(defined_seed)
     #Parameters for PT with IIT
@@ -84,6 +84,9 @@ run_highd <- function(list_ids){
                  paste0("File: ",file_matrix),
                  paste0("States to keep track: ",states_visited)))
     
+    #re-create the balancing function vector
+    #All replicas use the same balancing function
+    bal_f <- rep(bal_f,length(temperatures))
     # check <- as.numeric(readline('ok? 1 Yes/ 0 No'))
     check <- 1;
     if(check!=1){print("modify parameters")}else{
