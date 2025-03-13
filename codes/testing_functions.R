@@ -496,3 +496,30 @@ initial_bound <- 0.375
 print_log_bound(n,initial_bound,1,.05,.1)
 
 
+### Testing high values of log bound
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+
+v1 <- rep(0,800)
+v1[c(102,197,227,437,445)-1] <- 1
+
+c_l <- eval_lik("gset/G1.txt",v1)
+check <- testing_lik("gset/G1.txt",v1)
+max(check)
+min(check)
+
+c_l-min(check)
+max(check)-c_l
+
+
+c_l <- eval_loglik("gset/G1.txt",v1)
+check <- testing_loglik("gset/G1.txt",v1)
+max(check)
+min(check)
+
+c_l-min(check)
+max(check)-c_l
+
+
+
+
+
