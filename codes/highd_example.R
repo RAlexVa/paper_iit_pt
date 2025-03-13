@@ -33,7 +33,7 @@ run_highd <- function(list_ids){
     if(only_1_model){
       print("Reading one set of C++ functions")
       if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
-      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multihigh.cpp")}
+      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")}
     }
   #Start process for algorithms
   for(id_chosen in list_ids){
@@ -44,7 +44,7 @@ run_highd <- function(list_ids){
     if(!only_1_model){
       print(paste0("Reading C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
       if(sim_chosen$model=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
-      if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_func_multihigh.cpp")}
+      if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")}
     }
     # Parameters for all algorithms
     total_simulations <- sim_chosen$simulations
