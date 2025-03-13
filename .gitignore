@@ -3,3 +3,5 @@ paper_iit_pt.Rproj
 *.jpg
 .Rdata
 .Rhistory
+codes/hmm_bw0.sh
+codes/main_template.R
