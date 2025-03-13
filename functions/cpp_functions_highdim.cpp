@@ -459,7 +459,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     swap_success.zeros();
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
-      if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
@@ -521,7 +521,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
+      if (i % 1000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
@@ -536,6 +536,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         found_min=curr_loglik_visited.index_min();
         temporal_loglik=loglik(X.col(replica),Q_matrix);
           if(curr_loglik_visited(found_min)<temporal_loglik){
+             Rcpp::Rcout << "Found big likelihood" <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
             // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
             loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
             // Rcpp::Rcout << "Stores likelihood" << std::endl;
@@ -654,6 +655,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   int swap_count; //to keep track of even-odd swaps
   double current_temp; // to temporarily store the temperature
   double current_log_bound; //to temporarily store the log-bound
+  vec current_state(p);
   int new_samples;//temporal variable to store weight with multiplicity list
   //// Initialize arrays to store information
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
@@ -710,7 +712,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
           current_temp=temp(replica);// Extract temperature of the replica
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
-          output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
+          current_state=X.col(replica);
+          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
           
           //// Compute weight
           Z = output(1); //Extract the Z-factor
@@ -718,6 +721,19 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           if(new_samples<1){
             Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
             Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            //Show the current state where the low Z factor was identified
+            double cuenta_unos = sum(current_state);
+            uvec coord_print;
+            int coord_shown;
+            if(cuenta_unos>400){//If there are more 1s
+              coord_print=find(current_state==0);
+              coord_shown=0;
+            }else{//If there are more 0s
+              coord_print=find(current_state==1);
+              coord_shown=1;
+            }
+            Rcpp::Rcout <<"Coords with  "<<coord_shown<< " are:\n" << coord_print << std::endl;
+            
             new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
@@ -752,7 +768,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         }
       }
       track_burn_in+=sample_inter_swap;
-      Rcpp::Rcout << "Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
+      Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
     ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
@@ -760,7 +776,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 10 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Swap: " << i << std::endl;}
+      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         // Rcpp::Rcout << "Sim: " << s+startsim << " Swap: " << i <<"replica: "<<replica<< std::endl;
@@ -769,7 +785,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           total_iterations(i,index_process(replica),s)+=1;//increase the number of iterations
           current_temp=temp(index_process(replica));// Extract temperature of the replica
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
-          output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
+          current_state=X.col(replica);
+          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
           
           //// Compute weight
           Z = output(1); //Extract the Z-factor
@@ -777,6 +794,18 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           if(new_samples<1){
             Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
             Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            //Show the current state where the low Z factor was identified
+            double cuenta_unos = sum(current_state);
+            uvec coord_print;
+            int coord_shown;
+            if(cuenta_unos>400){//If there are more 1s
+              coord_print=find(current_state==0);
+              coord_shown=0;
+            }else{//If there are more 0s
+              coord_print=find(current_state==1);
+              coord_shown=1;
+            }
+            Rcpp::Rcout <<"Coords with  "<<coord_shown<< " are:\n" << coord_print.t() << std::endl;
             new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
@@ -790,6 +819,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             found_min=curr_loglik_visited.index_min();
             temporal_loglik=loglik(X.col(replica),Q_matrix);
             if(curr_loglik_visited(found_min)<temporal_loglik){
+              Rcpp::Rcout << "Found big likelihood " <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
               // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
               loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
               // Rcpp::Rcout << "Stores likelihood" << std::endl;
