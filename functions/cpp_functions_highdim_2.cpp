@@ -152,22 +152,27 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 }
 
 
-////////// loglikelihood functions //////////
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M){
-  double theta1=10;
-  double theta2=5;
+  // double theta1=10;
+  double theta1=200;
+  double theta2=200;
   if(M.n_cols!=2){
     Rcpp::Rcout << "Error matrix has more than 2 columns: " << std::endl;
     return(-10000);
   }else{
     vec mod1=M.col(0);
     vec mod2=M.col(1);
-    double loglik_computed = -(theta1*sum(abs(X-mod1)))-(theta2*sum(abs(X-mod2)));
-    return(loglik_computed);
+    double loglik_computed = exp(-(sum(abs(X-mod1))/theta1))+exp(-(sum(abs(X-mod2))/theta2));
+    // Rcpp::Rcout << "Primera parte: " <<-(sum(abs(X-mod1))/theta1)<< std::endl;
+    // Rcpp::Rcout << "EXP Primera parte: " <<exp(-(sum(abs(X-mod1))/theta1))<< std::endl;
+    // Rcpp::Rcout << "Segunda parte: " <<-(sum(abs(X-mod2))/theta2)<< std::endl;
+    // Rcpp::Rcout << "EXP Segunda parte: " <<exp(-(sum(abs(X-mod2))/theta2))<< std::endl;
+    return(log(loglik_computed));
   }
   
 }
+
 
 
 
@@ -269,14 +274,14 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   int total_swaps=trunc(numiter/iterswap);
   List output; // To store output of the update function
-  double Z; // To store Z factor of update function
+  // double Z; // To store Z factor of update function
   int swap_count; //to keep track of even-odd swaps
   double current_temp; // to temporarily store the temperature
   //// Initialize arrays to store information
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
-  int max_num=pow(2,p);
+  // int max_num=pow(2,p);
   
   
   vec swap_total(J);
@@ -522,7 +527,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
-  int max_num=pow(2,p);
+  // int max_num=pow(2,p);
   // Rcpp::Rcout << "max num: " << max_num << std::endl;  
   
   
@@ -744,7 +749,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   int total_swaps=trunc(numiter/iterswap);
   List output; // To store output of the update function
-  double Z; // To store Z factor of update function
+  // double Z; // To store Z factor of update function
   int swap_count; //to keep track of even-odd swaps
   double current_temp; // to temporarily store the temperature
   double current_log_bound; //to temporarily store the log-bound
@@ -752,7 +757,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
-  int max_num=pow(2,p);
+  // int max_num=pow(2,p);
   
   
   vec swap_total(J);
