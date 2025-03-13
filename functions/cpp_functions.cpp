@@ -671,7 +671,7 @@ swap_rate.row(s)=temp_rate.t();
 
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state, bool bound_reduction, double decreasing_constant,std::string reduc_model){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state, bool update_constant, double decreasing_constant,std::string reduc_model){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -821,7 +821,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
 ///// Process to update probability of decreasing the bounding constant
 // Rcpp::Rcout <<"Temp: "<<current_temp<<" Current log_bound: "<< current_log_bound<<" C_max_log_bound: "<<max_log_bound_vector(index_process(replica))<< std::endl;
-          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
+          output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
           
           //// Compute weight
           Z = output(1); //Extract the Z-factor
@@ -945,7 +945,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state, bool bound_reduction, double decreasing_constant,std::string reduc_model){
+List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state, bool update_constant, double decreasing_constant,std::string reduc_model){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -1090,7 +1090,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
         
-        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,bound_reduction,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
+        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
         //// Store Z factor of replica with temperature 1
         if(current_temp==1){ // For the original temperature replica
           // Rcpp::Rcout << "Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
