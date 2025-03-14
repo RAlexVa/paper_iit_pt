@@ -68,7 +68,8 @@ run_highd <- function(list_ids){
     states_visited <- sim_chosen$states_visited
     # start_state <- sim_chosen$start_state;
     alg <- sim_chosen$algorithm
-    start_state <- as.numeric(unlist(strsplit(sim_chosen$start_state,",")))
+    # start_state <- as.numeric(unlist(strsplit(sim_chosen$start_state,",")))
+    start_state <- -1 #Fixing starting state as the vector 0
     export <- list();
     #### Function depending on algorithm to use
     
