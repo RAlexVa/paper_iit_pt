@@ -145,11 +145,22 @@ PT_RT <- function(ip,total_swaps, total_sim){
 #List of modes (same dimension as the vector)
 #Theta parameter to multiply th exponent -> bigger theta implies more concentration of probability around modes
 #dimension of the vector p
-ll_comp <- function(X,modes_list, theta=1,p){
+lik_comp <- function(X,modes_list, theta=1,p){
   if(length(X)!=p){print('Error in dimension');return(-1);}
   total=0;
-  for(m in 1:length(modes_list)){# loop for modes
-    total = total+exp(-theta*sum(abs(X-modes_list[[m]])))
+  if(length(theta)==1){#Computing for just a single theta
+    
+    for(m in 1:length(modes_list)){# loop for modes
+      total = total+exp(-theta*sum(abs(X-modes_list[[m]])))
+    }
+    
+  }else if(length(theta)>1 && length(theta)==length(modes_list)){
+    #Computing where each mode has its own theta
+    for(m in 1:length(modes_list)){# loop for modes
+      total = total+exp(-theta[m]*sum(abs(X-modes_list[[m]])))
+    }
+  }else{
+    print("ERROR: There are not the same number of thetas and modes")
   }
-  return(log(total));
+  return(total);
 }
