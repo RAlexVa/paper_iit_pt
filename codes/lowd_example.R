@@ -106,6 +106,7 @@ run_lowd <- function(list_ids){
       temperatures <- temperatures[!is.na(temperatures)] #Ignore NA temperatures
       bal_f <- as.character(sim_chosen|> select(matches("^bf")))
       bal_f <- bal_f[!is.na(bal_f)] #Ignore NA balancing functions
+      if(length(bal_f)==0){bal_f <- "sq"}
       burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
       start_state <- sim_chosen$start_state;#starting point
       alg <- sim_chosen$algorithm # algorithm
