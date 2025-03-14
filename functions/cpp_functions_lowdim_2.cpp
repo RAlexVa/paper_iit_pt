@@ -655,7 +655,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
       if (i % 10 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
       // if (i % 10 == 1) {Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;}
-      Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;
+      // Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;
       //   bool check_bool= log_bound_vector(J)==0;
       // Rcpp::Rcout <<"Check if bound is 0 already :"<< check_bool<< std::endl;
       //<< " log-bound:\n " << log_bound_vector
