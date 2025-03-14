@@ -53,6 +53,7 @@ run_highd <- function(list_ids){
     temperatures <- temperatures[!is.na(temperatures)] #Ignore NA temperatures
     bal_f <- as.character(sim_chosen|> select(matches("^bf")))
     bal_f <- bal_f[!is.na(bal_f)] #Ignore NA balancing functions
+    if(length(bal_f)==0){bal_f <- "sq"}
     defined_seed <- sim_chosen$seed
     set.seed(defined_seed)
     #Parameters for PT with IIT
