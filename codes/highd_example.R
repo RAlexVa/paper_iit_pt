@@ -32,6 +32,7 @@ run_highd <- function(list_ids){
 # In case only 1 model is chosen, we only read 1 model for all the IDs    
     if(only_1_model){
       print("Reading one set of C++ functions")
+      print(paste0("Model = ",tot_models))
       if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
       if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")}
     }
@@ -70,14 +71,16 @@ run_highd <- function(list_ids){
     export <- list();
     #### Function depending on algorithm to use
     
-    writeLines(c("Parameters:",paste0("Algorithm: ",alg),
+    writeLines(c("Parameters:",
                  paste0("ID: ",id_chosen),
-                 paste0("Seed: ",defined_seed),
+                 paste0("Algorithm: ",alg),
+                 paste0("Problem: ",sim_chosen$model),
+                 paste0("Number of Replicas: ",length(temperatures)),
                  paste0("Total simulations: ",total_simulations),
                  paste0("Burn-in iterations: ",burnin_iter),
-                 paste0("Temperatures: ",paste(temperatures,collapse=',')),
-                 paste0("Balancing functions: ",paste(bal_f,collapse = ',')),
                  paste0("Total iterations: ",total_iter),
+                 paste0("Temperatures: ",paste(temperatures,collapse=',')),
+                 paste0("Balancing function: ",paste(bal_f,collapse = ',')),
                  paste0("Try swaps:",iterswap),
                  paste0("Samples in-between swaps: ",sample_inter_swap),
                  paste0("Total swaps:",total_swap),
