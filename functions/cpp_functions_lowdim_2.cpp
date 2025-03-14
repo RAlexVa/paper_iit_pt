@@ -117,8 +117,8 @@ double loglik(const arma::vec& X){
     return -std::numeric_limits<double>::infinity();
   }
   
-  double theta=15;
-  
+  double theta1=10;
+  double theta2=5;
   // Defined modes
   // arma::vec  mod1 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};// 16 1s
   arma::vec  mod2 = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};// 8 1s
@@ -131,8 +131,8 @@ double loglik(const arma::vec& X){
   double loglik_comp=0;
   
   // loglik_comp+=exp(-theta*sum(abs(X-mod1)));
-  loglik_comp+=exp(-theta*sum(abs(X-mod2)));
-  loglik_comp+=exp(-theta*sum(abs(X-mod3)));
+  loglik_comp+=exp(-theta1*sum(abs(X-mod2)));
+  loglik_comp+=exp(-theta2*sum(abs(X-mod3)));
   // loglik_comp+=exp(-theta*sum(abs(X-mod4)));
   // loglik_comp+=exp(-theta*sum(abs(X-mod5)));
   // loglik_comp+=exp(-theta*sum(abs(X-mod6)));
