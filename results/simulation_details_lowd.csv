@@ -1,68 +1,73 @@
-id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf1,bf2,bf3,bf4,t1,t2,t3,t4,burn_in,reduc_constant,reduc_model,model,comments
-0,IIT,5,1000,1001,NA,5,13,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-1,PT_IIT_Z,100,500000,2000,NA,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-2,PT_IIT_no_Z,100,500000,2000,NA,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-3,PT_A_IIT,100,NA,2000,200,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-4,IIT,100,500000,500001,NA,0,153,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-5,PT_IIT_Z,100,500000,2000,NA,0,22,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-6,PT_IIT_no_Z,100,500000,2000,NA,0,22,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-7,PT_A_IIT,100,NA,2000,200,0,22,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-8,IIT,100,500000,500001,NA,0,22,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-9,PT_IIT_Z,100,500000,2000,NA,65536,335,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
-10,PT_IIT_no_Z,100,500000,2000,NA,65536,335,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
-11,PT_A_IIT,100,NA,2000,200,65536,335,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
-12,IIT,100,500000,500001,NA,65536,335,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
-13,PT_IIT_Z,100,500000,2000,NA,63519,995,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-14,PT_IIT_no_Z,100,500000,2000,NA,63519,995,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-15,PT_A_IIT,100,NA,2000,200,63519,995,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-16,IIT,100,500000,500001,NA,63519,995,sq,sq,sq,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
-17,PT_IIT_Z,100,500000,2000,NA,65535,112,sq,sq,sq,sq,1,0.15,0.07,0.0007,10000,0,0,7_mode,"need to reduce swap rate for temps 2 and 3. sometimes modes 5,6,7 are not visited"
-18,PT_IIT_no_Z,100,500000,2000,NA,65535,112,sq,sq,sq,sq,1,0.15,0.07,0.0007,10000,0,0,7_mode,"need to reduce swap rate for temps 2 and 3. sometimes modes 5,6,7 are not visited"
-19,PT_A_IIT,100,NA,2000,250,65535,112,sq,sq,sq,sq,1,0.16,0.1,0.05,10000,0,0,7_mode,
-20,IIT,100,500000,500001,NA,65535,112,sq,sq,sq,sq,1,0.15,0.07,0.0007,10000,0,0,7_mode,
-21,PT_IIT_Z,2,5000,500,NA,65535,33,sq,sq,sq,sq,1,0.15,0.07,0.0007,3000,0,0,7_mode,Just to test
-22,PT_IIT_no_Z,2,5000,500,NA,65535,33,sq,sq,sq,sq,1,0.15,0.07,0.0007,3000,0,0,7_mode,Just to test
-23,PT_A_IIT,2,NA,500,10,65535,33,sq,sq,sq,sq,1,0.16,0.1,0.05,3000,0,0,7_mode,Just to test
-24,IIT,2,5000,5001,NA,65535,33,sq,sq,sq,sq,1,0.15,0.07,0.0007,3000,0,0,7_mode,Just to test
-25,PT_IIT_Z,100,750000,2500,NA,0,555,sq,sq,sq,sq,1,0.16,0.05,0.0001,25000,0,0,7_mode,
-26,PT_IIT_no_Z,100,750000,2500,NA,0,555,sq,sq,sq,sq,1,0.16,0.05,0.0001,25000,0,0,7_mode,
-27,PT_A_IIT,100,NA,2500,300,0,555,sq,sq,sq,sq,1,0.16,0.1,0.05,25000,0,0,7_mode,Temperatures seem to be ok based on acceptance rate
-28,PT_IIT_Z,2,30000,2000,NA,235,51,sq,sq,sq,sq,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
-29,PT_A_IIT,2,NA,2000,15,235,51,sq,sq,sq,sq,1,0.16,0.1,0.05,4000,0,0,7_mode,Just to test
-30,PT_A_IIT_RF,2,30000,2000,NA,235,51,sq,sq,sq,sq,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
-31,PT_IIT_Z,2,30000,2000,NA,235,51,min,min,min,min,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
-32,PT_A_IIT,2,NA,2000,15,235,51,min,min,min,min,1,0.16,0.1,0.05,4000,0,0,7_mode,Just to test
-33,PT_A_IIT_RF,2,30000,2000,NA,235,51,min,min,min,min,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
-34,PT_IIT_Z,100,500000,1000,NA,0,13,sq,sq,sq,sq,1,0.155,0.07,0.00001,75000,0,0,7_mode,Modify temperatures based on results from 25
-35,PT_A_IIT_RF,100,500000,1000,NA,0,13,sq,sq,sq,sq,1,0.155,0.07,0.00001,75000,0,0,7_mode,Copying tempertaures from 34
-36,PT_A_IIT,100,NA,1000,500,0,13,sq,sq,sq,sq,1,0.155,0.1,0.05,75000,0,0,7_mode,"Slight change to t1, based on results from 27"
-37,PT_IIT_Z,100,500000,1000,NA,0,13,min,min,min,min,1,0.155,0.07,0.00001,75000,0,0,7_mode,Copying tempertaures from 34
-38,PT_A_IIT_RF,5,500000,1000,NA,555,1,,,,,1,0.155,0.07,0.00001,10000,0.1,always,7_mode,testing new balancing function
-39,PT_A_IIT,5,NA,1000,500,555,1,,,,,1,0.155,0.1,0.05,10000,0.1,always,7_mode,testing new balancing function
-40,PT_A_IIT_RF,4,50000,500,NA,555,1,,,,,1,0.155,0.07,0.00001,10000,0.1,never,7_mode,testing reduc_model
-41,PT_A_IIT,4,NA,500,100,555,1,,,,,1,0.155,0.1,0.05,10000,0.1,never,7_mode,testing reduc_model
-42,PT_A_IIT_RF,4,50000,500,NA,555,1,,,,,1,0.155,0.07,0.00001,10000,0.1,iterations,7_mode,testing reduc_model
-43,PT_A_IIT,4,NA,500,100,555,1,,,,,1,0.155,0.1,0.05,10000,0.1,iterations,7_mode,testing reduc_model
-44,PT_IIT_Z,100,1000000,1000,NA,0,4589,sq,sq,sq,sq,1,0.155,0.05,0.0000001,100000,0,0,7_mode,Modify temperatures based on results from 34
-45,PT_IIT_Z,100,1000000,1000,NA,0,4589,min,min,min,min,1,0.155,0.05,0.0000001,100000,0,0,7_mode,Copying tempertaures from 42
-46,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0,never,7_mode,Copying tempertaures from 42
-47,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,7_mode,Seem to be good temperatures for this algorithm
-48,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0.1,iterations,7_mode,
-49,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0.1,iterations,7_mode,Seem to be good temperatures for this algorithm
-50,PT_A_IIT,10,NA,1000,500,0,13,sq,sq,sq,sq,1,0.155,0.1,0.05,75000,0,0,7_mode,Copying 36 with less simulations
-51,PT_A_IIT_RF,4,50000,500,NA,98,6698,,,,,1,0.155,0.07,0.00001,10000,0.1,iterations,bimodal,
-52,PT_A_IIT,4,NA,500,100,98,6698,,,,,1,0.155,0.1,0.05,10000,0.1,iterations,bimodal,
-53,PT_IIT_Z,4,50000,500,NA,98,6698,sq,sq,sq,sq,1,0.155,0.05,0.0000001,10000,0.1,0,bimodal,
-54,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0,never,bimodal,
-55,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0,never,bimodal,swap rate between 3-4 needs to increase (currenlty 0.20)
-56,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,,,,1,0.155,0.05,0.0000001,100000,0.1,iterations,bimodal,
-57,PT_A_IIT,100,NA,1000,1000,0,4589,,,,,1,0.155,0.1,0.05,100000,0.1,iterations,bimodal,swap rate between 3-4 needs to increase (currenlty 0.20)
-58,PT_IIT_Z,100,1000000,1000,NA,0,4589,sq,sq,sq,sq,1,0.155,0.05,0.0000001,100000,0,0,bimodal,
-59,PT_IIT_Z,100,1000000,1000,NA,0,4589,min,min,min,min,1,0.155,0.05,0.0000001,100000,0,0,bimodal,
-60,PT_A_IIT,1,NA,1,1810,0,4589,,,,,1,0.155,0.1,0.05,100,1,always,7_mode,To fix numerical errors while decreasing bound
-61,PT_IIT_Z,100,1000000,1000,NA,0,886,sq,sq,sq,sq,1,0.155,0.06,0.0000001,100000,0,0,7_mode,Modify temperature 3 based on 44
-62,PT_IIT_Z,100,1000000,1000,NA,0,886,min,min,min,min,1,0.155,0.06,0.0000001,100000,0,0,7_mode,Modify temperature 3 based on 45
-63,PT_A_IIT_RF,100,1000000,1000,NA,0,886,,,,,1,0.155,0.06,0.0000001,100000,0,never,7_mode,Copying temperatures of PT_IIT
-64,PT_A_IIT_RF,100,1000000,1000,NA,0,886,,,,,1,0.155,0.06,0.0000001,100000,0.001,iterations,7_mode,Copying temperatures of PT_IIT
-65,PT_A_IIT,100,NA,1000,1000,0,886,,,,,1,0.155,0.1,0.05,100000,0,never,7_mode,
-66,PT_A_IIT,100,NA,1000,1000,0,886,,,,,1,0.155,0.1,0.05,100000,0.001,iterations,7_mode,
+id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,t2,t3,t4,burn_in,reduc_constant,reduc_model,model,comments
+0,IIT,5,1000,1001,NA,5,13,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+1,PT_IIT_Z,100,500000,2000,NA,0,153,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+2,PT_IIT_no_Z,100,500000,2000,NA,0,153,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+3,PT_A_IIT,100,NA,2000,200,0,153,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+4,IIT,100,500000,500001,NA,0,153,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+5,PT_IIT_Z,100,500000,2000,NA,0,22,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+6,PT_IIT_no_Z,100,500000,2000,NA,0,22,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+7,PT_A_IIT,100,NA,2000,200,0,22,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+8,IIT,100,500000,500001,NA,0,22,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+9,PT_IIT_Z,100,500000,2000,NA,65536,335,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
+10,PT_IIT_no_Z,100,500000,2000,NA,65536,335,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
+11,PT_A_IIT,100,NA,2000,200,65536,335,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
+12,IIT,100,500000,500001,NA,65536,335,sq,1,0.18,0.09,0.001,0,0,0,7_mode,Respecto al estado inicial Marca error y realmente inicia en 0
+13,PT_IIT_Z,100,500000,2000,NA,63519,995,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+14,PT_IIT_no_Z,100,500000,2000,NA,63519,995,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+15,PT_A_IIT,100,NA,2000,200,63519,995,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+16,IIT,100,500000,500001,NA,63519,995,sq,1,0.18,0.09,0.001,0,0,0,7_mode,
+17,PT_IIT_Z,100,500000,2000,NA,65535,112,sq,1,0.15,0.07,0.0007,10000,0,0,7_mode,"need to reduce swap rate for temps 2 and 3. sometimes modes 5,6,7 are not visited"
+18,PT_IIT_no_Z,100,500000,2000,NA,65535,112,sq,1,0.15,0.07,0.0007,10000,0,0,7_mode,"need to reduce swap rate for temps 2 and 3. sometimes modes 5,6,7 are not visited"
+19,PT_A_IIT,100,NA,2000,250,65535,112,sq,1,0.16,0.1,0.05,10000,0,0,7_mode,
+20,IIT,100,500000,500001,NA,65535,112,sq,1,0.15,0.07,0.0007,10000,0,0,7_mode,
+21,PT_IIT_Z,2,5000,500,NA,65535,33,sq,1,0.15,0.07,0.0007,3000,0,0,7_mode,Just to test
+22,PT_IIT_no_Z,2,5000,500,NA,65535,33,sq,1,0.15,0.07,0.0007,3000,0,0,7_mode,Just to test
+23,PT_A_IIT,2,NA,500,10,65535,33,sq,1,0.16,0.1,0.05,3000,0,0,7_mode,Just to test
+24,IIT,2,5000,5001,NA,65535,33,sq,1,0.15,0.07,0.0007,3000,0,0,7_mode,Just to test
+25,PT_IIT_Z,100,750000,2500,NA,0,555,sq,1,0.16,0.05,0.0001,25000,0,0,7_mode,
+26,PT_IIT_no_Z,100,750000,2500,NA,0,555,sq,1,0.16,0.05,0.0001,25000,0,0,7_mode,
+27,PT_A_IIT,100,NA,2500,300,0,555,sq,1,0.16,0.1,0.05,25000,0,0,7_mode,Temperatures seem to be ok based on acceptance rate
+28,PT_IIT_Z,2,30000,2000,NA,235,51,sq,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
+29,PT_A_IIT,2,NA,2000,15,235,51,sq,1,0.16,0.1,0.05,4000,0,0,7_mode,Just to test
+30,PT_A_IIT_RF,2,30000,2000,NA,235,51,sq,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
+31,PT_IIT_Z,2,30000,2000,NA,235,51,min,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
+32,PT_A_IIT,2,NA,2000,15,235,51,min,1,0.16,0.1,0.05,4000,0,0,7_mode,Just to test
+33,PT_A_IIT_RF,2,30000,2000,NA,235,51,min,1,0.16,0.07,0.0001,4000,0,0,7_mode,Just to test
+34,PT_IIT_Z,100,500000,1000,NA,0,13,sq,1,0.155,0.07,0.00001,75000,0,0,7_mode,Modify temperatures based on results from 25
+35,PT_A_IIT_RF,100,500000,1000,NA,0,13,sq,1,0.155,0.07,0.00001,75000,0,0,7_mode,Copying tempertaures from 34
+36,PT_A_IIT,100,NA,1000,500,0,13,sq,1,0.155,0.1,0.05,75000,0,0,7_mode,"Slight change to t1, based on results from 27"
+37,PT_IIT_Z,100,500000,1000,NA,0,13,min,1,0.155,0.07,0.00001,75000,0,0,7_mode,Copying tempertaures from 34
+38,PT_A_IIT_RF,5,500000,1000,NA,555,1,,1,0.155,0.07,0.00001,10000,0.1,always,7_mode,testing new balancing function
+39,PT_A_IIT,5,NA,1000,500,555,1,,1,0.155,0.1,0.05,10000,0.1,always,7_mode,testing new balancing function
+40,PT_A_IIT_RF,4,50000,500,NA,555,1,,1,0.155,0.07,0.00001,10000,0.1,never,7_mode,testing reduc_model
+41,PT_A_IIT,4,NA,500,100,555,1,,1,0.155,0.1,0.05,10000,0.1,never,7_mode,testing reduc_model
+42,PT_A_IIT_RF,4,50000,500,NA,555,1,,1,0.155,0.07,0.00001,10000,0.1,iterations,7_mode,testing reduc_model
+43,PT_A_IIT,4,NA,500,100,555,1,,1,0.155,0.1,0.05,10000,0.1,iterations,7_mode,testing reduc_model
+44,PT_IIT_Z,100,1000000,1000,NA,0,4589,sq,1,0.155,0.05,0.0000001,100000,0,0,7_mode,Modify temperatures based on results from 34
+45,PT_IIT_Z,100,1000000,1000,NA,0,4589,min,1,0.155,0.05,0.0000001,100000,0,0,7_mode,Copying tempertaures from 42
+46,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,1,0.155,0.05,0.0000001,100000,0,never,7_mode,Copying tempertaures from 42
+47,PT_A_IIT,100,NA,1000,1000,0,4589,,1,0.155,0.1,0.05,100000,0,never,7_mode,Seem to be good temperatures for this algorithm
+48,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,1,0.155,0.05,0.0000001,100000,0.1,iterations,7_mode,
+49,PT_A_IIT,100,NA,1000,1000,0,4589,,1,0.155,0.1,0.05,100000,0.1,iterations,7_mode,Seem to be good temperatures for this algorithm
+50,PT_A_IIT,10,NA,1000,500,0,13,sq,1,0.155,0.1,0.05,75000,0,0,7_mode,Copying 36 with less simulations
+51,PT_A_IIT_RF,4,50000,500,NA,98,6698,,1,0.155,0.07,0.00001,10000,0.1,iterations,bimodal,
+52,PT_A_IIT,4,NA,500,100,98,6698,,1,0.155,0.1,0.05,10000,0.1,iterations,bimodal,
+53,PT_IIT_Z,4,50000,500,NA,98,6698,sq,1,0.155,0.05,0.0000001,10000,0.1,0,bimodal,
+54,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,1,0.155,0.05,0.0000001,100000,0,never,bimodal,
+55,PT_A_IIT,100,NA,1000,1000,0,4589,,1,0.155,0.1,0.05,100000,0,never,bimodal,swap rate between 3-4 needs to increase (currenlty 0.20)
+56,PT_A_IIT_RF,100,1000000,1000,NA,0,4589,,1,0.155,0.05,0.0000001,100000,0.1,iterations,bimodal,
+57,PT_A_IIT,100,NA,1000,1000,0,4589,,1,0.155,0.1,0.05,100000,0.1,iterations,bimodal,swap rate between 3-4 needs to increase (currenlty 0.20)
+58,PT_IIT_Z,100,1000000,1000,NA,0,4589,sq,1,0.155,0.05,0.0000001,100000,0,0,bimodal,
+59,PT_IIT_Z,100,1000000,1000,NA,0,4589,min,1,0.155,0.05,0.0000001,100000,0,0,bimodal,
+60,PT_A_IIT,1,NA,1,1810,0,4589,,1,0.155,0.1,0.05,100,1,always,7_mode,To fix numerical errors while decreasing bound
+61,PT_IIT_Z,100,1000000,1000,NA,0,886,sq,1,0.155,0.06,0.0000001,100000,0,0,7_mode,PT1_Modify temperature 3 based on 44
+62,PT_IIT_Z,100,1000000,1000,NA,0,886,min,1,0.155,0.06,0.0000001,100000,0,0,7_mode,pt4_Modify temperature 3 based on 45
+63,PT_A_IIT_RF,100,1000000,1000,NA,0,886,,1,0.155,0.06,0.0000001,100000,0,never,7_mode,pt2Copying temperatures of PT_IIT
+64,PT_A_IIT_RF,100,1000000,1000,NA,0,886,,1,0.155,0.06,0.0000001,100000,0.001,iterations,7_mode,pt3Copying temperatures of PT_IIT
+65,PT_A_IIT,100,NA,1000,1000,0,886,,1,0.155,0.1,0.05,100000,0,never,7_mode,pt2Copying temperatures of PT_IIT
+66,PT_A_IIT,100,NA,1000,1000,0,886,,1,0.155,0.1,0.05,100000,0.001,iterations,7_mode,pt3
+67,PT_IIT_Z,50,500000,1000,NA,0,156,sq,1,0.155,0.08,0.0000001,100000,0,0,bimodal,to find good temperatures for the bimodal problem
+68,PT_IIT_Z,50,500000,1000,NA,0,156,sq,1,0.155,0.08,,100000,0,0,bimodal,to find good temperatures for the bimodal problem
+69,PT_A_IIT_RF,50,500000,1000,NA,0,156,sq,1,0.155,0.08,,100000,0,never,bimodal,to find good temperatures for the bimodal problem
+70,PT_A_IIT,50,NA,1000,500,0,4589,,1,0.14,0.1,0.08,100000,0,never,bimodal,to find good temperatures for the bimodal problem
+71,PT_A_IIT,50,NA,1000,500,0,4589,,1,0.14,0.1,,100000,0,never,bimodal,to find good temperatures for the bimodal problem
