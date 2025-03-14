@@ -521,5 +521,41 @@ max(check)-c_l
 
 
 
+#### testing high dimensional multimodal problem
+Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
 
+M <- matrix(c(1,1,1,1,0,1,0,0),ncol=2,byrow=F)
+v <- c(1,0,1,1)
+loglik(v,M)
+
+mod1 <- rep(0:1,400)
+mod2 <- rep(1:0,400)
+M <- cbind(mod1,mod2)
+
+
+mod1 <- c(rep(1,150),rep(0,150),rep(1,200),rep(0,300))
+mod2 <- c(rep(0,150),rep(1,150),rep(1,200),rep(0,300))
+M <- cbind(mod1,mod2)
+
+loglik(mod1,M)
+loglik(mod2,M)
+
+loglik(rep(0,800),M)
+
+loglik(rbinom(800,1,0.3),M)
+lvec <- c()
+for(i in 1:length(mod1)){
+  temp_vec <- mod1
+  temp_vec[i] <- 1-temp_vec[i]
+  lvec[i] <- loglik(temp_vec,M)
+}
+summary(lvec)
+
+lvec <- c()
+for(i in 1:length(mod2)){
+  temp_vec <- mod2
+  temp_vec[i] <- 1-temp_vec[i]
+  lvec[i] <- loglik(temp_vec,M)
+}
+summary(lvec)
 
