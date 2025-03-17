@@ -117,8 +117,8 @@ double loglik(const arma::vec& X){
     return -std::numeric_limits<double>::infinity();
   }
   
-  double theta1=10;
-  double theta2=5;
+  double theta1=6;
+  double theta2=6;
   // Defined modes
   // arma::vec  mod1 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};// 16 1s
   arma::vec  mod2 = {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0};// 8 1s
