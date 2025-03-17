@@ -50,8 +50,8 @@ run_lowd <- function(list_ids){
       {
         p <- 16 #dimension
         theta <- c()
-        theta[1] <- 10 #tail weight parameter
-        theta[2] <- 5 #tail weight parameter for second mode
+        theta[1] <- 6 #tail weight parameter
+        theta[2] <- 6 #tail weight parameter for second mode
         # Modes definition
         mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
         mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
