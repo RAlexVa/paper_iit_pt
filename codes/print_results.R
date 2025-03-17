@@ -9,9 +9,9 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(44,45)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+# chosen_dim <- "highdim"; file_dim <- "highd"
+chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(96,97,98)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -35,14 +35,41 @@ source("functions/r_functions.R")
 check_number_modes <- unique(data_sum |> pull(model))
 if(length(check_number_modes)==1){only_1_model <- TRUE;}else{only_1_model <- FALSE}
 if(!only_1_model){stop("You have low_dim models with different number of modes")}else{
+# Check number of replicas
+  check_number_replicas <- data_sum |> select(id,matches("^t\\d+")) #Select all temperatures columns
+  
+  #Check which columns are full of NAs to exclude them
+  na_temps <- data_sum |> 
+    select(matches("^t\\d+$")) |>  # Select columns of the form tX
+    summarize(across(everything(), ~ all(is.na(.x)))) |>   # Check if all values are NA
+    pivot_longer(everything(), names_to = "column", values_to = "is_all_na") |>   # Convert to long format
+    filter(is_all_na) |>   # Keep only columns where is_all_na is TRUE
+    pull(column) 
+  
+  na_bf <- paste0("bf",na_temps |> str_extract("\\d+"))
+  check_number_replicas <- check_number_replicas|> select(-all_of(na_temps))
+  check_dif_num_replica <- any(is.na(check_number_replicas))
+  
+  
+  if(check_dif_num_replica){#In case there's some ids with different number of replicas
+    ind_rep <- which(is.na(check_number_replicas),T)[1]
+    writeLines(paste0("id: ",check_number_replicas[ind_rep,1]," has less replicas"))
+    stop("Some of the chosen simulations have different number of replicas")
+  }else{
+    num_replicas <- ncol(check_number_replicas |> select(-id))
+  }
+  
+  
+  
+  
   
   if(check_number_modes=="7_mode"){
     #Low dim is the example with 7 modes and 4 temperatures
     tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
     mode_visit <- as.data.frame(matrix(NA,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
-    round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
-    swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
-    iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4) #For the 4 replicas
+    round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
+    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
+    iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas) #For the 4 replicas
     pi_modes <- as.data.frame(matrix(NA,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
     # Low dimensional true probability setup
     {
@@ -65,9 +92,9 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
       ### Compute true probability
       pi.true <- rep(0,2^p)
       for(i in 0:(2^p -1)){
-        pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+        pi.true[i+1] <-  lik_comp(NumberToVector(i,p),modes_list,theta,p)
       }
-      pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+      pi.true <- pi.true/(length(modes_list)*(1+exp(-theta))^p)
     }
     
   }
@@ -75,9 +102,9 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
     #Low dim is the example with 2 modes and 4 temperatures
     tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
     mode_visit <- as.data.frame(matrix(NA,ncol=5)); colnames(mode_visit) <- c("alg","sim","interswap",1:2)
-    round_trip <- as.data.frame(matrix(NA,ncol=6)); colnames(round_trip) <- c("alg","sim",1:4)
-    swap_rate <- as.data.frame(matrix(NA,ncol=5)); colnames(swap_rate) <- c("alg","sim",1:3)
-    iterations <- as.data.frame(matrix(NA,ncol=6)); colnames(iterations) <- c("alg","sim",1:4) #For the 4 replicas
+    round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
+    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
+    iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas) #For the 4 replicas
     pi_modes <- as.data.frame(matrix(NA,ncol=4));colnames(pi_modes) <- c("alg","sim",1:2)
     
     ##### Low-dimensional multimodal setup #####
@@ -85,27 +112,24 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
       Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
       source("functions/r_functions.R")
       p <- 16 #dimension
-      theta <- 15 #tail weight parameter
-      
+      theta <- c()
+      theta[1] <- 6 #tail weight parameter
+      theta[2] <- 6 #tail weight parameter for second mode
       # Modes definition
-      # mod1 <- rep(1,p)
       mod2 <- c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0)
       mod3 <- c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1)
-      # mod4 <- c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0)
-      # mod5 <- c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1)
-      # mod6 <- c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1)
-      # mod7 <- c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0)
       modes <- c(vec_to_num(mod2),  vec_to_num(mod3))
-      # modes <- c(vec_to_num(mod1),  vec_to_num(mod2),  vec_to_num(mod3),  vec_to_num(mod4),  vec_to_num(mod5),  vec_to_num(mod6),  vec_to_num(mod7))
       modes_list <- list(mod2,mod3)
-      # modes_list <- list(mod1,mod2,mod3,mod4,mod5,mod6,mod7)
       
       ### Compute true probability
       pi.true <- rep(0,2^p)
       for(i in 0:(2^p -1)){
-        pi.true[i+1] <-  ll_comp(NumberToVector(i,p),modes_list,theta,p)
+        pi.true[i+1] <-  lik_comp(NumberToVector(i,p),modes_list,theta,p)
       }
-      pi.true <- exp(pi.true)/(length(modes_list)*(1+exp(-theta))^p)
+      pi.true <- pi.true/((1+exp(-theta[1]))^p + (1+exp(-theta[2]))^p)
+      sum(head(sort(-pi.true),n=20))
+      pi.true[modes+1]
+      sum(pi.true[modes+1])
     }
   }
 }
@@ -303,8 +327,10 @@ export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen
 export_file_name <- paste0(chosen_dim,"_",paste0(chosen_ids,collapse="_"))
 # full_path <- file.path(export_path,paste0("tvd_",export_file_name,".jpg"))
 
+#################################### REPORTS FOR LOW AND HIGH DIMENSION ######
 
 ##### Time taken #####
+
 # time_plot <- time_taken|>  filter(alg!='IIT') |> 
 #   ggplot(aes(x=alg,y=time,fill=alg)) +
 #   geom_boxplot(show.legend = FALSE)+
@@ -330,7 +356,32 @@ dev.off()
   ggplot(aes(x=alg,y=time))+
   geom_boxplot())
 
+##### Report on average swap rate
 
+#First create column names depending on the number of replicas
+swap_names <- c()
+for(i in 1:(num_replicas-1)){
+  swap_names <- c(swap_names,paste0(i,"↔",i+1))
+}
+
+swap_report <- swap_rate |> 
+  group_by(alg) |>
+  summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
+colnames(swap_report) <- c("alg",swap_names)
+
+jpeg(file.path(export_path,paste0("table_swap_rate_",export_file_name,".jpg")),width=93*ncol(swap_report),height=33*nrow(swap_report),pointsize = 30)
+grid.arrange(tableGrob(swap_report))
+dev.off()
+
+##### Report on average round trip rate
+rt_report <- round_trip |> 
+  group_by(alg) |>
+  summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
+colnames(rt_report) <- c("alg",paste0("R",1:num_replicas))
+
+jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
+grid.arrange(tableGrob(rt_report))
+dev.off()
 
 if(chosen_dim=="lowdim"){
   ##### Delete first row with NA#####
@@ -412,7 +463,7 @@ table_visited <- mode_sum |> rename(algorithm=alg) |>
               values_from = count,
               values_fill=0)
 
-jpeg(file.path(export_path,paste0("table_visited_modes_",export_file_name,".jpg")),width=50*nrow(table_visited),height=40*nrow(table_visited),pointsize = 30)
+jpeg(file.path(export_path,paste0("table_visited_modes_",export_file_name,".jpg")),width=100 + (60*(ncol(table_visited)-1)),height=40*nrow(table_visited),pointsize = 30)
 grid.arrange(tableGrob(table_visited))
 dev.off()
 
@@ -466,24 +517,6 @@ if(nrow(iterations)>0){
 jpeg(file.path(export_path,paste0("table_swaps_",export_file_name,".jpg")),width=140*nrow(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
-
-##### Report on average swap rate
-swap_report <- swap_rate |> 
-  group_by(alg) |>
-  summarise(`1↔2`=mean(`1`),`2↔3`=mean(`2`),`3↔4`=mean(`3`))
-
-
-jpeg(file.path(export_path,paste0("table_swap_rate_",export_file_name,".jpg")),width=140*nrow(swap_report),height=40*nrow(swap_report),pointsize = 30)
-grid.arrange(tableGrob(swap_report))
-dev.off()
-##### Report on average swap rate
-rt_report <- round_trip |> 
-  group_by(alg) |>
-  summarise(`R1`=mean(`1`),`R2`=mean(`2`),`R3`=mean(`3`),,`R4`=mean(`4`))
-
-jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
-grid.arrange(tableGrob(rt_report))
-dev.off()
 }# Finish low dim reports
 
 #Starts high dim reports
@@ -492,31 +525,7 @@ if(chosen_dim=="highdim"){
   max_lik <- max_lik|> filter(!is.na(alg))
   loglik_visited <- loglik_visited |> filter(!is.na(alg))
   iter_visit <- iter_visit|> filter(!is.na(alg))
-  ##### Report on average swap rate
-  
-  #First create column names depending on the number of replicas
-  swap_names <- c()
-  for(i in 1:(num_replicas-1)){
-    swap_names <- c(swap_names,paste0(i,"↔",i+1))
-  }
-  
-  swap_report <- swap_rate |> 
-    group_by(alg) |>
-    summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
-  colnames(swap_report) <- c("alg",swap_names)
-  
-  jpeg(file.path(export_path,paste0("table_swap_rate_",export_file_name,".jpg")),width=140*nrow(swap_report),height=40*nrow(swap_report),pointsize = 30)
-  grid.arrange(tableGrob(swap_report))
-  dev.off()
-  ##### Report on average swap rate
-  rt_report <- round_trip |> 
-    group_by(alg) |>
-    summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
-  colnames(rt_report) <- c("alg",paste0("R",1:num_replicas))
-  
-  jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
-  grid.arrange(tableGrob(rt_report))
-  dev.off()
+
 }
 
 
