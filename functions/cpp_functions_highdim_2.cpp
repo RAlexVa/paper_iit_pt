@@ -75,6 +75,20 @@ mat initializeMatrix(const std::vector<int>& coordinates, int size, int num_repl
   return ini_M;
 }
 
+// [[Rcpp::export]]
+mat initializeRandom(const int& nun_rows,const int& num_cols, const double& prob) {
+
+  // Initialize a matrix with random values between 0 and 1
+  arma::mat A = arma::randu<arma::mat>(nun_rows, num_cols);
+  
+  // Threshold the random values to 0 or 1
+  A = arma::conv_to<arma::mat>::from(A > prob);
+  
+  return(A);
+}
+
+
+
 ////////// Balancing functions //////////
 
 ///// List of balancing functions that apply to log-likelihoods
@@ -155,7 +169,7 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M){
   // double theta1=10;
-  double theta=200;
+  double theta=20;
   // double theta2=200;
   if(M.n_cols!=2){
     Rcpp::Rcout << "Error matrix has more than 2 columns: " << std::endl;
@@ -335,7 +349,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
+    // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
+    X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
     swap_total.zeros();
     swap_success.zeros();
     //// Start loop for burn_in period
@@ -585,8 +600,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
-    
+    // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
+    X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
     
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
@@ -680,6 +695,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             temporal_loglik=loglik(X.col(replica),Q_matrix);
             if(curr_loglik_visited(found_min)<temporal_loglik){
               Rcpp::Rcout << "Found big likelihood" <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
+              Rcpp::Rcout << "In state with 1s in: \n" << find(X.col(replica)==1) << std::endl;
               // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
               loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
               // Rcpp::Rcout << "Stores likelihood" << std::endl;
@@ -820,8 +836,8 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-    X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
-    
+    // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
+    X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
     
     swap_total.zeros();
     swap_success.zeros();
