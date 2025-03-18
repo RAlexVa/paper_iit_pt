@@ -45,6 +45,7 @@ run_lowd <- function(list_ids){
         }
         pi.true <- pi.true/(length(modes_list)*(1+exp(-theta))^p)
         pi.true.7 <- pi.true;
+        modes.7 <- modes;
       }
       ##### Low-dimensional BI-modal setup #####
       {
@@ -65,6 +66,7 @@ run_lowd <- function(list_ids){
         }
         pi.true <- pi.true/((1+exp(-theta[1]))^p + (1+exp(-theta[2]))^p)
         pi.true.2 <- pi.true;
+        modes.2 <- modes;
       }
       
       
@@ -78,10 +80,12 @@ run_lowd <- function(list_ids){
       if(tot_models=="7_mode"){
         Rcpp::sourceCpp("functions/cpp_functions.cpp")
         pi.true <- pi.true.7;
+        modes <- modes.7;
         }
       if(tot_models=="bimodal"){
         Rcpp::sourceCpp("functions/cpp_functions_lowdim_2.cpp")
         pi.true <- pi.true.2;
+        modes <- modes.2;
         }
     }
     #Start process for algorithms        
@@ -94,10 +98,12 @@ run_lowd <- function(list_ids){
         if(tot_models=="7_mode"){
           Rcpp::sourceCpp("functions/cpp_functions.cpp")
           pi.true <- pi.true.7;
+          modes <- modes.7;
         }
         if(tot_models=="bimodal"){
           Rcpp::sourceCpp("functions/cpp_func_multilow.cpp")
           pi.true <- pi.true.2;
+          modes <- modes.2;
         }
       }      
       # Parameters for all algorithms
