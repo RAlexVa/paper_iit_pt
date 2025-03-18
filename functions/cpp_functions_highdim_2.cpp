@@ -155,20 +155,31 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M){
   // double theta1=10;
-  double theta1=200;
-  double theta2=200;
+  double theta=200;
+  // double theta2=200;
   if(M.n_cols!=2){
     Rcpp::Rcout << "Error matrix has more than 2 columns: " << std::endl;
     return(-10000);
   }else{
     vec mod1=M.col(0);
     vec mod2=M.col(1);
-    double loglik_computed = exp(-(sum(abs(X-mod1))/theta1))+exp(-(sum(abs(X-mod2))/theta2));
+    double dif1=sum(abs(X-mod1));
+    double dif2=sum(abs(X-mod2));
+    double loglik_computed;
+    if(dif2<=dif1){
+      loglik_computed = -dif2/theta + log1p(exp((dif2-dif1)/theta));
+    }
+    if(dif2>dif1){
+      loglik_computed = -dif1/theta + log1p(exp((dif1-dif2)/theta));
+    }
+    
+    
+    // loglik_computed = exp(-(sum(abs(X-mod1))/theta1))+exp(-(sum(abs(X-mod2))/theta2));
     // Rcpp::Rcout << "Primera parte: " <<-(sum(abs(X-mod1))/theta1)<< std::endl;
     // Rcpp::Rcout << "EXP Primera parte: " <<exp(-(sum(abs(X-mod1))/theta1))<< std::endl;
     // Rcpp::Rcout << "Segunda parte: " <<-(sum(abs(X-mod2))/theta2)<< std::endl;
     // Rcpp::Rcout << "EXP Segunda parte: " <<exp(-(sum(abs(X-mod2))/theta2))<< std::endl;
-    return(log(loglik_computed));
+    return(loglik_computed);
   }
   
 }
@@ -310,10 +321,11 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //// Define modes
   mat Q_matrix(p,2);
   for(int i=0;i<p;i++){
-    Q_matrix(i,0)=0;
-    Q_matrix(i,1)=1;
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
   }
-  
+  // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
+  // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
@@ -560,9 +572,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   //// Define modes
   mat Q_matrix(p,2);
   for(int i=0;i<p;i++){
-    Q_matrix(i,0)=0;
-    Q_matrix(i,1)=1;
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
   }
+  // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
+  // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -683,7 +697,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
-          Rcpp::Rcout << "New neighbor: " << find(X.col(replica)==1) << std::endl;
+          // Rcpp::Rcout << "New neighbor: " << find(X.col(replica)==1) << std::endl;
           
         }
       }//End loop to update replicas
@@ -793,9 +807,11 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   //// Define modes
   mat Q_matrix(p,2);
   for(int i=0;i<p;i++){
-    Q_matrix(i,0)=0;
-    Q_matrix(i,1)=1;
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
   }
+  // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
+  // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
