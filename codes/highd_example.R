@@ -38,6 +38,7 @@ run_highd <- function(list_ids){
       p <- readParameters(file_matrix);}
       if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
         p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
+        file_matrix <- "NA";
         if(length(p)>1){stop("You're trying to run multiple values for p")}}
     }
   #Start process for algorithms
@@ -52,7 +53,7 @@ run_highd <- function(list_ids){
         file_matrix <- paste0("gset/",sim_chosen$file,".txt");
       p <- readParameters(file_matrix);}
       if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
-        p <- unique(parameters|> filter(id==id_chosen) |> pull(p));}
+        p <- unique(parameters|> filter(id==id_chosen) |> pull(p));file_matrix <- "NA";}
     }
     # Parameters for all algorithms
     total_simulations <- sim_chosen$simulations
