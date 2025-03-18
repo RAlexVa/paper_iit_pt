@@ -33,8 +33,12 @@ run_highd <- function(list_ids){
     if(only_1_model){
       print("Reading one set of C++ functions")
       print(paste0("Model = ",tot_models))
-      if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
-      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")}
+      if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
+      file_matrix <- paste0("gset/",sim_chosen$file,".txt");
+      p <- readParameters(file_matrix);}
+      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
+        p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
+        if(length(p)>1){stop("You're trying to run multiple values for p")}}
     }
   #Start process for algorithms
   for(id_chosen in list_ids){
@@ -44,8 +48,11 @@ run_highd <- function(list_ids){
 #In case there are more than 1 model, I need to re-read functions depending on model
     if(!only_1_model){
       print(paste0("Reading C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
-      if(sim_chosen$model=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")}
-      if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")}
+      if(sim_chosen$model=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
+        file_matrix <- paste0("gset/",sim_chosen$file,".txt");
+      p <- readParameters(file_matrix);}
+      if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
+        p <- unique(parameters|> filter(id==id_chosen) |> pull(p));}
     }
     # Parameters for all algorithms
     total_simulations <- sim_chosen$simulations
@@ -63,8 +70,6 @@ run_highd <- function(list_ids){
     sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
     total_swap <- sim_chosen$total_swap #Total number of swaps to try
     burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
-    file_matrix <- paste0("gset/",sim_chosen$file,".txt")
-    p <- readParameters(file_matrix)
     states_visited <- sim_chosen$states_visited
     # start_state <- sim_chosen$start_state;
     alg <- sim_chosen$algorithm

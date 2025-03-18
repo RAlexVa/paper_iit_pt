@@ -1,50 +1,50 @@
-id,algorithm,simulations,iterations,interswap,total_swap,states_visited,seed,file,burn_in,model,comments,bf,t1,t2,t3,t4,t5,start_state
-1,PT_A_IIT,2,NA,1000,50,20,35,G1,1000,gset,Swap rate of 0.5,sq,1,0.6,0.4,,,-1
-2,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.6,0.4,,,-1
-3,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.6,0.4,,,-1
-4,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.7,0.5,,,-1
-5,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.7,0.5,,,-1
-6,PT_A_IIT,2,NA,1000,50,20,445,G1,1000,gset,Swap rate of 0.5,sq,1,0.7,0.5,,,-1
-7,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.5,0.25,,,-1
-8,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.5,0.25,,,-1
-9,PT_A_IIT,2,NA,1000,50,20,445,G1,1000,gset,Swap rate of 0.5,sq,1,0.5,0.25,,,-1
-10,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.75,0.55,,,-1
-11,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.75,0.55,,,-1
-12,PT_A_IIT,2,NA,1000,50,20,445,G1,1000,gset,Swap rate of 1,sq,1,0.75,0.55,,,-1
-13,PT_A_IIT,2,NA,1000,50,20,654,G1,3000,gset,still big swap rate,sq,1,0.3,0.09,,,-1
-14,PT_IIT_Z,2,50000,1000,NA,20,654,G1,3000,gset,still big swap rate,sq,1,0.1,0.0001,,,-1
-15,PT_IIT_no_Z,2,50000,1000,NA,20,654,G1,3000,gset,still big swap rate,sq,1,0.1,0.0001,,,-1
-16,PT_IIT_Z,50,500000,2500,NA,20,669,G1,2500,gset,,sq,1,0.18,0.09,,,-1
-17,PT_IIT_no_Z,50,500000,2500,NA,20,669,G1,2500,gset,,sq,1,0.18,0.09,,,-1
-18,PT_A_IIT,50,NA,2500,200,20,669,G1,2500,gset,,sq,1,0.18,0.09,,,-1
-19,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,sq,1,0.1,0.0001,,,-1
-20,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,sq,1,0.1,0.0001,,,-1
-21,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,sq,1,0.1,0.0001,,,-1
-22,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,sq,1,0.1,0.0001,,,-1
-23,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,sq,1,0.1,0.0001,,,-1
-24,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,sq,1,0.1,0.0001,,,-1
-25,PT_IIT_Z,1,10000,500,NA,20,450,G1,3000,gset,,sq,100,50,1,,,-1
-26,PT_IIT_Z,1,10000,500,NA,20,450,G1,3000,gset,,sq,20,10,1,,,-1
-27,PT_IIT_Z,1,10000,500,NA,20,1,G1,1000,gset,,sq,280,140,1,,,-1
-28,PT_IIT_Z,3,50000,500,NA,20,555,G1,3000,gset,,sq,320,140,1,,,-1
-29,PT_IIT_Z,50,75000,500,NA,20,741,G1,3000,gset,Este ha encontrado el maximo en likelihood 9914,sq,380,190,1,,,-1
-30,PT_A_IIT,50,NA,500,150,20,741,G1,3000,gset,these are good temperatures,sq,380,190,1,,,-1
-31,PT_IIT_Z,50,75000,500,NA,20,741,G1,3000,gset,,sq,400,200,1,,,-1
-32,PT_A_IIT,50,NA,500,150,20,741,G1,3000,gset,,sq,400,200,1,,,-1
-33,PT_A_IIT_RF,1,10000,500,NA,5,99,G1,1000,bimodal,,sq,280,140,1,,,-1
-34,PT_A_IIT,1,NA,500,20,5,99,G1,1000,bimodal,tambien marca errores en la geometrica log bound 297-595,sq,280,140,1,,,-1
-35,PT_IIT_Z,1,10000,500,NA,5,99,G1,1000,bimodal,,sq,280,140,1,,,-1
-36,PT_IIT_Z,1,10000,500,NA,5,78,G1,1000,bimodal,,min,280,140,1,,,-1
-37,PT_IIT_Z,1,10000,500,NA,5,78,G1,1000,gset,,min,280,140,1,,,-1
-38,PT_A_IIT,50,NA,1000,75,20,741,G1,5000,bimodal,marca errores en la geometrica,sq,384,193,1,,,-1
-39,PT_IIT_Z,50,75000,1000,NA,20,741,G1,5000,bimodal,,sq,450,225,1,,,-1
-40,PT_A_IIT_RF,50,75000,1000,NA,20,741,G1,5000,bimodal,,sq,450,225,1,,,-1
-41,PT_IIT_Z,10,75000,1000,NA,5,111,G1,5000,bimodal,,sq,450,225,1,,,-1
-42,PT_A_IIT_RF,10,75000,1000,NA,5,111,G1,5000,bimodal,,sq,450,225,1,,,-1
-43,PT_IIT_Z,1,10000000,500,NA,5,9978,G1,0,gset,"pt7, creo que está muy grande 10millones",sq,780,520,260,1,,-1
-44,PT_A_IIT,1,NA,500,20000,5,9978,G1,0,gset,pt8 Using temperatures from 30,sq,570,380,190,1,,-1
-45,PT_IIT_Z,1,1000000,500,NA,5,9978,G1,0,gset,pt8,sq,780,520,260,1,,-1
-46,PT_A_IIT,1,NA,500,10,5,654,G1,1000,gset,To test more temperatures,sq,0.5,1,190,380,570,-1
-47,PT_IIT_Z,1,5000,500,NA,5,987,G1,1000,gset,To test more temperatures,sq,0.005,1,260,520,780,-1
-48,PT_A_IIT,1,NA,500,10,5,911,G1,1000,bimodal,To test more temperatures,sq,0.5,1,190,380,570,-1
-49,PT_IIT_Z,1,5000,500,NA,5,911,G1,1000,bimodal,To test more temperatures,sq,1,0.1,0.01,,,-1
+id,algorithm,simulations,iterations,interswap,total_swap,states_visited,seed,file,burn_in,model,p,comments,bf,t1,t2,t3,t4,t5,start_state
+1,PT_A_IIT,2,NA,1000,50,20,35,G1,1000,gset,,Swap rate of 0.5,sq,1,0.6,0.4,,,-1
+2,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.6,0.4,,,-1
+3,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.6,0.4,,,-1
+4,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.7,0.5,,,-1
+5,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.7,0.5,,,-1
+6,PT_A_IIT,2,NA,1000,50,20,445,G1,1000,gset,,Swap rate of 0.5,sq,1,0.7,0.5,,,-1
+7,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.5,0.25,,,-1
+8,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.5,0.25,,,-1
+9,PT_A_IIT,2,NA,1000,50,20,445,G1,1000,gset,,Swap rate of 0.5,sq,1,0.5,0.25,,,-1
+10,PT_IIT_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.75,0.55,,,-1
+11,PT_IIT_no_Z,2,50000,1000,NA,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.75,0.55,,,-1
+12,PT_A_IIT,2,NA,1000,50,20,445,G1,1000,gset,,Swap rate of 1,sq,1,0.75,0.55,,,-1
+13,PT_A_IIT,2,NA,1000,50,20,654,G1,3000,gset,,still big swap rate,sq,1,0.3,0.09,,,-1
+14,PT_IIT_Z,2,50000,1000,NA,20,654,G1,3000,gset,,still big swap rate,sq,1,0.1,0.0001,,,-1
+15,PT_IIT_no_Z,2,50000,1000,NA,20,654,G1,3000,gset,,still big swap rate,sq,1,0.1,0.0001,,,-1
+16,PT_IIT_Z,50,500000,2500,NA,20,669,G1,2500,gset,,,sq,1,0.18,0.09,,,-1
+17,PT_IIT_no_Z,50,500000,2500,NA,20,669,G1,2500,gset,,,sq,1,0.18,0.09,,,-1
+18,PT_A_IIT,50,NA,2500,200,20,669,G1,2500,gset,,,sq,1,0.18,0.09,,,-1
+19,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,,sq,1,0.1,0.0001,,,-1
+20,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,,sq,1,0.1,0.0001,,,-1
+21,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,,sq,1,0.1,0.0001,,,-1
+22,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,,sq,1,0.1,0.0001,,,-1
+23,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,,sq,1,0.1,0.0001,,,-1
+24,PT_IIT_Z,1,10000,500,NA,20,1,G1,3000,gset,,,sq,1,0.1,0.0001,,,-1
+25,PT_IIT_Z,1,10000,500,NA,20,450,G1,3000,gset,,,sq,100,50,1,,,-1
+26,PT_IIT_Z,1,10000,500,NA,20,450,G1,3000,gset,,,sq,20,10,1,,,-1
+27,PT_IIT_Z,1,10000,500,NA,20,1,G1,1000,gset,,,sq,280,140,1,,,-1
+28,PT_IIT_Z,3,50000,500,NA,20,555,G1,3000,gset,,,sq,320,140,1,,,-1
+29,PT_IIT_Z,50,75000,500,NA,20,741,G1,3000,gset,,Este ha encontrado el maximo en likelihood 9914,sq,380,190,1,,,-1
+30,PT_A_IIT,50,NA,500,150,20,741,G1,3000,gset,,these are good temperatures,sq,380,190,1,,,-1
+31,PT_IIT_Z,50,75000,500,NA,20,741,G1,3000,gset,,,sq,400,200,1,,,-1
+32,PT_A_IIT,50,NA,500,150,20,741,G1,3000,gset,,,sq,400,200,1,,,-1
+33,PT_A_IIT_RF,1,10000,500,NA,5,99,G1,1000,bimodal,800,,sq,280,140,1,,,-1
+34,PT_A_IIT,1,NA,500,20,5,99,G1,1000,bimodal,800,tambien marca errores en la geometrica log bound 297-595,sq,280,140,1,,,-1
+35,PT_IIT_Z,1,10000,500,NA,5,99,G1,1000,bimodal,800,,sq,280,140,1,,,-1
+36,PT_IIT_Z,1,10000,500,NA,5,78,G1,1000,bimodal,800,,min,280,140,1,,,-1
+37,PT_IIT_Z,1,10000,500,NA,5,78,G1,1000,gset,,,min,280,140,1,,,-1
+38,PT_A_IIT,50,NA,1000,75,20,741,G1,5000,bimodal,800,marca errores en la geometrica,sq,384,193,1,,,-1
+39,PT_IIT_Z,50,75000,1000,NA,20,741,G1,5000,bimodal,800,,sq,450,225,1,,,-1
+40,PT_A_IIT_RF,50,75000,1000,NA,20,741,G1,5000,bimodal,800,,sq,450,225,1,,,-1
+41,PT_IIT_Z,10,75000,1000,NA,5,111,G1,5000,bimodal,800,,sq,450,225,1,,,-1
+42,PT_A_IIT_RF,10,75000,1000,NA,5,111,G1,5000,bimodal,800,,sq,450,225,1,,,-1
+43,PT_IIT_Z,1,10000000,500,NA,5,9978,G1,0,gset,,"pt7, creo que está muy grande 10millones",sq,780,520,260,1,,-1
+44,PT_A_IIT,1,NA,500,20000,5,9978,G1,0,gset,,pt8 Using temperatures from 30,sq,570,380,190,1,,-1
+45,PT_IIT_Z,1,1000000,500,NA,5,9978,G1,0,gset,,pt8,sq,780,520,260,1,,-1
+46,PT_A_IIT,1,NA,500,10,5,654,G1,1000,gset,,To test more temperatures,sq,0.5,1,190,380,570,-1
+47,PT_IIT_Z,1,5000,500,NA,5,987,G1,1000,gset,,To test more temperatures,sq,0.005,1,260,520,780,-1
+48,PT_A_IIT,1,NA,500,200,5,911,G1,1000,bimodal,800,To test more temperatures,sq,1,0.5,0.05,0.001,,-1
+49,PT_IIT_Z,1,100000,500,NA,5,911,G1,1000,bimodal,800,To test more temperatures,sq,1,0.5,0.05,0.001,,-1
