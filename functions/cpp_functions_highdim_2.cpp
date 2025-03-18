@@ -301,6 +301,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
+  loglikelihood_visited.fill(-10);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
@@ -551,6 +552,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
+  loglikelihood_visited.fill(-10);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
@@ -643,6 +645,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
           output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
           
+          
           //// Compute weight
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
@@ -680,6 +683,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+          Rcpp::Rcout << "New neighbor: " << find(X.col(replica)==1) << std::endl;
+          
         }
       }//End loop to update replicas
       //// Start replica swap process
@@ -779,6 +784,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
+  loglikelihood_visited.fill(-10);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
