@@ -559,3 +559,66 @@ for(i in 1:length(mod2)){
 }
 summary(lvec)
 
+
+#### testing bimodal high dim example
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
+
+p <- 200
+Q_matrix <- matrix(0,nrow=p,ncol=2)
+for(i in 1:p){
+  if(i%%2==1){Q_matrix[i,2]=1}
+  if(i%%2==0){Q_matrix[i,1]=1}
+}
+
+v0 <- rep(0,p)
+v1 <- Q_matrix[,1]
+v2 <- Q_matrix[,2]
+
+loglik(v0,Q_matrix)
+loglik(v1,Q_matrix)
+loglik(v2,Q_matrix)
+exp(-40)
+log(1+exp(-40))
+# loglik(c(rep(0,400),rep(1,400)),Q_matrix)
+
+vr <- rbinom(p,1,0.5)
+loglik(vr,Q_matrix)
+loglik(rbinom(p,1,0.5),Q_matrix)
+
+check <- a_IIT_update(v0,Q_matrix,"sq",1,0)
+
+check_res <- PT_a_IIT_sim(p,1,1, 5,1,0, c(1,0.3),c("sq","sq"),"nothing",5,-1)
+
+create_vector <- function(coord,dim){
+  vec <- rep(0,dim)
+  vec[coord] <- 1
+  return(vec)
+}
+
+v_check <- v0
+v_check[170] <- 1
+
+loglik(v_check,Q_matrix)
+
+store_lik <- c()
+for(i in 1:length(v1)){
+  rep_v <- v1
+  rep_v[i] <- 1-rep_v[i]
+  store_lik[i] <- loglik(rep_v,Q_matrix)
+}
+summary(store_lik)
+
+
+neigh_1 <- v1
+neigh_1[30] <- 1-neigh_1[30]
+loglik(neigh_1,Q_matrix)
+store_lik <- c()
+for(i in 1:length(neigh_1)){
+  rep_v <- neigh_1
+  rep_v[i] <- 1-rep_v[i]
+  store_lik[i] <- loglik(rep_v,Q_matrix)
+}
+summary(store_lik)
