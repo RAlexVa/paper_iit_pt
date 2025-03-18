@@ -71,3 +71,49 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 69,PT_A_IIT_RF,50,500000,1000,NA,0,156,sq,1,0.155,0.08,,100000,0,never,bimodal,to find good temperatures for the bimodal problem
 70,PT_A_IIT,50,NA,1000,500,0,4589,,1,0.14,0.1,0.08,100000,0,never,bimodal,to find good temperatures for the bimodal problem
 71,PT_A_IIT,50,NA,1000,500,0,4589,,1,0.14,0.1,,100000,0,never,bimodal,to find good temperatures for the bimodal problem
+72,PT_IIT_Z,50,500000,1000,NA,0,156,sq,1,0.7,0.4,0.1,100000,0,0,bimodal,to find good temperatures for the bimodal problem
+73,PT_A_IIT,50,NA,1000,500,0,4589,,1,0.7,0.35,0.2,100000,0,never,bimodal,to find good temperatures for the bimodal problem
+74,PT_IIT_Z,50,500000,1000,NA,0,156,sq,1,0.8,0.5,,100000,0,0,bimodal,to find good temperatures for the bimodal problem
+75,PT_A_IIT_RF,50,500000,1000,NA,0,156,sq,1,0.8,0.5,,100000,0,never,bimodal,to find good temperatures for the bimodal problem
+76,PT_A_IIT,50,NA,1000,500,0,4589,,1,0.8,0.5,,100000,0,never,bimodal,to find good temperatures for the bimodal problem
+77,PT_IIT_Z,25,500000,1000,NA,0,156,sq,1,0.6,0.3,,100000,0,0,bimodal,
+78,PT_IIT_Z,25,500000,1000,NA,0,111,sq,1,0.5,0.25,,100000,0,0,bimodal,
+79,PT_A_IIT_RF,25,500000,1000,NA,0,999,sq,1,0.45,0.35,,100000,0,never,bimodal,
+80,PT_A_IIT,25,NA,1000,500,0,444,,1,0.49,0.32,,100000,0,never,bimodal,
+81,PT_A_IIT,25,NA,1000,500,0,444,,1,0.45,0.35,,100000,0,never,bimodal,
+82,PT_IIT_Z,25,500000,1000,NA,0,914,sq,1,0.42,0.2,,100000,0,0,bimodal,
+83,PT_IIT_Z,25,500000,1000,NA,0,627,sq,1,0.4,0.2,,100000,0,0,bimodal,
+84,PT_IIT_Z,25,500000,1000,NA,0,627,sq,1,0.38,0.19,,100000,0,0,bimodal,
+85,PT_A_IIT_RF,25,500000,1000,NA,0,999,sq,1,0.4,0.2,,100000,0,never,bimodal,
+86,PT_A_IIT,25,NA,1000,500,0,887,,1,0.46,0.2,0.05,100000,0,never,bimodal,
+87,PT_A_IIT,25,NA,1000,500,0,887,,1,0.46,0.23,0.05,100000,0,never,bimodal,
+88,PT_A_IIT,25,NA,1000,500,0,205,,1,0.46,0.3,0.1,100000,0,never,bimodal,
+89,PT_A_IIT,25,NA,1000,500,0,205,,1,0.46,0.33,0.1,100000,0,never,bimodal,
+90,PT_IIT_Z,25,500000,1000,NA,0,627,sq,1,0.38,0.19,,100000,0,0,bimodal,
+91,PT_A_IIT_RF,25,500000,1000,NA,0,999,sq,1,0.41,0.17,,100000,0,never,bimodal,
+92,PT_IIT_Z,25,500000,1000,NA,0,627,sq,1,0.41,0.15,,100000,0,0,bimodal,
+93,PT_IIT_Z,25,500000,1000,NA,0,627,sq,1,0.4,0.1,,100000,0,0,bimodal,
+94,PT_A_IIT,5,NA,1000,1000,0,205,,1,0.46,0.29,0.22,100000,0,never,bimodal,
+95,PT_A_IIT,5,NA,1000,1000,0,205,,1,0.46,0.29,0.18,100000,0,never,bimodal,
+96,PT_A_IIT,5,NA,1000,1000,0,205,,1,0.46,0.29,,100000,0,never,bimodal,
+97,PT_IIT_Z,5,1000000,1000,NA,0,627,sq,1,0.41,0.2,,100000,0,0,bimodal,
+98,PT_IIT_Z,5,1000000,1000,NA,0,627,sq,1,0.41,0.18,,100000,0,0,bimodal,
+99,PT_A_IIT_RF,5,1000000,1000,NA,0,999,sq,1,0.41,0.16,0.1,100000,0,never,bimodal,
+100,PT_A_IIT,5,NA,1000,1000,0,205,,1,0.4,0.23,0.1,100000,0,never,bimodal,
+101,PT_A_IIT,5,NA,1000,1000,0,205,,1,0.35,0.1,0.01,100000,0,never,bimodal,
+102,PT_A_IIT_RF,5,1000000,1000,NA,0,999,sq,1,0.37,0.14,0.05,100000,0,never,bimodal,
+103,PT_A_IIT,5,NA,1000,1000,0,205,,1,0.4,0.25,,100000,0,never,bimodal,
+104,PT_IIT_Z,5,1000000,1000,NA,0,627,sq,1,0.37,0.15,,100000,0,0,bimodal,
+105,PT_IIT_Z,5,1000000,1000,NA,0,627,sq,1,0.35,0.13,,100000,0,0,bimodal,
+106,PT_A_IIT,10,NA,1000,1000,0,205,,1,0.37,0.25,0.15,100000,0,never,bimodal,
+107,PT_A_IIT,10,NA,1000,1000,0,205,,1,0.36,0.27,0.15,100000,0,never,bimodal,
+108,PT_A_IIT_RF,10,1000000,1000,NA,0,999,sq,1,0.37,0.15,0.001,100000,0,never,bimodal,
+109,PT_A_IIT,10,NA,1000,1000,0,205,,1,0.37,0.25,,100000,0,never,bimodal,
+110,PT_IIT_Z,10,1000000,1000,NA,0,627,sq,1,0.37,0.15,,100000,0,0,bimodal,Ya usamos estas temperaturas
+111,PT_IIT_Z,10,1000000,1000,NA,0,627,sq,1,0.37,0.15,0.005,100000,0,0,bimodal,
+112,PT_IIT_Z,100,1000000,1000,NA,0,284,sq,1,0.37,0.15,,200000,0,0,bimodal,Temperatures OK (110)
+113,PT_IIT_Z,100,1000000,1000,NA,0,284,sq,1,0.37,0.15,0.0001,200000,0,0,bimodal,Just testing t4 (based 111)
+114,PT_A_IIT,100,NA,1000,1000,0,284,,1,0.37,0.23,,200000,0,never,bimodal,changing t2 (based on 109)
+115,PT_A_IIT,100,NA,1000,1000,0,284,,1,0.37,0.24,0.12,200000,0,never,bimodal,"changing t2,t3 (based on 106)"
+116,PT_A_IIT_RF,100,1000000,1000,NA,0,284,sq,1,0.37,0.15,0.00005,200000,0,never,bimodal,changing t4 (based on 111)
+117,PT_A_IIT_RF,100,1000000,1000,NA,0,284,sq,1,0.37,0.15,,200000,0,0,bimodal,Copying 112
