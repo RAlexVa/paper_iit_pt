@@ -117,3 +117,14 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 115,PT_A_IIT,100,NA,1000,1000,0,284,,1,0.37,0.24,0.12,200000,0,never,bimodal,"changing t2,t3 (based on 106)"
 116,PT_A_IIT_RF,100,1000000,1000,NA,0,284,sq,1,0.37,0.15,0.00005,200000,0,never,bimodal,changing t4 (based on 111)
 117,PT_A_IIT_RF,100,1000000,1000,NA,0,284,sq,1,0.37,0.15,,200000,0,0,bimodal,Copying 112
+118,PT_IIT_Z,20,1000000,1000,NA,0,886,sq,1,0.15,0.05,,200000,0,0,7_mode,"based on 61, deleting a temperature"
+119,PT_IIT_Z,20,1000000,1000,NA,0,886,min,1,0.14,0.04,,200000,0,0,7_mode,"based on 62, deleting a temperature"
+120,PT_A_IIT_RF,20,1000000,1000,NA,0,886,,1,0.145,0.045,,200000,0,never,7_mode,"based on 64, deleting a temperature"
+121,PT_A_IIT,20,NA,1000,1000,0,886,,1,0.145,0.07,0.01,200000,0,never,7_mode,"based on 65, trying other temperatures"
+122,PT_A_IIT,20,NA,1000,1000,0,886,,1,0.14,0.05,0.005,200000,0,never,7_mode,"based on 65, trying other temperatures"
+123,PT_A_IIT,100,NA,1000,1000,0,20,,1,0.37,0.24,,200000,0,never,bimodal,From 115
+124,PT_A_IIT,100,NA,1000,1000,0,20,,1,0.37,0.24,0.13,200000,0,never,bimodal,"From 115, changing t4"
+125,PT_IIT_Z,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,,200000,0,0,bimodal,"From 112, just changing seed"
+126,PT_IIT_Z,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,0.00001,200000,0,0,bimodal,From 113 decreasing t4
+127,PT_A_IIT_RF,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,,200000,0,0,bimodal,From 117 just changing seed
+128,PT_A_IIT_RF,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,0.000001,200000,0,never,bimodal,From 116 just changing seed and decreasing t4
