@@ -695,7 +695,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             temporal_loglik=loglik(X.col(replica),Q_matrix);
             if(curr_loglik_visited(found_min)<temporal_loglik){
               Rcpp::Rcout << "Found big likelihood" <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
-              Rcpp::Rcout << "In state with 1s in: \n" << find(X.col(replica)==1) << std::endl;
+              // Rcpp::Rcout << "In state with 1s in: \n" << find(X.col(replica)==1) << std::endl;
               // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
               loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
               // Rcpp::Rcout << "Stores likelihood" << std::endl;
