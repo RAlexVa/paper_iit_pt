@@ -432,7 +432,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
           found_min=curr_loglik_visited.index_min();
           temporal_loglik=loglik(X.col(replica),Q_matrix);
           if(curr_loglik_visited(found_min)<temporal_loglik){
-            Rcpp::Rcout << "Found big likelihood" <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
+            Rcpp::Rcout << "Found big likelihood; " <<exp(temporal_loglik)<<" loglik: "<<temporal_loglik<<" in index: "<<found_min<< std::endl;
             // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
             loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
             // Rcpp::Rcout << "Stores likelihood" << std::endl;
