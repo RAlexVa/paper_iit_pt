@@ -9,9 +9,9 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-# chosen_dim <- "highdim"; file_dim <- "highd"
-chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(96,97,98)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+chosen_dim <- "highdim"; file_dim <- "highd"
+# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_ids <-c(54)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
 
 
 
@@ -169,7 +169,7 @@ if(chosen_dim=="highdim"){
     
     list_of_states <- list()
     iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
-    loglik_visited <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(loglik_visited) <- c("alg","state",1:max(data_sum$simulations))
+    loglik_visited <- as.data.frame(matrix(NA,ncol=4));colnames(loglik_visited) <- c("alg","sim","state","loglik")
     max_lik <- as.data.frame(matrix(NA,ncol=4));colnames(max_lik) <- c("alg","sim","iteration","lik")
   }
 
@@ -235,8 +235,28 @@ if(chosen_dim=="lowdim"){
 }
   if(chosen_dim=="highdim"){
 ### Specific extractions for highdim example
-    file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
-    p <- readParameters(file_matrix)
+    if(data_sum$model=="bimodal"){
+      p <- data_sum$p;
+    }
+    if(data_sum$model=="gset"){
+      file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
+      p <- readParameters(file_matrix)
+      
+ ### Evaluate maximum likelihood found     
+      state_max <- matrix(NA,nrow=p,ncol=tot_sim)
+      likelihood_max <- rep(0,tot_sim)
+      #Extract specific state
+      for(i in 1:tot_sim){#Extract 1 state for each simulation
+        vec_temp <- data[["states"]][,index_max[i],i]
+        state_max[,i] <- vec_temp
+        # likelihood_max[i] <- eval_lik(file_matrix,vec_temp)
+      }
+      likelihood_max <- eval_lik_matrix(file_matrix,state_max)
+      temp$lik <- likelihood_max
+      max_lik <- rbind(max_lik,temp)
+      
+    }
+    
 # Each column is a simulation   
 # Identifying maximum likelihood visited in each simulation
     index_max <- apply(data[["loglik_visited"]],2,which.max)
@@ -251,17 +271,7 @@ if(chosen_dim=="lowdim"){
     temp$alg <- algorithm
     temp <- temp |> select(alg,sim,everything())
     
-    state_max <- matrix(NA,nrow=p,ncol=tot_sim)
-    likelihood_max <- rep(0,tot_sim)
-    #Extract specific state
-    for(i in 1:tot_sim){#Extract 1 state for each simulation
-      vec_temp <- data[["states"]][,index_max[i],i]
-      state_max[,i] <- vec_temp
-      # likelihood_max[i] <- eval_lik(file_matrix,vec_temp)
-    }
-    likelihood_max <- eval_lik_matrix(file_matrix,state_max)
-    temp$lik <- likelihood_max
-    max_lik <- rbind(max_lik,temp)
+
     
     
 # ###### Storing number of iterations to visit modes
@@ -271,13 +281,18 @@ if(chosen_dim=="lowdim"){
 #     temp$alg <- algorithm
 #     temp <- temp |> select(alg,state,everything())
 #     iter_visit <- rbind(iter_visit,temp)
-# ###### Storing likelihood of visited states
-#     temp <- as.data.frame(data[["loglik_visited"]])
-#     colnames(temp) <- 1:ncol(temp)
-#     temp$state <- 1:nrow(temp)
-#     temp$alg <- algorithm
-#     temp <- temp |> select(alg,state,everything())
-#     loglik_visited <- rbind(loglik_visited,temp)
+###### Storing likelihood of visited states
+    temp <- as.data.frame(data[["loglik_visited"]])
+    #As many rows as number of states we were tracking
+    number_sim <- ncol(temp)
+    colnames(temp) <- paste0("s",1:number_sim) #As many columns as simulations
+    temp$state <- 1:nrow(temp)
+    temp$alg <- algorithm
+    temp <- temp  |> select(alg,state,everything()) |> 
+      pivot_longer(cols=all_of(paste0("s",1:number_sim)),names_to = "sim",values_to='loglik')
+    
+    #> 
+    loglik_visited <- rbind(loglik_visited,temp)
 
     #Storing full list of states
     list_of_states[[Q]] <- data[["states"]]
