@@ -577,6 +577,9 @@ v0 <- rep(0,p)
 v1 <- Q_matrix[,1]
 v2 <- Q_matrix[,2]
 
+loglik(data$states[,1,1],Q_matrix)
+loglik(data$states[,4,1],Q_matrix)
+
 loglik(v0,Q_matrix)
 loglik(v1,Q_matrix)
 loglik(v2,Q_matrix)
