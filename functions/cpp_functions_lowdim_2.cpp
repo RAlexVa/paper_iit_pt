@@ -310,6 +310,9 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
   mat full_pi_est(max_num,total_sim); //Matrix to store the estimated weight considering all simulations
   vec first_visit(max_num);//Vector to store the first visit to each state
   mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
+  vec first_time(max_num);//Vector to store the time of first visit to each state
+  mat full_first_time(max_num,total_sim); //Matrix to store times of first visits considering all simulations
+  std::clock_t visit_time; // To store time of visiting each state
   vec swap_total(J);
   vec swap_success(J);
   mat swap_rate(total_sim,J);
@@ -428,6 +431,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
           pi_est(state)+=(1/Z);//Add weight
           if(first_visit(state)==0){
             first_visit(state)=i;//Store the first time the state is visited 
+            visit_time = std::clock(); //Time to visit this state
+            first_time(state)=static_cast<double>(visit_time - start) / CLOCKS_PER_SEC;
           }
           // Rcpp::Rcout << "Printing pi_est: " << pi_est << std::endl;
           // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
@@ -503,6 +508,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
     // Store result of the simulation
     full_pi_est.col(s)=pi_est;
     full_first_visit.col(s)=first_visit;
+    full_first_time.col(s)=first_time;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
@@ -513,6 +519,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
   ret["visits"]=full_first_visit;
   ret["swap_rate"]=swap_rate;
   ret["time_taken"]=time_taken;
+  ret["time_visit"]=full_first_time;
   return ret;
 }
 
@@ -541,6 +548,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   mat full_pi_est(max_num,total_sim);
   vec first_visit(max_num);//Vector to store the first visit to each state
   mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
+  vec first_time(max_num);//Vector to store the time of first visit to each state
+  mat full_first_time(max_num,total_sim); //Matrix to store times of first visits considering all simulations
+  std::clock_t visit_time; // To store time of visiting each state
   vec swap_total(J,fill::ones);
   swap_total*=total_swaps;//We always have the same number of total swaps
   vec swap_success(J);
@@ -690,6 +700,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               mat current_slice=total_iterations.slice(s);//Extract current slice
               //Store the first time the state is visited 
               first_visit(state)=sum(current_slice.col(index_process(replica)));
+              visit_time = std::clock(); //Time to visit this state
+              first_time(state)=static_cast<double>(visit_time - start) / CLOCKS_PER_SEC;
             }
             if(update_prob){//Check if we need to update the probability
               if(current_temp==1){//The original replica defines the speed to modify the probability to decrease bounding constant
@@ -777,6 +789,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     // Store result of the simulation
     full_pi_est.col(s)=pi_est;
     full_first_visit.col(s)=first_visit;
+    full_first_time.col(s)=first_time;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     Rcpp::Rcout <<"Final log-bound vector:\n "<< log_bound_vector << std::endl;
@@ -789,6 +802,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["swap_rate"]=swap_rate;
   ret["total_iter"]=total_iterations;
   ret["time_taken"]=time_taken;
+  ret["time_visit"]=full_first_time;
   return ret;
 }
 
@@ -815,6 +829,9 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   mat full_pi_est(max_num,total_sim); //Matrix to store the estimated weight considering all simulations
   vec first_visit(max_num);//Vector to store the first visit to each state
   mat full_first_visit(max_num,total_sim); //Matrix to store first visits considering all simulations
+  vec first_time(max_num);//Vector to store the time of first visit to each state
+  mat full_first_time(max_num,total_sim); //Matrix to store times of first visits considering all simulations
+  std::clock_t visit_time; // To store time of visiting each state
   vec swap_total(J);
   vec swap_success(J);
   mat swap_rate(total_sim,J);
@@ -951,6 +968,8 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
           pi_est(state)+=(1/Z);//Add weight
           if(first_visit(state)==0){
             first_visit(state)=i;//Store the first time the state is visited 
+            visit_time = std::clock(); //Time to visit this state
+            first_time(state)=static_cast<double>(visit_time - start) / CLOCKS_PER_SEC;
           }
           // Rcpp::Rcout << "Printing pi_est: " << pi_est << std::endl;
           // Rcpp::Rcout << "All good with Storing weight in simulation: " << s+startsim << " Iteration: " << i << std::endl;
@@ -1048,6 +1067,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
     // Store result of the simulation
     full_pi_est.col(s)=pi_est;
     full_first_visit.col(s)=first_visit;
+    full_first_time.col(s)=first_time;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
@@ -1058,6 +1078,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   ret["visits"]=full_first_visit;
   ret["swap_rate"]=swap_rate;
   ret["time_taken"]=time_taken;
+  ret["time_visit"]=full_first_time;
   return ret;
 }
 
