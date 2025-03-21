@@ -206,7 +206,7 @@ double loglik(const arma::vec& X,const arma::sp_mat& M){
 
 
 // [[Rcpp::export]]
-List IIT_update_w(vec X,sp_mat M,String chosen_bf, double temperature){
+List IIT_update_w(vec X,const sp_mat& M,String chosen_bf, double temperature){
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
   vec probs(total_neighbors, fill::zeros); //probabilities
   
@@ -249,7 +249,7 @@ List IIT_update_w(vec X,sp_mat M,String chosen_bf, double temperature){
 }
 
 // [[Rcpp::export]]
-List a_IIT_update(vec X,sp_mat M, String chosen_bf, double temperature, double log_bound){
+List a_IIT_update(vec X,const sp_mat& M, String chosen_bf, double temperature, double log_bound){
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
   vec probs(total_neighbors, fill::zeros); //probabilities
   ////// Compute likelihood of current state
