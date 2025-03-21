@@ -18,6 +18,13 @@ double ret_max(double a,double b,double c){
   vec temp={a,b,c};
   return(max(temp));
 }
+
+// [[Rcpp::export]]
+double ret_min(double a,double b,double c){
+  vec temp={a,b,c};
+  return(min(temp));
+}
+
 // Transform vector representation of base 2 into decimal representation
 // [[Rcpp::export]]
 int vec_to_num(vec X){
@@ -87,6 +94,24 @@ mat initializeRandom(const int& nun_rows,const int& num_cols, const double& prob
   return(A);
 }
 
+// Compare two vectors
+// [[Rcpp::export]]
+bool CompareVectors(const vec& v1, const vec& v2) {
+  // Check if the vectors have the same size
+  if (v1.n_elem != v2.n_elem) {
+    return false;
+  }
+  
+  // Compare each element of the vectors
+  for (uword i = 0; i < v1.n_elem; ++i) {
+    if (v1(i) != v2(i)) {
+      return false;
+    }
+  }
+  // If all elements are the same, return true
+  return true;
+}
+
 
 
 ////////// Balancing functions //////////
@@ -108,6 +133,12 @@ double bf_min(double x){
   return result;
 }
 
+//// Bounded balancing function based on sqrt 
+// [[Rcpp::export]]
+double bound_sq(double x, double log_gamma){
+  double temp1=x/2-log_gamma;
+  return ret_min(temp1,x,0);
+}
 
 ///// Functions to call balancing functions inside other functions
 
@@ -168,7 +199,7 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M){
   // double theta1=10;
-  double theta=1;
+  double theta=3;
   // double theta2=200;
   if(M.n_cols!=2){
     Rcpp::Rcout << "Error matrix has more than 2 columns: " << std::endl;
@@ -179,11 +210,18 @@ double loglik(const arma::vec& X,const arma::mat& M){
     double dif1=sum(abs(X-mod1));
     double dif2=sum(abs(X-mod2));
     double loglik_computed;
+    // if(dif2<=dif1){
+    //   loglik_computed = -dif2/theta + log1p(exp((dif2-dif1)/theta));
+    // }
+    // if(dif2>dif1){
+    //   loglik_computed = -dif1/theta + log1p(exp((dif1-dif2)/theta));
+    // }
+    
     if(dif2<=dif1){
-      loglik_computed = -dif2/theta + log1p(exp((dif2-dif1)/theta));
+      loglik_computed = -dif2*theta + log1p(exp((dif2-dif1)*theta));
     }
     if(dif2>dif1){
-      loglik_computed = -dif1/theta + log1p(exp((dif1-dif2)/theta));
+      loglik_computed = -dif1*theta + log1p(exp((dif1-dif2)*theta));
     }
     
     
