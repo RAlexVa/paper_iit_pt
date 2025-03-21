@@ -168,7 +168,7 @@ arma::sp_mat readSparseMatrix(const std::string& filename){
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M){
   // double theta1=10;
-  double theta=20;
+  double theta=1;
   // double theta2=200;
   if(M.n_cols!=2){
     Rcpp::Rcout << "Error matrix has more than 2 columns: " << std::endl;
@@ -325,7 +325,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
-  loglikelihood_visited.fill(-10);//Initialize a very negative loglikelihood
+  loglikelihood_visited.fill(-10000);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
@@ -578,7 +578,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
-  loglikelihood_visited.fill(-10);//Initialize a very negative loglikelihood
+  loglikelihood_visited.fill(-10000);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
@@ -813,7 +813,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
-  loglikelihood_visited.fill(-10);//Initialize a very negative loglikelihood
+  loglikelihood_visited.fill(-10000);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;

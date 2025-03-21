@@ -298,6 +298,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
+  loglikelihood_visited.fill(-10000);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
@@ -544,6 +545,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
+  loglikelihood_visited.fill(-10000);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
@@ -796,6 +798,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   //Number of states to keep track
   mat iter_to_visit(num_states_visited,total_sim);
   mat loglikelihood_visited(num_states_visited,total_sim);
+  loglikelihood_visited.fill(-10000);//Initialize a very negative loglikelihood
   cube states_visited(p,num_states_visited,total_sim,fill::zeros);
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   double temporal_loglik;
