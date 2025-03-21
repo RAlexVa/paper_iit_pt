@@ -203,6 +203,8 @@ run_lowd <- function(list_ids){
         export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
         #Running time
         export[["time_taken"]] <- output[["time_taken"]]
+        #Running time
+        export[["time_visit"]] <- output[["time_visit"]]
         #Index process
         export[["ip"]] <- output[["ip"]]
         output_name <- paste0("sim_lowdim_id_",id_chosen,".Rds")
