@@ -123,8 +123,7 @@ double bal_func(double x,String chosen){
   } else if (chosen == "min") {
     return invoke(x, &bf_min);
   } else {
-    cout << "Unknown operation!" << endl;
-    Rcpp::Rcout <<"Unknown operation!" << std::endl;
+    Rcpp::Rcout <<"Name of the balancing function does exist!" << std::endl;
     return 0; // Default return for unknown operation
   }
 }
