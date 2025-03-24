@@ -583,6 +583,22 @@ loglik(data$states[,4,1],Q_matrix)
 loglik(v0,Q_matrix)
 loglik(v1,Q_matrix)
 loglik(v2,Q_matrix)
+
+### Tracing a path to the modes
+create_vector <- function(coord,dim){
+  vec <- rep(0,dim)
+  vec[coord] <- 1
+  return(vec)
+}
+path <- c()
+for(i in 1:p){
+  if(i%%2==1){
+    path[(i+1)/2] <- loglik(create_vector(seq(1,i,by=2),p),Q_matrix) 
+  }
+}
+
+
+
 exp(-40)
 log(1+exp(-40))
 # loglik(c(rep(0,400),rep(1,400)),Q_matrix)
@@ -595,11 +611,7 @@ check <- a_IIT_update(v0,Q_matrix,"sq",1,0)
 
 check_res <- PT_a_IIT_sim(p,1,1, 5,1,0, c(1,0.3),c("sq","sq"),"nothing",5,-1)
 
-create_vector <- function(coord,dim){
-  vec <- rep(0,dim)
-  vec[coord] <- 1
-  return(vec)
-}
+
 
 v_check <- v0
 v_check[170] <- 1
@@ -621,6 +633,71 @@ loglik(neigh_1,Q_matrix)
 store_lik <- c()
 for(i in 1:length(neigh_1)){
   rep_v <- neigh_1
+  rep_v[i] <- 1-rep_v[i]
+  store_lik[i] <- loglik(rep_v,Q_matrix)
+}
+summary(store_lik)
+
+
+### Testing time of first visit
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+p <- 16
+
+#PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+check_res <- PT_IIT_sim(p,1,5, 5000,100,1000, c(1,0.3),c("sq","sq"),TRUE,654)
+
+
+##### Checking how to visit at least 1 mode in the high dimensional bimodal example
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
+p <- 200
+numiter <- 500000
+burn_in <- 100
+temperatures <- c(1)
+bal_f <- c("sq")
+
+Q_matrix <- matrix(0,nrow=p,ncol=2)
+for(i in 1:p){
+  if(i%%2==1){Q_matrix[i,2]=1}
+  if(i%%2==0){Q_matrix[i,1]=1}
+}
+
+v0 <- rep(0,p)
+v1 <- Q_matrix[,1]
+v2 <- Q_matrix[,2]
+
+loglik(v0,Q_matrix)
+loglik(v1,Q_matrix)
+loglik(v1,Q_matrix)
+loglik(rbinom(p,1,0.4),Q_matrix)
+
+set.seed(456)
+check_res <- PT_IIT_sim(p,1,1,numiter, numiter+1,burn_in, temperatures,bal_f, TRUE,"anything",3,-1)
+
+
+### Tracing a path to the modes
+create_vector <- function(coord,dim){
+  vec <- rep(0,dim)
+  vec[coord] <- 1
+  return(vec)
+}
+path <- c()
+
+for(i in 1:p){
+  if(i%%2==1){
+    path[(i+1)/2] <- loglik(create_vector(seq(1,i,by=2),p),Q_matrix) 
+  }
+}
+
+loglik(vec,Q_matrix)
+store_lik <- c()
+for(i in 1:length(vec)){
+  rep_v <- vec
   rep_v[i] <- 1-rep_v[i]
   store_lik[i] <- loglik(rep_v,Q_matrix)
 }
