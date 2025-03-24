@@ -128,3 +128,35 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 126,PT_IIT_Z,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,0.00001,200000,0,0,bimodal,From 113 decreasing t4
 127,PT_A_IIT_RF,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,,200000,0,0,bimodal,From 117 just changing seed
 128,PT_A_IIT_RF,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,0.000001,200000,0,never,bimodal,From 116 just changing seed and decreasing t4
+129,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,never,bimodal,A partir de aca ya son resultados que vamos a usar
+130,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,0.14,1000000,0,never,bimodal,Estos ya son resultados que se van a usar
+131,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
+132,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,0.14,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
+133,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
+134,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,0.14,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
+135,PT_IIT_Z,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
+136,PT_IIT_Z,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,0.00001,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
+137,PT_IIT_Z,100,5000000,500,NA,0,8878,min,1,0.37,0.15,,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
+138,PT_IIT_Z,100,5000000,500,NA,0,8878,min,1,0.37,0.15,0.00001,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
+139,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,never,bimodal,Estos ya son resultados que se van a usar
+140,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
+141,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
+142,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,0.000001,1000000,0,never,bimodal,Estos ya son resultados que se van a usar
+143,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,0.000001,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
+144,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,0.000001,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
+145,PT_A_IIT,20,NA,500,2000,0,886,,1,0.15,0.9,0.04,200000,0,never,7_mode,"based on 121,122, to check final temperatures"
+146,PT_A_IIT,20,NA,500,2000,0,886,,1,0.149,0.9,0.03,200000,0,never,7_mode,"based on 121,122, to check final temperatures"
+147,PT_IIT_Z,20,1000000,500,NA,0,886,sq,1,0.155,0.04,0.0000001,200000,0,0,7_mode,"based on 61,62, 118,119, to check final temperatures"
+148,PT_IIT_Z,20,1000000,500,NA,0,886,sq,1,0.155,0.04,,200000,0,0,7_mode,"based on 61,62, 118,119, to check final temperatures"
+149,PT_IIT_Z,20,1000000,500,NA,0,886,min,1,0.155,0.04,0.0000001,200000,0,0,7_mode,"based on 61,62, 118,119, to check final temperatures"
+150,PT_IIT_Z,20,1000000,500,NA,0,886,min,1,0.155,0.04,,200000,0,0,7_mode,"based on 61,62, 118,119, to check final temperatures"
+151,PT_A_IIT_RF,20,1000000,500,NA,0,886,,1,0.155,0.04,0.0000001,100000,0,never,7_mode,"based on 61,62, 118,119, to check final temperatures"
+152,PT_A_IIT_RF,20,1000000,500,NA,0,886,,1,0.155,0.04,,100000,0.001,never,7_mode,"based on 61,62, 118,119, to check final temperatures"
+153,PT_A_IIT,20,NA,500,2000,0,886,,1,0.15,0.9,0.4,200000,0,never,7_mode,"based on 145,146, to check final temperatures"
+154,PT_A_IIT,20,NA,500,2000,0,886,,1,0.15,0.9,0.3,200000,0,never,7_mode,"based on 145,146, to check final temperatures"
+155,PT_IIT_Z,20,1000000,500,NA,0,886,sq,1,0.155,0.05,0.0000001,200000,0,0,7_mode,"based on 147, sr=.24,.17,.67"
+156,PT_IIT_Z,20,1000000,500,NA,0,886,sq,1,0.155,0.05,,200000,0,0,7_mode,"based on 148, sr=.24,.18"
+157,PT_IIT_Z,20,1000000,500,NA,0,886,min,1,0.155,0.05,0.0000001,200000,0,0,7_mode,"based on 149, sr=.24,.17,.67"
+158,PT_IIT_Z,20,1000000,500,NA,0,886,min,1,0.155,0.06,,200000,0,0,7_mode,"based on 150, sr=.24,.17"
+159,PT_A_IIT_RF,20,1000000,500,NA,0,886,,1,0.155,0.055,0.0000001,100000,0,never,7_mode,"based on 151, sr=.248,.177,.671"
+160,PT_A_IIT_RF,20,1000000,500,NA,0,886,,1,0.155,0.055,,100000,0.001,never,7_mode,"based on 152, sr=.248,.181"

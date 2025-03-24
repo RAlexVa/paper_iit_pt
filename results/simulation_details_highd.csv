@@ -48,3 +48,18 @@ id,algorithm,simulations,iterations,interswap,total_swap,states_visited,seed,fil
 47,PT_IIT_Z,1,5000,500,NA,5,987,G1,1000,gset,,To test more temperatures,sq,0.005,1,260,520,780,-1
 48,PT_A_IIT,1,NA,500,200,5,911,G1,1000,bimodal,800,To test more temperatures,sq,1,0.5,0.05,0.001,,-1
 49,PT_IIT_Z,1,100000,500,NA,5,911,G1,1000,bimodal,800,To test more temperatures,sq,1,0.5,0.05,0.001,,-1
+50,PT_A_IIT,1,NA,500,200,5,456,G1,1000,bimodal,200,swap rate of 0.5,sq,1,0.5,0.05,0.001,,-1
+51,PT_IIT_Z,1,100000,500,NA,5,456,G1,1000,bimodal,200,swap rate of 1,sq,1,0.5,0.05,0.001,,-1
+52,PT_A_IIT,1,NA,500,200,5,456,G1,1000,bimodal,200,swap rate of 0.5,sq,1,0.3,0.01,0.0001,,-1
+53,PT_IIT_Z,1,100000,500,NA,5,456,G1,1000,bimodal,200,swap rate of 1,sq,1,0.3,0.01,0.0001,,
+54,PT_A_IIT,1,NA,500,400,5,456,,10000,bimodal,200,swap rate of 0.48 ,sq,1,0.23,0.001,,,
+55,PT_IIT_Z,1,200000,500,NA,5,456,,10000,bimodal,200,swap rate of 0.95,sq,1,0.1,0.001,,,
+56,PT_A_IIT,1,NA,1000,400,5,3,,20000,bimodal,200,,sq,10,1,0.001,,,
+57,PT_IIT_Z,1,400000,1000,NA,5,3,,20000,bimodal,200,,sq,10,1,0.001,,,
+58,PT_A_IIT,1,NA,1000,400,5,3,,20000,bimodal,200,,sq,8,1,0.00001,,,
+59,PT_IIT_Z,1,400000,1000,NA,5,3,,20000,bimodal,200,,sq,12,1,0.00001,,,
+60,PT_A_IIT,1,NA,1000,1000,5,3,,40000,bimodal,200,"swap rate 0.32, 0.48",sq,7.5,1,0.00001,,,
+61,PT_IIT_Z,1,1000000,1000,NA,5,3,,40000,bimodal,200,,sq,11,1,0.00001,,,
+62,PT_A_IIT,1,NA,1000,5000,5,432,,40000,bimodal,200,,sq,8,1,0.000000001,,,
+63,PT_A_IIT,1,NA,1000,5000,5,432,,40000,bimodal,200,25 is too far,sq,25,8,1,0.000000001,,
+64,PT_A_IIT,1,NA,500,2000,5,42,,40000,bimodal,200,This lowest temperature is enough,sq,20,13,8,1,0.00001,
