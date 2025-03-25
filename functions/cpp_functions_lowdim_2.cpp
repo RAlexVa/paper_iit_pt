@@ -802,6 +802,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["total_iter"]=total_iterations;
   ret["time_taken"]=time_taken;
   ret["time_visit"]=full_first_time;
+  ret["max_bounds"]=max_log_bound_vector;
+  ret["final_bounds"]=log_bound_vector;
   return ret;
 }
 
@@ -1078,6 +1080,8 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   ret["swap_rate"]=swap_rate;
   ret["time_taken"]=time_taken;
   ret["time_visit"]=full_first_time;
+  ret["max_bounds"]=max_log_bound_vector;
+  ret["final_bounds"]=log_bound_vector;
   return ret;
 }
 
