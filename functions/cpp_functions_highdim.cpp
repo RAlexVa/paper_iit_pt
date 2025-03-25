@@ -1074,6 +1074,21 @@ double eval_loglik(const std::string& filename, vec X){
 ////////// Some testing functions //////////
 
 // [[Rcpp::export]]
+vec lik_path(const std::string& filename, vec& Xfrom, const vec& Xto){
+  sp_mat M=readSparseMatrix(filename);
+  int size=Xto.n_rows;
+  vec likelihood_path(size);
+  vec transition_vector(size);
+  transition_vector=Xfrom;
+  for(int coord=0;coord<size;coord++){
+    transition_vector(coord)=Xto(coord);
+    likelihood_path(coord)=arma::as_scalar(state.t() * M * state);
+  }
+  return(likelihood_path);
+}
+
+
+// [[Rcpp::export]]
 vec hist_lik(const std::string& filename, int N,double p){
   sp_mat M=readSparseMatrix(filename);
   vec evaluated_likelihood(N);
