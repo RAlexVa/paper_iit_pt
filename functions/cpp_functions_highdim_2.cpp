@@ -369,12 +369,17 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   double temporal_loglik;
   uword found_min; // to find the minimum
   // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
-  //// Define modes
+  //// Define two modes
   mat Q_matrix(p,2);
   for(int i=0;i<p;i++){
     if(i%2==0){Q_matrix(i,1)=1;}
     if(i%2==1){Q_matrix(i,0)=1;}
   }
+  vec mode1=Q_matrix.col(0);
+  vec mode2=Q_matrix.col(1);
+  mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
+  cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
+  
   // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
   // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   
@@ -390,11 +395,23 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
     swap_total.zeros();
     swap_success.zeros();
+    iter_visit_modes.zeros();
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
+        //Check if the current state is one of the modes
+        if(CompareVectors(mode1,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),0)=-1*i; 
+          }}
+        if(CompareVectors(mode2,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),1)=-1*i;
+          }}
         output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
         X.col(replica)=vec(output(0)); //Update current state of the chain
       }
@@ -458,6 +475,17 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
+        //Check if the current state is one of the modes
+        if(CompareVectors(mode1,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),0)=i; 
+          }}
+        if(CompareVectors(mode2,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),1)=i;
+          }}
         // Rcpp::Rcout <<"Inside replica loop, with replica: "<< replica << std::endl;
         //Depending on the chosen method
         //// Update each replica independently
@@ -563,6 +591,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // Store result of the simulation
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
+    
+    full_iter_visit_modes.slice(s)=iter_visit_modes;//Store iterations to visit the modes
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
@@ -573,6 +603,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
   ret["time_taken"]=time_taken;
+  ret["modes_visit"]=full_iter_visit_modes;
   return ret;
 }
 
@@ -627,6 +658,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     if(i%2==0){Q_matrix(i,1)=1;}
     if(i%2==1){Q_matrix(i,0)=1;}
   }
+  vec mode1=Q_matrix.col(0);
+  vec mode2=Q_matrix.col(1);
+  mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
+  cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
+  
   // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
   // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
@@ -642,6 +678,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
+    iter_visit_modes.zeros();
     ////Start the loop for burn-in period
     int track_burn_in=0;
     while(track_burn_in<burn_in){
@@ -747,6 +784,20 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             }
           }
           
+          //Check if the current state is one of the modes
+          if(CompareVectors(mode1,X.col(replica))){
+            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
+            if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
+              mat current_slice=total_iterations.slice(s);//Extract current slice
+              iter_visit_modes(index_process(replica),0)=sum(current_slice.col(index_process(replica)));//Store the iterations from original chain
+            }}
+          if(CompareVectors(mode2,X.col(replica))){
+            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
+            if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
+              mat current_slice=total_iterations.slice(s);//Extract current slice
+              iter_visit_modes(index_process(replica),1)=sum(current_slice.col(index_process(replica)));//Store the iterations from original chain
+            }}
+          
           
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
@@ -800,6 +851,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     // Store result of the simulation
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
+    full_iter_visit_modes.slice(s)=iter_visit_modes;//Store iterations to visit the modes
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
@@ -811,6 +863,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["iter_visit"]=iter_to_visit;
   ret["total_iter"]=total_iterations;
   ret["time_taken"]=time_taken;
+  ret["modes_visit"]=full_iter_visit_modes;
   return ret;
 }
 
@@ -863,6 +916,11 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     if(i%2==0){Q_matrix(i,1)=1;}
     if(i%2==1){Q_matrix(i,0)=1;}
   }
+  vec mode1=Q_matrix.col(0);
+  vec mode2=Q_matrix.col(1);
+  mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
+  cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
+  
   // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
   // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
@@ -879,12 +937,24 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     swap_total.zeros();
     swap_success.zeros();
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
+    iter_visit_modes.zeros();
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
+        //Check if the current state is one of the modes
+        if(CompareVectors(mode1,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),0)=-1*i; 
+          }}
+        if(CompareVectors(mode2,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),1)=-1*i;
+          }}
         // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
         output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
         X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -955,6 +1025,17 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
+        //Check if the current state is one of the modes
+        if(CompareVectors(mode1,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),0)=i; 
+          }}
+        if(CompareVectors(mode2,X.col(replica))){
+          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
+          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
+            iter_visit_modes(index_process(replica),1)=i;
+          }}
         //Depending on the chosen method
         //// Update each replica independently
         // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
@@ -1054,6 +1135,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     // Store result of the simulation
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
+    full_iter_visit_modes.slice(s)=iter_visit_modes;//Store iterations to visit the modes
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
@@ -1064,6 +1146,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
   ret["time_taken"]=time_taken;
+  ret["modes_visit"]=full_iter_visit_modes;
   return ret;
 }
 
