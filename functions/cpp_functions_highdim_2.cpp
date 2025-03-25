@@ -403,13 +403,13 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         current_temp=temp(index_process(replica));
         //Check if the current state is one of the modes
         if(CompareVectors(mode1,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
+            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
             iter_visit_modes(index_process(replica),0)=-1*i; 
           }}
         if(CompareVectors(mode2,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
+            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
             iter_visit_modes(index_process(replica),1)=-1*i;
           }}
         output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
@@ -477,14 +477,14 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         //Check if the current state is one of the modes
         if(CompareVectors(mode1,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
             iter_visit_modes(index_process(replica),0)=i; 
+            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
         if(CompareVectors(mode2,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
             iter_visit_modes(index_process(replica),1)=i;
+            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
         // Rcpp::Rcout <<"Inside replica loop, with replica: "<< replica << std::endl;
         //Depending on the chosen method
@@ -786,16 +786,16 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           
           //Check if the current state is one of the modes
           if(CompareVectors(mode1,X.col(replica))){
-            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
             if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
               mat current_slice=total_iterations.slice(s);//Extract current slice
               iter_visit_modes(index_process(replica),0)=sum(current_slice.col(index_process(replica)));//Store the iterations from original chain
+              Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
             }}
           if(CompareVectors(mode2,X.col(replica))){
-            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
             if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
               mat current_slice=total_iterations.slice(s);//Extract current slice
               iter_visit_modes(index_process(replica),1)=sum(current_slice.col(index_process(replica)));//Store the iterations from original chain
+              Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
             }}
           
           
@@ -946,14 +946,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
         //Check if the current state is one of the modes
         if(CompareVectors(mode1,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),0)=-1*i; 
+            iter_visit_modes(index_process(replica),0)=-1*i;
+            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
         if(CompareVectors(mode2,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
             iter_visit_modes(index_process(replica),1)=-1*i;
+            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
         // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
         output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
@@ -1027,14 +1027,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
         //Check if the current state is one of the modes
         if(CompareVectors(mode1,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
             iter_visit_modes(index_process(replica),0)=i; 
+            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
         if(CompareVectors(mode2,X.col(replica))){
-          Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
             iter_visit_modes(index_process(replica),1)=i;
+            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
         //Depending on the chosen method
         //// Update each replica independently
