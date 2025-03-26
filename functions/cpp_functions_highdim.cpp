@@ -1082,7 +1082,7 @@ vec lik_path(const std::string& filename, vec& Xfrom, const vec& Xto){
   transition_vector=Xfrom;
   for(int coord=0;coord<size;coord++){
     transition_vector(coord)=Xto(coord);
-    likelihood_path(coord)=arma::as_scalar(state.t() * M * state);
+    likelihood_path(coord)=arma::as_scalar(transition_vector.t() * M * transition_vector);
   }
   return(likelihood_path);
 }
