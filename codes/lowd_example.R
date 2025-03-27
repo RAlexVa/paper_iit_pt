@@ -207,6 +207,8 @@ run_lowd <- function(list_ids){
         export[["time_visit"]] <- output[["time_visit"]]
         #Index process
         export[["ip"]] <- output[["ip"]]
+        export[["max_bounds"]] <- output[["max_bounds"]]
+        export[["final_bounds"]] <- output[["final_bounds"]]
         output_name <- paste0("sim_lowdim_id_",id_chosen,".Rds")
         saveRDS(export,file=file.path("results",output_name))
       }
