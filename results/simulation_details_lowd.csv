@@ -128,17 +128,17 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 126,PT_IIT_Z,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,0.00001,200000,0,0,bimodal,From 113 decreasing t4
 127,PT_A_IIT_RF,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,,200000,0,0,bimodal,From 117 just changing seed
 128,PT_A_IIT_RF,100,1000000,1000,NA,0,20,sq,1,0.37,0.15,0.000001,200000,0,never,bimodal,From 116 just changing seed and decreasing t4
-129,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,never,bimodal,A partir de aca ya son resultados que vamos a usar
+129,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,never,bimodal,Chosen for final print
 130,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,0.14,1000000,0,never,bimodal,Estos ya son resultados que se van a usar
 131,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
 132,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,0.14,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
 133,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
 134,PT_A_IIT,100,NA,500,10000,0,8878,,1,0.37,0.24,0.14,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
-135,PT_IIT_Z,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
+135,PT_IIT_Z,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,0,bimodal,Chosen for final print
 136,PT_IIT_Z,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,0.00001,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
-137,PT_IIT_Z,100,5000000,500,NA,0,8878,min,1,0.37,0.15,,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
+137,PT_IIT_Z,100,5000000,500,NA,0,8878,min,1,0.37,0.15,,1000000,0,0,bimodal,Chosen for final print
 138,PT_IIT_Z,100,5000000,500,NA,0,8878,min,1,0.37,0.15,0.00001,1000000,0,0,bimodal,Estos ya son resultados que se van a usar
-139,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,never,bimodal,Estos ya son resultados que se van a usar
+139,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,never,bimodal,Chosen for final print
 140,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,always,bimodal,Estos ya son resultados que se van a usar
 141,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,,1000000,0,iterations,bimodal,Estos ya son resultados que se van a usar
 142,PT_A_IIT_RF,100,5000000,500,NA,0,8878,sq,1,0.37,0.15,0.000001,1000000,0,never,bimodal,Estos ya son resultados que se van a usar
@@ -169,3 +169,30 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 167,PT_IIT_Z,100,10000000,500,NA,0,886,min,1,0.155,0.06,,1000000,0,0,7_mode,"Getting results, based on 157-158"
 168,PT_A_IIT_RF,100,10000000,500,NA,0,886,,1,0.155,0.055,0.0000001,1000000,0,never,7_mode,"Getting results, based on 159, sr=0.24,0.24,0.54"
 169,PT_A_IIT_RF,100,10000000,500,NA,0,886,,1,0.155,0.055,,1000000,0.001,never,7_mode,"Getting results, based on 160, sr=0.25,0.25"
+170,PT_A_IIT,20,NA,500,2000,0,701,,1,0.15,0.9,0.2,200000,0,never,7_mode,"Still testing, based on 161,162, sr=0.24,0.24,0.093"
+171,PT_A_IIT,20,NA,500,2000,0,701,,1,0.15,0.9,0.25,200000,0,never,7_mode,"Still testing, based on 161,162, sr=0.24,0.24,0.014"
+172,PT_A_IIT,20,NA,500,2000,0,701,,1,0.15,0.9,0.15,200000,0,never,7_mode,"Still testing, based on 161,162, sr=0.24,0.24,0.014"
+173,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0,never,7_mode,"MAAAAL, la t3 y t4 está mal"
+174,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0.0001,always,7_mode,"MAAAAL, la t3 y t4 está mal"
+175,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0.0001,iterations,7_mode,"MAAAAL, la t3 y t4 está mal"
+176,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0.001,always,7_mode,"MAAAAL, la t3 y t4 está mal"
+177,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0.001,iterations,7_mode,"MAAAAL, la t3 y t4 está mal"
+178,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0.1,always,7_mode,"MAAAAL, la t3 y t4 está mal"
+179,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,0.1,iterations,7_mode,"MAAAAL, la t3 y t4 está mal"
+180,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,1,always,7_mode,"MAAAAL, la t3 y t4 está mal"
+181,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.15,1000000,1,iterations,7_mode,"MAAAAL, la t3 y t4 está mal"
+182,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.1,,200000,0,never,7_mode,"0.24,0.26"
+183,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.07,,200000,0,never,7_mode,"0.25,0.145"
+184,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.05,,200000,0,never,7_mode,"0.24,0.09"
+185,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.01,,200000,0,never,7_mode,"0.248,0.028"
+186,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.1,0.05,200000,0,never,7_mode,"Sr=0.25,0.26,0.24"
+187,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.9,0.03,200000,0,never,7_mode,"Sr=0.24,0.25,0.0065"
+188,PT_A_IIT,5,NA,500,2000,0,701,,1,0.15,0.9,,200000,0,never,7_mode,"Sr=0.25,0.25"
+189,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.05,1000000,0,never,7_mode,Get results
+190,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,,1000000,0,never,7_mode,Get results
+191,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.05,1000000,0.001,always,7_mode,Get results
+192,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,,1000000,0.001,iterations,7_mode,Get results
+193,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.05,1000000,0.1,always,7_mode,Get results
+194,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,,1000000,0.1,iterations,7_mode,Get results
+195,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,0.05,1000000,1,always,7_mode,Get results
+196,PT_A_IIT,100,NA,500,20000,0,701,,1,0.15,0.9,,1000000,1,iterations,7_mode,Get results
