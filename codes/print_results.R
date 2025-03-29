@@ -9,10 +9,30 @@ library(latex2exp) #For using latex
 ### Process simulation results ###
 
 # Choose dimension
-chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
-chosen_ids <-c(54)#c(28,29,30,31,32,33)#c(31,32)#c(29,30)#c(25,26,27)#c(17,18,19,20)#c(25,26,27)#c(9,10,11,12)   #c(20,21,22) # c(13,14,15,16)
+# chosen_dim <- "highdim"; file_dim <- "highd"
+chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+print_bimodal <- FALSE
+print_multimodal <- FALSE
+chosen_ids <-c(182:185)
+# chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)
 
+#### Chosen for lowdim bimodal problem ####
+#We stay with 3 temperatures for everything
+#For PT-IIT the last temperature does not achieve the 0.23 swap rate (it gets bigger rate)
+#For PT A-IITm there doesn't seem to be a big issue
+#For PT A-IITw it seems to have been better with 4 temperatures
+# but still doesn't get the needed swap rate
+chosen_bimodal <- c(129,135,137,139)
+print_bimodal <- TRUE
+chosen_ids <- chosen_bimodal
+
+#### Chosen for lowdim multimodal problem ####
+# For PT-IIT and PT A-IITw we only use 3 temperatures because it had the best performance in TVD
+# For PT A-IITm we still have to identify the best temperature
+
+# chosen_multimodal <- c(165,167,169)
+# print_multimodal <- TRUE
+# chosen_ids <- chosen_multimodal
 
 
 #List of files
@@ -60,7 +80,8 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
   }
   
   
-  
+  # to store time to visit modes
+  mode_time <- as.data.frame(matrix(NA,ncol=4)); colnames(mode_time) <- c("alg","sim","mode","time")
   
   
   if(check_number_modes=="7_mode"){
@@ -187,12 +208,11 @@ for(i in 1:nrow(data_sum)){
   algorithm <- data_sum |> slice(i) |> pull(algorithm)
   if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT m"}
   if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
-  if(algorithm=="PT_IIT_Z"){algorithm <- "PT-IIT"}
+  if(algorithm=="PT_IIT_Z"){algorithm <- paste0("PT-IIT (",data_sum |> slice(i)|> pull(bf),")")}
   if(algorithm=="PT_A_IIT_RF"){algorithm <- "PT A-IIT w"}
   
-##### Optinal add the ID of the simulation into the name of the algorithm
-  algorithm <- paste0(algorithm,"(",data_sum |> slice(i) |> pull(id),")")
-  
+##### Optional add the ID of the simulation into the name of the algorithm
+  if(!(print_bimodal || print_multimodal)){algorithm <- paste0(algorithm,"(",data_sum |> slice(i) |> pull(id),")")}
   print(data_sum[i,"algorithm"])
   print(names(data))
 
@@ -232,13 +252,32 @@ if(chosen_dim=="lowdim"){
   temp <- temp |> select(alg,sim,everything())
   pi_modes <- rbind(pi_modes,temp)
 
+  #Extract time to visit each of the modes
+  temp <- data[["time_visit"]]
+  if(!is_empty(temp)){
+    temp <- as.data.frame(t(temp[modes+1,])) #As many rows as simulations as many columns as modes
+    #define colnames
+    if(ncol(temp)==2){
+      colnames(temp) <- c("mod2","mod3")
+    }else   if(ncol(temp)==7){
+      colnames(temp) <- paste0("mod",1:7)
+    }else{stop("Number of modes in time_visit is not 7 or 2")}
+    
+    temp$sim <- 1:tot_sim
+    temp$alg <- algorithm
+    temp <- temp |> select(alg,sim,everything()) |> pivot_longer(starts_with("mod"),names_to = "mode",values_to="time")
+    mode_time <- rbind(mode_time,temp)
+  }else{
+    print(paste0("ID: ",data_sum[i,"id"],"doesn't have time_visit"))
+  }
+  
 }
   if(chosen_dim=="highdim"){
 ### Specific extractions for highdim example
-    if(data_sum$model=="bimodal"){
+    if(data_sum|> slice(i) |> pull(model)=="bimodal"){
       p <- data_sum$p;
     }
-    if(data_sum$model=="gset"){
+    if(data_sum|> slice(i) |> pull(model)=="gset"){
       file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
       p <- readParameters(file_matrix)
       
@@ -340,6 +379,8 @@ time_taken <- time_taken |> filter(!is.na(alg))
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen_dim,"_ex")
 export_file_name <- paste0(chosen_dim,"_",paste0(chosen_ids,collapse="_"))
+if(print_bimodal){export_file_name <- "bimodal"}
+if(print_multimodal){export_file_name <- "multimodal"}
 # full_path <- file.path(export_path,paste0("tvd_",export_file_name,".jpg"))
 
 #################################### REPORTS FOR LOW AND HIGH DIMENSION ######
@@ -394,7 +435,7 @@ rt_report <- round_trip |>
   summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
 colnames(rt_report) <- c("alg",paste0("R",1:num_replicas))
 
-jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=140*nrow(rt_report),height=40*nrow(rt_report),pointsize = 30)
+jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=90*ncol(rt_report),height=40*nrow(rt_report),pointsize = 30)
 grid.arrange(tableGrob(rt_report))
 dev.off()
 
@@ -403,6 +444,7 @@ if(chosen_dim=="lowdim"){
   tvd <-  tvd |> filter(!is.na(alg)) 
   mode_visit <- mode_visit |> filter(!is.na(alg))
   pi_modes <- pi_modes|> filter(!is.na(alg))
+  mode_time <- mode_time |> filter(!is.na(alg))
 ##### Compare estimation of modes #####  
   
   pi_modes |> pivot_longer(cols = -(alg:sim), names_to = "mode", values_to = "pi_est") |> 
@@ -449,7 +491,7 @@ grid.arrange(tableGrob(max_tvd_compare))
   
   tvd_plot <- tvd |>  filter(!str_starts(alg,'IIT')) |> 
     ggplot(aes(x=alg,y=tvd,fill=alg)) +
-    geom_boxplot(show.legend = FALSE)+
+    geom_boxplot()+
     labs(fill='Algortihm',x="",y="Total Variation Distance")+
     theme_minimal(base_size = 17)+
     theme(legend.key.size = unit(1, 'cm'))
@@ -523,15 +565,66 @@ if(nrow(iterations)>0){
               q3=round(quantile(last_visit,probs=0.75),2),
               max=round(max(last_visit),2))
   swaps_to_explore <- rbind(swaps_to_explore,temp)
+  
 }
-
-
-
-
 
 jpeg(file.path(export_path,paste0("table_swaps_",export_file_name,".jpg")),width=140*nrow(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
+
+#### Report on time to visit the modes  
+
+(plot_time_mode <- mode_time |> group_by(alg,sim) |>
+  summarise(first_time=min(time),last_time=max(time)) |> 
+  ggplot(aes(x=alg,y=last_time, fill=alg)) +
+  geom_boxplot()+
+  labs(fill='Algortihm',y="seconds",x="",title="Time to find last mode")+
+  theme_minimal(base_size = 17)+
+  theme(legend.key.size = unit(1, 'cm'),
+        axis.text.x = element_blank()))
+
+mode_time |> group_by(alg,sim) |>
+  summarise(first_time=min(time),last_time=max(time)) |> ungroup() |> 
+  ggplot(aes(x=first_time,y=last_time, col=alg)) +
+  geom_point()
+
+forsurv <- mode_time |>group_by(alg,sim) |>
+  summarise(first_time=min(time),last_time=max(time)) |> ungroup() |> 
+  select(alg,last_time)
+
+fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~alg,data=forsurv)
+if(print_bimodal){time_br <- 0.2}
+if(print_multimodal){time_br <- 0.5}
+(plot_surv_mode <- ggsurvplot(fit,
+           data=forsurv,
+           fun="event",
+           palette = "Set1",    # Color palette
+           xlab = "Time (seconds)",
+           ylab = "Prop. of simulations visiting all modes",
+           legend.title = "Algorithm",
+           break.time.by = time_br,
+           font.x = 15,        # X-axis label font size
+           font.y = 15,        # Y-axis label font size
+           font.tickslab = 12, # Axis tick labels (numbers) font size
+           font.legend = 16))   # Legend text font size)
+
+table_time_mode <- mode_time |> group_by(alg,sim) |>
+  summarise(first_time=min(time),last_time=max(time)) |> 
+  ungroup() |> group_by(alg) |> 
+summarise(min=min(last_time),
+          q1=quantile(last_time,probs=0.25),
+          median=quantile(last_time,probs=0.5),
+          mean=mean(last_time),
+          q3=quantile(last_time,probs=0.75),
+          max=max(last_time))
+
+grid.arrange(tableGrob(table_time_mode))
+
+jpeg(file.path(export_path,paste0("time_mode_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+print(plot_surv_mode)
+dev.off()
+
+
 }# Finish low dim reports
 
 #Starts high dim reports
