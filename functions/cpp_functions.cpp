@@ -232,18 +232,13 @@ double checking_max_logprob=bal_func(max(max_logprobs),"sq");
           double temporal_log_b=log_bound/temperature;
           double delta_bound = decreasing_constant/exp(temporal_log_b);
           //log(a-b)=log(a)+log(1-b/a) ≈ log(a) - b/a if b/a is very small
-          //a=exp(log_bound), b=delta_bound
-          // Rcpp::Rcout<<"Temp: "<< temperature<< " Decreasing delta: "<< delta_bound<<" C_bound: "<<exp(log_bound)<<" C_log_bound: "<<log_bound<<" temporal_log_b: "<<temporal_log_b<<std::endl;
-          // if(delta_bound<.06){
-          //   log_bound=temperature*(temporal_log_b - delta_bound);
-          // }else{
-          //   log_bound = temperature*log1p(exp(temporal_log_b)-(decreasing_constant)); //Reduce constant
-          //   // log_bound = temperature*log(exp(temporal_log_b)-(decreasing_constant)); //Reduce constant
-          // }
-          //Second option to update the log_bound
-          
-          log_bound = temperature*(temporal_log_b + log1p(-delta_bound));
-          
+          //a=exp(temporal_log_b), b=decreasing_constant
+          if(delta_bound>1){//If the decreasing constant is too big
+            //log(1-b/a) would be undefined
+            log_bound=0;//Go the minimum 
+          }else{
+            log_bound = temperature*(temporal_log_b + log1p(-delta_bound));
+          }
           // Rcpp::Rcout <<"New log_b: "<< log_bound<<std::endl;
           // if(temperature==0.05){
           //   Rcpp::Rcout <<"Decreasing delta: "<< delta_bound<<" Current bound: "<<exp(log_bound)<<" new bound: "<<log_bound<<std::endl;
