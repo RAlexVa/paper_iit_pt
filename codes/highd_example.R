@@ -62,20 +62,21 @@ run_highd <- function(list_ids){
     bal_f <- as.character(sim_chosen|> select(matches("^bf")))
     bal_f <- bal_f[!is.na(bal_f)] #Ignore NA balancing functions
     if(length(bal_f)==0){bal_f <- "sq"}
+    burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
+    states_visited <- sim_chosen$states_visited# start state is random
+    start_state <- -1
+    alg <- sim_chosen$algorithm
     defined_seed <- sim_chosen$seed
     set.seed(defined_seed)
     #Parameters for PT with IIT
-    total_iter <- sim_chosen$iterations #300000 #Total number of steps to perform in each replica
+    total_iter <- sim_chosen$iterations 
     iterswap <- sim_chosen$interswap #Total iterations before trying a replica swap
-    #Parameters for PT with a-IIT
+    #Parameters for PT with A-IIT
     sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
     total_swap <- sim_chosen$total_swap #Total number of swaps to try
-    burnin_iter <- sim_chosen$burn_in #Number of iterations for burn-in
-    states_visited <- sim_chosen$states_visited
-    # start_state <- sim_chosen$start_state;
-    alg <- sim_chosen$algorithm
-    # start_state <- as.numeric(unlist(strsplit(sim_chosen$start_state,",")))
-    start_state <- -1 #Fixing starting state as the vector 0
+    reduc_constant <- sim_chosen$reduc_constant
+    reduc_model <- sim_chosen$reduc_model
+    
     export <- list();
     #### Function depending on algorithm to use
     
@@ -93,7 +94,9 @@ run_highd <- function(list_ids){
                  paste0("Samples in-between swaps: ",sample_inter_swap),
                  paste0("Total swaps:",total_swap),
                  paste0("File: ",file_matrix),
-                 paste0("States to keep track: ",states_visited)))
+                 paste0("States to keep track: ",states_visited),
+                 paste0("Reduction constant:",reduc_constant),
+                 paste0("bound reduction method:",reduc_model)))
     
     #re-create the balancing function vector
     #All replicas use the same balancing function
@@ -109,7 +112,7 @@ run_highd <- function(list_ids){
         
         if(alg=="PT_IIT_Z"){
           # Using Z factor bias correction
-          #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
+          #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
           output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE, file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
           swaps_for_rt_rate <- floor(total_iter/iterswap)
@@ -117,22 +120,22 @@ run_highd <- function(list_ids){
         if(alg=="PT_IIT_no_Z"){
           # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
           # Without Z factor bias correction
-          #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
+          #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
           output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,FALSE, file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
           swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
-          #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
-          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,file_matrix,states_visited,start_state)
+          #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model)
+          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
           #round trip rate (NA for IIT)
           swaps_for_rt_rate <- total_swap
         }
         if(alg=="PT_A_IIT_RF"){
           # Using A-IIT with weights in each replica
-          #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
-          output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state)
+          #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model)
+          output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
           #round trip rate (NA for IIT)
           swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
