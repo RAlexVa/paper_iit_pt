@@ -861,3 +861,20 @@ for(i in 1:length(vec)){
   store_lik[i] <- loglik(rep_v,Q_matrix)
 }
 summary(store_lik)
+
+
+##### Testing implementation of bound_sq #####
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+p <- 800
+tot_swaps <- 10
+inter_swap <- 100
+burn_in <- 100
+temperatures <- c(1,0.9)
+bal_f <- rep("sq",length(temperatures))
+
+set.seed(89)
+PT_a_IIT_sim(p,1,1,tot_swaps,inter_swap,burn_in,temperatures, bal_f,"gset/G1.txt",num_states_visited=5,-1, decreasing_constant=500,"iterations")
+
