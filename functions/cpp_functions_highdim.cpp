@@ -249,32 +249,80 @@ List IIT_update_w(vec X,const sp_mat& M,String chosen_bf, double temperature){
 }
 
 // [[Rcpp::export]]
-List a_IIT_update(vec X,const sp_mat& M, String chosen_bf, double temperature, double log_bound){
+List a_IIT_update(vec X,const sp_mat& M, String chosen_bf, const double& temperature, double log_bound, const bool& update, double prob_to_dec, const double& decreasing_constant, double max_logbound_found){
+  const double threshold = 1e-5;//Threshold for updating maximum bound. It has to change at least this
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
-  vec probs(total_neighbors, fill::zeros); //probabilities
+  vec logprobs(total_neighbors, fill::zeros); //probabilities
+  vec max_logprobs(total_neighbors,fill::zeros);//vector to store max-log-probabilities
   ////// Compute likelihood of current state
   double logpi_current=0;
   logpi_current = loglik(X,M);
   ////// Compute weight for all neighbors
   double temporal=0;
-  double temp_bound = 0;
+  // double temp_bound = 0;
   vec newX;
   for(int j=0; j<total_neighbors;j++){
-    // Rcpp::Rcout << "Starts checking neighbors  "<< j<<std::endl; 
     newX = X;
-    newX.row(j) = 1-X.row(j);
-    //Rcpp::Rcout << newX << std::endl;
-    temporal= bal_func(temperature*(loglik(newX,M)-logpi_current), chosen_bf);
+    newX.row(j) = 1-X.row(j);//Change coordinate of the state to define new neighbor
+    temporal= temperature*(loglik(newX,M)-logpi_current);
     //Apply balancing function to log probability times temperature ////
-    probs(j)=temporal;
-    // Update bound if needed
-    temp_bound=bal_func(temperature*(logpi_current-loglik(newX,M)), chosen_bf); //apply bf to the highest of pix-piy or piy-pix
-    log_bound=ret_max(temporal,temp_bound,log_bound);
+    logprobs(j)=temporal;//Store raw log_probability
+    max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
+  }// End of loop to compute raw log-probability of neighbors
+  // // Update bound if needed
+  // temp_bound=bal_func(temperature*(logpi_current-loglik(newX,M)), chosen_bf); //apply bf to the highest of pix-piy or piy-pix
+  // log_bound=ret_max(temporal,temp_bound,log_bound);
+  if(update){//If it's defined to keep updating the bounding constant
+    // Rcpp::Rcout <<"Temp: "<< temperature<<" C_max_bound: "<<max_logbound_found<<" new max bound: "<<bal_func(max(max_logprobs),"sq")<<std::endl;
+    double checking_max_logprob=bal_func(max(max_logprobs),"sq");
+    if(max_logbound_found<checking_max_logprob && (checking_max_logprob-max_logbound_found)>=threshold){
+      // Rcpp::Rcout <<"Diff en log bound: "<< checking_max_logprob-max_logbound_found<<std::endl;
+      // Rcpp::Rcout <<"Previous max log bound: "<< max_logbound_found*1000000<<std::endl;
+      max_logbound_found=checking_max_logprob;
+      // Rcpp::Rcout <<"New max log bound: "<< max_logbound_found*1000000<<std::endl;
+      log_bound=max_logbound_found;//First update according to the maximum 
+    }
+    //Then try Arithmetic reduction of the bounding constant
+    if(prob_to_dec>0){//If we consider a probability to decrease the constant
+      double test_prob=0;
+      if(prob_to_dec<1){
+        vec ppp=Rcpp::runif(1);//Get a random number
+        test_prob=ppp(0);
+      }
+      if(test_prob<prob_to_dec){//In case the update is accepted
+        double temporal_log_b=log_bound/temperature;
+        double delta_bound = decreasing_constant/exp(temporal_log_b);
+        //log(a-b)=log(a)+log(1-b/a) ≈ log(a) - b/a if b/a is very small
+        //a=exp(temporal_log_b), b=decreasing_constant
+        if(delta_bound>1){//If the decreasing constant is too big
+          //log(1-b/a) would be undefined
+          log_bound=0;//Go the minimum 
+        }else{
+          log_bound = temperature*(temporal_log_b + log1p(-delta_bound));
+        }
+        
+        // Rcpp::Rcout <<"New log_b: "<< log_bound<<std::endl;
+        // if(temperature==0.05){
+        //   Rcpp::Rcout <<"Decreasing delta: "<< delta_bound<<" Current bound: "<<exp(log_bound)<<" new bound: "<<log_bound<<std::endl;
+        //   Rcpp::Rcout <<"Decreasing log-bound to "<< log_bound<<std::endl;
+        // }
+        if(log_bound<0){log_bound=0;} //Minimum bound is 1, minimum log_bound is 0
+        
+      }else{
+        // Rcpp::Rcout <<"Rejected a bounding constant decrease"<< std::endl;
+      }
+    }
   }
-  probs = probs - log_bound; // Apply bound to log-probabilities
+  //After the bound has been updated we apply the bounded balancing function to the vector of log probabilities
+  /////////////
+  ////IMPORTANT: we're only using bound sqrt root for the adaptive IIT
+  /////////////
+  for(int j=0;j<total_neighbors;j++){
+    logprobs(j)=bound_sq(logprobs(j),log_bound);
+  }
   //////Choose the next neighbor
   vec u = Rcpp::runif(total_neighbors);
-  vec probs_choose = log(-log(u)) - probs;
+  vec probs_choose = log(-log(u)) - logprobs;
   
   //Find the index of the minimum element. 
   //This corresponds to choosing that neighbor
@@ -285,8 +333,9 @@ List a_IIT_update(vec X,const sp_mat& M, String chosen_bf, double temperature, d
   X.row(neigh_pos) = 1-X.row(neigh_pos); //modify the coordinate of the chosen neighbor
   List ret;
   ret["X"]=X;
-  ret["Z"]=sum(exp(probs))/total_neighbors; // Compute Z factor with uniform proposal distribution
+  ret["Z"]=sum(exp(logprobs))/total_neighbors; // Compute Z factor with uniform proposal distribution
   ret["logbound"]=log_bound;
+  ret["max_logbound"]=max_logbound_found;
   return ret;
 }
 
@@ -301,14 +350,14 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   int total_swaps=trunc(numiter/iterswap);
   List output; // To store output of the update function
-  double Z; // To store Z factor of update function
+  // double Z; // To store Z factor of update function
   int swap_count; //to keep track of even-odd swaps
   double current_temp; // to temporarily store the temperature
   //// Initialize arrays to store information
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
-  int max_num=pow(2,p);
+  // int max_num=pow(2,p);
   
   
   vec swap_total(J);
@@ -535,10 +584,11 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
+  vec max_log_bound_vector(T); // vector to store a the maximum log-bound for each replica
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   List output; // To store output of the update function
@@ -552,7 +602,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
-  int max_num=pow(2,p);
+  // int max_num=pow(2,p);
   // Rcpp::Rcout << "max num: " << max_num << std::endl;  
   
   
@@ -584,6 +634,20 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   sp_mat Q_matrix=readSparseMatrix(filename);
   
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
+  // Probability to update
+  bool update_prob=false; //To define if the probability to decrease the constant should decrease or not
+  bool update_constant=true; //In case we want to stop the adapting process at some point
+  double prob_to_dec=0;
+  double percentage_start=0.05;
+  double percentage_end=0.70;
+  int total_replica_iterations=sample_inter_swap*total_swaps;
+  int sample_iterations_count;
+  if(reduc_model=="always"){prob_to_dec=1;}
+  if(reduc_model=="never"){prob_to_dec=0;}
+  if(reduc_model=="iterations"){update_prob=true;}
+  
+  
+  
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -596,7 +660,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
+    //Reset the probability to reduce the bounding constant
+    if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
+    sample_iterations_count=0; // Reset the counting of iterations (or samples)
     ////Start the loop for burn-in period
+    Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << "Starting burn-in period "<< std::endl;
     int track_burn_in=0;
     while(track_burn_in<burn_in){
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
@@ -605,8 +673,12 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_temp=temp(replica);// Extract temperature of the replica
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
-          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
-          
+          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
+          //During burn-in:
+          ////// Update = true, we always update the constant
+          ////// prob_to_dec=0, we never decrease the constant 
+          ////// decreasing constant=0, we decrease by 0 (redundancy)
+          ////// we keep track of the max log bound found
           //// Compute weight
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
@@ -634,6 +706,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           samples_replica+=new_samples; // Update number of samples obtained from the replica
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+          max_log_bound_vector(index_process(replica))=output(3); //Update MAX log-bound 
         }
       }//End loop to update replicas in the burn-in
       
@@ -662,13 +735,14 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       track_burn_in+=sample_inter_swap;
       Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
+    Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
     ////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
     std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i << std::endl;}
+      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         // Rcpp::Rcout << "Sim: " << s+startsim << " Swap: " << i <<"replica: "<<replica<< std::endl;
@@ -678,7 +752,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_temp=temp(index_process(replica));// Extract temperature of the replica
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
-          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
+          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
           
           //// Compute weight
           Z = output(1); //Extract the Z-factor
@@ -724,15 +798,36 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
                 states_visited(c,found_min,s)=X(c,replica);
               }
             }
+            if(update_prob){//Check if we need to update the probability
+              if(current_temp==1){//The original replica defines the speed to modify the probability to decrease bounding constant
+                sample_iterations_count+=new_samples; //Add the number of iterations (or samples) from the previous step
+                // Rcpp::Rcout <<" New samples: "<<new_samples<<" sample_iterations_count= "<<sample_iterations_count<< std::endl;
+                // Rcpp::Rcout <<"Update prob samples: "<< sample_iterations_count <<" total iterations: "<<total_replica_iterations<< std::endl;
+                if(sample_iterations_count>(total_replica_iterations*percentage_start)){//Check if we start decreasing the probability
+                  if(sample_iterations_count>(total_replica_iterations*percentage_end)){//Check if we stop decreasing the probability
+                    Rcpp::Rcout <<"Stop decreasing bounds. Last bound vector:\n"<< log_bound_vector<< std::endl;
+                    prob_to_dec=0;
+                    update_prob=false;
+                  }else{//In case we haven't finished updating the probability
+                    //Probability is proportional 
+                    double progress = static_cast<double>(sample_iterations_count) / total_replica_iterations;
+                    // Rcpp::Rcout <<""<< sample_iterations_count <<" / "<<total_replica_iterations<<"="<<progress<< std::endl;
+                    // Rcpp::Rcout <<"progress: "<< progress << std::endl;
+                    prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
+                    // Rcpp::Rcout <<"New prob: "<< prob_to_dec << std::endl;
+                  }
+                }
+              }
+            } 
           }
           
-          
           X.col(replica)=vec(output(0)); //Update current state of the chain
-          log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+          log_bound_vector(index_process(replica))=output(2); //Update log-bound
+          max_log_bound_vector(index_process(replica))=output(3); //Update maximum log-bound found
         }
       }//End loop to update replicas
-      //// Start replica swap process
-      
+//// Start replica swap process
+Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;    
       swap_count+=1;//Increase the count of swaps
       // Rcpp::Rcout << "Trying swap: " << swap_count << std::endl;
       epsilon_indic.fill(-1); //Epsilon indic starts as -1
@@ -788,14 +883,18 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["iter_visit"]=iter_to_visit;
   ret["total_iter"]=total_iterations;
   ret["time_taken"]=time_taken;
+  ret["max_bounds"]=max_log_bound_vector;
+  ret["final_bounds"]=log_bound_vector;
   return ret;
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord){
+List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
+  vec max_log_bound_vector(T); // vector to store the MAX log-bound found for each replica
+  
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
   int total_sim = (endsim-startsim+1); //Count total number of simulations
   int total_swaps=trunc(numiter/iterswap);
@@ -808,7 +907,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
-  int max_num=pow(2,p);
+  // int max_num=pow(2,p);
   
   
   vec swap_total(J);
@@ -837,6 +936,17 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   //// Read matrix
   sp_mat Q_matrix=readSparseMatrix(filename);
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
+  // Probability to update
+  bool update_prob=false;
+  bool update_constant=true;
+  double prob_to_dec=0;
+  double percentage_start=0.05;
+  double percentage_end=0.70;
+  int total_replica_iterations=numiter;
+  int sample_iterations_count;
+  if(reduc_model=="always"){prob_to_dec=1;}
+  if(reduc_model=="never"){prob_to_dec=0;}
+  if(reduc_model=="iterations"){update_prob=true;}
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -844,12 +954,17 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
+    log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
+    swap_total.zeros();
+    swap_success.zeros();
     // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
     X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
     
-    swap_total.zeros();
-    swap_success.zeros();
-    log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
+    
+    //Reset the probability to reduce the bounding constant
+    if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
+    sample_iterations_count=0; // Reset the counting of iterations (or samples)
+    
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 100 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
@@ -857,9 +972,15 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
         // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
-        output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
+        output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
+        //During burn-in:
+        ////// Update = true, we always update the constant
+        ////// prob_to_dec=0, we never decrease the constant 
+        ////// decreasing constant=0, we decrease by 0 (redundancy)
+        ////// we keep track of the max log bound found
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound 
+        max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
       }
       //End replica update in burn-in period
       
@@ -887,18 +1008,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
             double Z_temp12;
             double Z_temp21;
             double Z_temp22;
-            
-            // output=IIT_update_w(Xtemp_from,Q_matrix,bal_function[t],temp(t));
-            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t],temp(t),log_bound_vector(t));
+            // For replica swaps we don't update the bounding constant
+            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp11=output(1);
-            // output=IIT_update_w(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1));
-            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp22=output(1);
-            // output=IIT_update_w(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1));
-            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp12=output(1);
-            // output=IIT_update_w(Xtemp_to,Q_matrix,bal_function[t],temp(t));
-            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t],temp(t),log_bound_vector(t));
+            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp21=output(1);
             
             Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
@@ -929,7 +1046,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
         //Depending on the chosen method
         //// Update each replica independently
         // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
-        output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
+        output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
         //// Store Z factor of replica with temperature 1
         if(current_temp==1){ // For the original temperature replica
           // Rcpp::Rcout << "Starts update of visited states" << std::endl;
@@ -948,9 +1065,30 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
               states_visited(c,found_min,s)=X(c,replica);
             }
           }
+          if(update_prob){//Check if we need to update the probability
+            if(current_temp==1){//The original replica defines the speed to modify the probability to decrease bounding constant
+              sample_iterations_count+=1; //Add the number of iterations (or samples) from the previous step
+              // Rcpp::Rcout <<" New samples: "<<new_samples<<" sample_iterations_count= "<<sample_iterations_count<< std::endl;
+              // Rcpp::Rcout <<"Update prob samples: "<< sample_iterations_count <<" total iterations: "<<total_replica_iterations<< std::endl;
+              if(sample_iterations_count>(total_replica_iterations*percentage_start)){//Check if we start decreasing the probability
+                if(sample_iterations_count>(total_replica_iterations*percentage_end)){//Check if we stop decreasing the probability
+                  prob_to_dec=0;
+                  update_prob=false;
+                }else{//In case we haven't finished updating the probability
+                  //Probability is proportional 
+                  double progress = static_cast<double>(sample_iterations_count) / total_replica_iterations;
+                  // Rcpp::Rcout <<""<< sample_iterations_count <<" / "<<total_replica_iterations<<"="<<progress<< std::endl;
+                  // Rcpp::Rcout <<"progress: "<< progress << std::endl;
+                  prob_to_dec=1+((percentage_start-progress)/(percentage_end-percentage_start));
+                  Rcpp::Rcout <<"New prob: "<< prob_to_dec << std::endl;
+                }
+              }
+            }
+          } 
         }
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound
+        max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
       }//End loop to update replicas
       
       //// Start replica swap process
@@ -981,18 +1119,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
             double Z_temp12;
             double Z_temp21;
             double Z_temp22;
-            
-            // output=IIT_update_w(Xtemp_from,Q_matrix,bal_function[t],temp(t));
-            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t],temp(t),log_bound_vector(t));
+//// In replica swaps we don't update the bounding constant            
+            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp11=output(1);
-            // output=IIT_update_w(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1));
-            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp22=output(1);
-            // output=IIT_update_w(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1));
-            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp12=output(1);
-            // output=IIT_update_w(Xtemp_to,Q_matrix,bal_function[t],temp(t));
-            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t],temp(t),log_bound_vector(t));
+            output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp21=output(1);
             
             Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
@@ -1035,6 +1169,8 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
   ret["time_taken"]=time_taken;
+  ret["max_bounds"]=max_log_bound_vector;
+  ret["final_bounds"]=log_bound_vector;
   return ret;
 }
 
@@ -1141,9 +1277,9 @@ vec testing_lik(const std::string& filename, vec X){
 }
 
 // [[Rcpp::export]]
-List testing_a_IIT_update(const std::string& filename,vec X, String chosen_bf, double temperature, double log_bound){
+List testing_a_IIT_update(const std::string& filename,vec X, String chosen_bf, const double& temperature, double log_bound, const bool& update, double prob_to_dec, const double& decreasing_constant, double max_logbound_found){
   sp_mat M=readSparseMatrix(filename);
-  return(a_IIT_update(X,M,chosen_bf, temperature,log_bound));
+  return(a_IIT_update(X,M,chosen_bf, temperature,log_bound, update, prob_to_dec,decreasing_constant,max_logbound_found));
 }
 
 // [[Rcpp::export]]
