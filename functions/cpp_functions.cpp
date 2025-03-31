@@ -610,7 +610,13 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
 //// In burn-in we update (increase) the constant but we don't decrease it.
           output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
-          //// Compute weight
+          //During burn-in:
+          ////// Update = true, we always update the constant
+          ////// prob_to_dec=0, we never decrease the constant 
+          ////// decreasing constant=0, we decrease by 0 (redundancy)
+          ////// we keep track of the max log bound found
+          
+          // Compute weight
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
@@ -624,7 +630,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           samples_replica+=new_samples; // Update number of samples obtained from the replica
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
-          max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
+          max_log_bound_vector(index_process(replica))=output(3); //Update MAX log-bound 
         }
       }//End loop to update replicas in the burn-in
       
@@ -684,6 +690,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
             Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+            new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
             new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
@@ -724,23 +731,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             } 
           }
           X.col(replica)=vec(output(0)); //Update current state of the chain
-          
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
           max_log_bound_vector(index_process(replica))=output(3); //Update maximum log-bound found
         }
       }//End loop to update replicas
-//// Before replica swap, align the bounds
-// vec min_bound_vec(4);      
-// for(int k=0;k<T;k++){
-//   min_bound_vec(k)=log_bound_vector(k)/temp(k);
-// }
-// 
-// double aligned_bound = max(min_bound_vec);
-// 
-// for(int k=0;k<T;k++){
-//   log_bound_vector(k)=aligned_bound*temp(k);
-// }
-// Rcpp::Rcout <<"Harmonized log_bounds:\n"<< log_bound_vector<< std::endl;      
+
       
 //// Start replica swap process
         swap_count+=1;//Increase the count of swaps
@@ -888,7 +883,12 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
 //// During burn-in we update the constant (increase) but we don't decrease it.
-        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,true,0,decreasing_constant,max_log_bound_vector(replica));
+        output=a_IIT_update(X.col(replica),bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
+        //During burn-in:
+        ////// Update = true, we always update the constant
+        ////// prob_to_dec=0, we never decrease the constant 
+        ////// decreasing constant=0, we decrease by 0 (redundancy)
+        ////// we keep track of the max log bound found
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound 
         max_log_bound_vector(index_process(replica))=output(3); //Update log-bound 
@@ -919,14 +919,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
             double Z_temp12;
             double Z_temp21;
             double Z_temp22;
-            
-            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,0,decreasing_constant,max_log_bound_vector(t));
+            // For replica swaps we don't update the bounding constant
+            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp11=output(1);
-              output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,decreasing_constant,max_log_bound_vector(t+1));
+              output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp22=output(1);
-            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,decreasing_constant,max_log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp12=output(1);
-            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,0,decreasing_constant,max_log_bound_vector(t));
+            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp21=output(1);
             
             Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
@@ -1028,14 +1028,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
             double Z_temp21;
             double Z_temp22;
             
-
-            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant,max_log_bound_vector(t));
+//// In replica swaps we don't update the bounding constant
+            output=a_IIT_update(Xtemp_from,bal_function[t],temp(t),log_bound_vector(t),false,0,0,max_log_bound_vector(t));
             Z_temp11=output(1);
-            output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant,max_log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_to,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,max_log_bound_vector(t+1));
             Z_temp22=output(1);
-            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,prob_to_dec,decreasing_constant,log_bound_vector(t+1));
+            output=a_IIT_update(Xtemp_from,bal_function[t+1],temp(t+1),log_bound_vector(t+1),false,0,0,log_bound_vector(t+1));
             Z_temp12=output(1);
-            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,prob_to_dec,decreasing_constant,log_bound_vector(t));
+            output=a_IIT_update(Xtemp_to,bal_function[t],temp(t),log_bound_vector(t),false,0,0,log_bound_vector(t));
             Z_temp21=output(1);
             
             Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
