@@ -163,35 +163,39 @@ run_lowd <- function(list_ids){
             #PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
             output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f, TRUE,start_state)
             #round trip rate (NA for IIT)
-            export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+            swaps_for_rt_rate <- floor(total_iter/iterswap)
           }
           if(alg=="PT_IIT_no_Z"){
             # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
             # Without Z factor bias correction
             output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f, FALSE,start_state)
             #round trip rate (NA for IIT)
-            export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+            swaps_for_rt_rate <- floor(total_iter/iterswap)
           }
           if(alg=="PT_A_IIT"){
             # Using A-IIT with multiplicity list in each replica
             # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
             output <- PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state,reduc_constant,reduc_model)
-            #Number of iterations needed between swaps for each replica
-            export[["total_iter"]] <- output[["total_iter"]]
             #round trip rate (NA for IIT)
-            export[["round_trips"]] <- PT_RT(output[["ip"]],total_swap,total_simulations)
+            swaps_for_rt_rate <- total_swap
           }
           if(alg=="PT_A_IIT_RF"){
             # Using A-IIT with weights in each replica
             #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
             output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,start_state,reduc_constant,reduc_model)
             #round trip rate (NA for IIT)
-            export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+            swaps_for_rt_rate <- floor(total_iter/iterswap)
           }
-          # Replica swap acceptance rate (NA for IIT)
-          export[["swap_rate"]] <- output[["swap_rate"]]
         }
-        
+        #First export everything
+        for(e in names(output)){
+          export[[e]] <- output[[e]]
+        }
+        #Then the exports that depend on the algorithm
+        if(!is.null(output[["ip"]])){
+          export[["round_trips"]] <- PT_RT(output[["ip"]], swaps_for_rt_rate,total_simulations)
+        }
+        # Then exports that are calculated
         #Compute estimated density
         export[["est_pi"]] <- t(t(output[["est_pi"]])/colSums(output[["est_pi"]]))
         # export[["est_pi"]] <- output[["est_pi"]]
@@ -202,13 +206,13 @@ run_lowd <- function(list_ids){
         # Time of first visit
         export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
         #Running time
-        export[["time_taken"]] <- output[["time_taken"]]
+        # export[["time_taken"]] <- output[["time_taken"]]
         #Running time
-        export[["time_visit"]] <- output[["time_visit"]]
+        # export[["time_visit"]] <- output[["time_visit"]]
         #Index process
-        export[["ip"]] <- output[["ip"]]
-        export[["max_bounds"]] <- output[["max_bounds"]]
-        export[["final_bounds"]] <- output[["final_bounds"]]
+        # export[["ip"]] <- output[["ip"]]
+        # export[["max_bounds"]] <- output[["max_bounds"]]
+        # export[["final_bounds"]] <- output[["final_bounds"]]
         output_name <- paste0("sim_lowdim_id_",id_chosen,".Rds")
         saveRDS(export,file=file.path("results",output_name))
       }

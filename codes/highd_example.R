@@ -112,7 +112,7 @@ run_highd <- function(list_ids){
           #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
           output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE, file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
-          export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+          swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
         if(alg=="PT_IIT_no_Z"){
           # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
@@ -120,39 +120,34 @@ run_highd <- function(list_ids){
           #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
           output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,FALSE, file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
-          export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+          swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
           #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited)
           output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,file_matrix,states_visited,start_state)
-          #Number of iterations needed between swaps for each replica
-          export[["total_iter"]] <- output[["total_iter"]]
           #round trip rate (NA for IIT)
-          export[["round_trips"]] <- PT_RT(output[["ip"]],total_swap,total_simulations)
+          swaps_for_rt_rate <- total_swap
         }
         if(alg=="PT_A_IIT_RF"){
           # Using A-IIT with weights in each replica
           #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
           output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
-          export[["round_trips"]] <- PT_RT(output[["ip"]], floor(total_iter/iterswap),total_simulations)
+          swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
-        # Replica swap acceptance rate (NA for IIT)
-        export[["swap_rate"]] <- output[["swap_rate"]]
       }
-        # Replica swap acceptance rate (NA for IIT)
-        export[["swap_rate"]] <- output[["swap_rate"]]
-        
+      #First export everything
+      for(e in names(output)){
+        export[[e]] <- output[[e]]
       }
-      
-      export[["states"]] <- output[["states"]]
-      export[["loglik_visited"]] <- output[["loglik_visited"]]
-      export[["iter_visit"]]<- output[["iter_visit"]]
-      export[["time_taken"]] <- output[["time_taken"]]
-      export[["ip"]] <- output[["ip"]]
-      output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
-      saveRDS(export,file=file.path("results",output_name))
+      #Then the exports that depend on the algorithm
+      if(!is.null(output[["ip"]])){
+        export[["round_trips"]] <- PT_RT(output[["ip"]], swaps_for_rt_rate,total_simulations)
+      }
+        output_name <- paste0("sim_highdim_id_",id_chosen,".Rds")
+        saveRDS(export,file=file.path("results",output_name))
+      }
     }
   }
 }
