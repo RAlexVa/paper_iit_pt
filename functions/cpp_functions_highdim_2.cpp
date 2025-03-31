@@ -663,8 +663,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
   cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
   
-  // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
-  // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -801,8 +799,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
-          // Rcpp::Rcout << "New neighbor: " << find(X.col(replica)==1) << std::endl;
-          
         }
       }//End loop to update replicas
       //// Start replica swap process
@@ -955,7 +951,6 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
             iter_visit_modes(index_process(replica),1)=-1*i;
             Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
           }}
-        // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
         output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound);
         X.col(replica)=vec(output(0)); //Update current state of the chain
         log_bound_vector(index_process(replica))=output(2); //Update log-bound 
@@ -1092,16 +1087,12 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
             double Z_temp21;
             double Z_temp22;
             
-            // output=IIT_update_w(Xtemp_from,Q_matrix,bal_function[t],temp(t));
             output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t],temp(t),log_bound_vector(t));
             Z_temp11=output(1);
-            // output=IIT_update_w(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1));
             output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1));
             Z_temp22=output(1);
-            // output=IIT_update_w(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1));
             output=a_IIT_update(Xtemp_from,Q_matrix,bal_function[t+1],temp(t+1),log_bound_vector(t+1));
             Z_temp12=output(1);
-            // output=IIT_update_w(Xtemp_to,Q_matrix,bal_function[t],temp(t));
             output=a_IIT_update(Xtemp_to,Q_matrix,bal_function[t],temp(t),log_bound_vector(t));
             Z_temp21=output(1);
             
