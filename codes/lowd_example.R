@@ -119,9 +119,9 @@ run_lowd <- function(list_ids){
       defined_seed <- sim_chosen$seed
       set.seed(defined_seed)
       #Parameters for PT with IIT
-      total_iter <- sim_chosen$iterations #300000 #Total number of steps to perform in each replica
+      total_iter <- sim_chosen$iterations 
       iterswap <- sim_chosen$interswap #Total iterations before trying a replica swap
-      #Parameters for PT with a-IIT
+      #Parameters for PT with A-IIT
       sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
       total_swap <- sim_chosen$total_swap #Total number of swaps to try
       reduc_constant <- sim_chosen$reduc_constant
