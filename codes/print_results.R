@@ -4,6 +4,7 @@ library(stringr)
 library(tidyverse)
 library(gridExtra)# For tables
 library(latex2exp) #For using latex
+library(survminer); library(survival) #For plot showing how fast each replica visits all modes
 
 
 ### Process simulation results ###
@@ -22,17 +23,18 @@ chosen_ids <-c(182:185)
 #For PT A-IITm there doesn't seem to be a big issue
 #For PT A-IITw it seems to have been better with 4 temperatures
 # but still doesn't get the needed swap rate
+
 chosen_bimodal <- c(129,135,137,139)
-print_bimodal <- TRUE
-chosen_ids <- chosen_bimodal
+# print_bimodal <- TRUE
+# chosen_ids <- chosen_bimodal
 
 #### Chosen for lowdim multimodal problem ####
 # For PT-IIT and PT A-IITw we only use 3 temperatures because it had the best performance in TVD
 # For PT A-IITm we still have to identify the best temperature
 
-# chosen_multimodal <- c(165,167,169)
-# print_multimodal <- TRUE
-# chosen_ids <- chosen_multimodal
+chosen_multimodal <- c(165,167,169, 190)
+print_multimodal <- TRUE
+chosen_ids <- chosen_multimodal
 
 
 #List of files
