@@ -56,6 +56,16 @@ vec num_to_vec(int n, int d){
   return(X);
 }
 
+// [[Rcpp::export]]
+double tvd_compute(vec dist1, vec dist2){
+  if(dist1.n_elem!=dist2.n_elem){Rcpp::Rcout <<"Vectors are not the same size" << std::endl; return -1;}
+  if(sum(dist1)!=1){dist1 = dist1/sum(dist1);}
+  if(sum(dist2)!=1){dist2 = dist2/sum(dist2);}
+  
+  double sum_diff = sum(abs(dist1-dist2));
+  
+  return 0.5*sum_diff;
+}
 
 ////////// Balancing functions //////////
 
@@ -140,6 +150,17 @@ double loglik(const arma::vec& X){
   return log(loglik_comp);
 }
 
+// [[Rcpp::export]]
+vec compute_true_dist(int p){
+  double theta=15;
+  vec temporal_state(p);
+  vec true_dist(pow(2,p));
+  for(int i=0; i<pow(2,p); i++){
+    temporal_state = num_to_vec(i,p);
+    true_dist(i)=loglik(temporal_state);
+  }
+  return exp(true_dist)/sum(exp(true_dist));
+}
 
 ////////// Updating functions //////////
 
