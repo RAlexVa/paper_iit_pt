@@ -7,6 +7,10 @@ library(latex2exp) #For using latex
 library(survminer); library(survival) #For plot showing how fast each replica visits all modes
 
 
+# current_theme <- theme_get()
+theme_set(theme_minimal());
+theme_update(base_size = 17,legend.key.size = unit(1, 'cm'));
+
 ### Process simulation results ###
 
 # Choose dimension
@@ -25,16 +29,16 @@ chosen_ids <-c(182:185)
 # but still doesn't get the needed swap rate
 
 chosen_bimodal <- c(129,135,137,139)
-# print_bimodal <- TRUE
-# chosen_ids <- chosen_bimodal
+print_bimodal <- TRUE
+chosen_ids <- chosen_bimodal
 
 #### Chosen for lowdim multimodal problem ####
 # For PT-IIT and PT A-IITw we only use 3 temperatures because it had the best performance in TVD
 # For PT A-IITm we still have to identify the best temperature
 
-chosen_multimodal <- c(165,167,169, 190)
-print_multimodal <- TRUE
-chosen_ids <- chosen_multimodal
+# chosen_multimodal <- c(165,167,169, 190)
+# print_multimodal <- TRUE
+# chosen_ids <- chosen_multimodal
 
 
 #List of files
@@ -83,17 +87,17 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
   
   
   # to store time to visit modes
-  mode_time <- as.data.frame(matrix(NA,ncol=4)); colnames(mode_time) <- c("alg","sim","mode","time")
-  
-  
+  mode_time <- as.data.frame(matrix(nrow=0,ncol=4)); colnames(mode_time) <- c("alg","sim","mode","time")
+  # to store time to visit modes
+  tvd_report <- as.data.frame(matrix(nrow=0,ncol=5));colnames(tvd_report) <- c("alg","sim","measurement","time","tvd")
   if(check_number_modes=="7_mode"){
     #Low dim is the example with 7 modes and 4 temperatures
-    tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
-    mode_visit <- as.data.frame(matrix(NA,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
-    round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
-    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
-    iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas) #For the 4 replicas
-    pi_modes <- as.data.frame(matrix(NA,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
+    tvd <- data.frame(alg=character(),sim=numeric(),tvd=numeric())
+    mode_visit <- as.data.frame(matrix(nrow=0,ncol=10)); colnames(mode_visit) <- c("alg","sim","interswap",1:7)
+    round_trip <- as.data.frame(matrix(nrow=0,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
+    swap_rate <- as.data.frame(matrix(nrow=0,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
+    iterations <- as.data.frame(matrix(nrow=0,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas) #For the 4 replicas
+    pi_modes <- as.data.frame(matrix(nrow=0,ncol=9));colnames(pi_modes) <- c("alg","sim",1:7)
     # Low dimensional true probability setup
     {
       Rcpp::sourceCpp("functions/cpp_functions.cpp") #To use vec_to_num function
@@ -123,12 +127,12 @@ if(!only_1_model){stop("You have low_dim models with different number of modes")
   }
   if(check_number_modes=="bimodal"){
     #Low dim is the example with 2 modes and 4 temperatures
-    tvd <- data.frame(alg=NA,sim=NA,tvd=NA)
-    mode_visit <- as.data.frame(matrix(NA,ncol=5)); colnames(mode_visit) <- c("alg","sim","interswap",1:2)
-    round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
-    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
-    iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas) #For the 4 replicas
-    pi_modes <- as.data.frame(matrix(NA,ncol=4));colnames(pi_modes) <- c("alg","sim",1:2)
+    tvd <- data.frame(alg=character(),sim=numeric(),tvd=numeric())
+    mode_visit <- as.data.frame(matrix(nrow=0,ncol=5)); colnames(mode_visit) <- c("alg","sim","interswap",1:2)
+    round_trip <- as.data.frame(matrix(nrow=0,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
+    swap_rate <- as.data.frame(matrix(nrow=0,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
+    iterations <- as.data.frame(matrix(nrow=0,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas) #For the 4 replicas
+    pi_modes <- as.data.frame(matrix(nrow=0,ncol=4));colnames(pi_modes) <- c("alg","sim",1:2)
     
     ##### Low-dimensional multimodal setup #####
     {
@@ -272,9 +276,32 @@ if(chosen_dim=="lowdim"){
   }else{
     print(paste0("ID: ",data_sum[i,"id"],"doesn't have time_visit"))
   }
+  #Extract time to TVD measurement
+  temp <- data[["tvd_time_report"]]
+  if(!is_empty(temp)){
+    # colnames(temp) <- paste0("t",1:ncol(temp))
+    temp <- as.data.frame(temp)
+    temp$sim <- 1:tot_sim
+    temp$alg <- algorithm
+    temp <- temp |> select(alg,sim,everything())
+    temp <- temp |> pivot_longer(cols=starts_with("V"),names_to="measurement",values_to="time")
+    
+    temp2 <- data[["tvd_report"]]
+    temp2 <- as.data.frame(temp2)
+    temp2$sim <- 1:tot_sim
+    temp2$alg <- algorithm
+    temp2 <- temp2 |> select(alg,sim,everything())
+    temp2 <- temp2 |> pivot_longer(cols=starts_with("V"),names_to="measurement",values_to="tvd")
+    
+    temp <- left_join(temp,temp2,by=c("alg","sim","measurement"))
+    
+    temp$measurement <- as.numeric(gsub("V","",temp$measurement))
+    
+    tvd_report <- rbind(tvd_report,temp)
+  }
   
 }
-  if(chosen_dim=="highdim"){
+if(chosen_dim=="highdim"){
 ### Specific extractions for highdim example
     if(data_sum|> slice(i) |> pull(model)=="bimodal"){
       p <- data_sum$p;
@@ -453,10 +480,11 @@ if(chosen_dim=="lowdim"){
     ggplot(aes(x=mode,y=pi_est,fill=alg))+
     geom_boxplot(show.legend = FALSE)+
     geom_hline(yintercept = pi.true[modes[1]+1], color = "red", linetype = "dashed", size = 1)+
-    facet_wrap(~alg)+
-    theme_minimal(base_size = 17)+
-    theme(legend.key.size = unit(1, 'cm'))
-  
+    facet_wrap(~alg)
+  # +
+  #   theme_minimal(base_size = 17)+
+  #   theme(legend.key.size = unit(1, 'cm'))
+  # 
 #### TVD computed only with the modes
   col_selected <- colnames(pi_modes)
   col_selected <- col_selected[col_selected!="alg" & col_selected!="sim"]
@@ -466,9 +494,10 @@ if(chosen_dim=="lowdim"){
     select(alg,tvd) |> 
     ggplot(aes(x=alg,y=tvd,fill=alg)) +
     geom_boxplot(show.legend = FALSE)+
-    labs(fill='Algortihm',x="",y="Total Variation Distance")+
-    theme_minimal(base_size = 17)+
-    theme(legend.key.size = unit(1, 'cm'))
+    labs(fill='Algortihm',x="",y="Total Variation Distance")
+  # +
+  #   theme_minimal(base_size = 17)+
+  #   theme(legend.key.size = unit(1, 'cm'))
 
 #Min and max values in TVD
  min_tvd_1 <-  pi_modes |> rowwise() |> 
@@ -494,9 +523,10 @@ grid.arrange(tableGrob(max_tvd_compare))
   tvd_plot <- tvd |>  filter(!str_starts(alg,'IIT')) |> 
     ggplot(aes(x=alg,y=tvd,fill=alg)) +
     geom_boxplot()+
-    labs(fill='Algortihm',x="",y="Total Variation Distance")+
-    theme_minimal(base_size = 17)+
-    theme(legend.key.size = unit(1, 'cm'))
+    labs(fill='Algortihm',x="",y="Total Variation Distance")
+# +
+#     theme_minimal(base_size = 17)+
+#     theme(legend.key.size = unit(1, 'cm'))
   tvd_plot
   
   jpeg(file.path(export_path,paste0("tvd_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
@@ -581,9 +611,10 @@ dev.off()
   ggplot(aes(x=alg,y=last_time, fill=alg)) +
   geom_boxplot()+
   labs(fill='Algortihm',y="seconds",x="",title="Time to find last mode")+
-  theme_minimal(base_size = 17)+
-  theme(legend.key.size = unit(1, 'cm'),
-        axis.text.x = element_blank()))
+    theme(axis.text.x = element_blank()))
+  # theme_minimal(base_size = 17)+
+  # theme(legend.key.size = unit(1, 'cm'),
+  #       axis.text.x = element_blank()))
 
 mode_time |> group_by(alg,sim) |>
   summarise(first_time=min(time),last_time=max(time)) |> ungroup() |> 
@@ -624,6 +655,61 @@ grid.arrange(tableGrob(table_time_mode))
 
 jpeg(file.path(export_path,paste0("time_mode_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
 print(plot_surv_mode)
+dev.off()
+
+### TVD report
+
+sum_tvd <- tvd_report |> mutate(measurement=measurement/max(measurement)) |> 
+  group_by(alg,measurement) |> 
+  summarise(mean_time=mean(time),
+            min_time=min(time),
+            q1_time=quantile(time,0.25),
+            q2_time=quantile(time,0.5),
+            q3_time=quantile(time,0.75),
+            max_time=max(time),
+            mean_tvd=mean(tvd),
+            min_tvd=min(tvd),
+            q1_tvd=quantile(tvd,0.25),
+            q2_tvd=quantile(tvd,0.5),
+            q3_tvd=quantile(tvd,0.75),
+            max_tvd=max(tvd)) 
+
+
+sum_tvd|> 
+  ggplot(aes(x=measurement, y=q2_tvd, col=alg)) + 
+  geom_point()+
+  geom_line()+
+  scale_x_continuous(labels = scales::percent)+
+  labs(color='Algorithm', x="% of progress", y="Total Variation Distance")
+
+
+max_tvd_plot <- sum_tvd |> 
+  ggplot(aes(x=max_time,y=max_tvd, col=alg))+
+  geom_point()+
+  geom_line()+
+  scale_x_continuous()+
+  labs(title='Maximum TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
+max_tvd_plot
+mean_tvd_plot <- sum_tvd |> 
+  ggplot(aes(x=max_time,y=mean_tvd, col=alg))+
+  geom_point()+
+  geom_line()+
+  scale_x_continuous()+
+  labs(title='Mean TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
+mean_tvd_plot
+sum_tvd |> 
+  ggplot(aes(x=max_time,y=q2_tvd, col=alg))+
+  geom_point()+
+  geom_line()+
+  scale_x_continuous()+
+  labs(title='Median TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
+
+jpeg(file.path(export_path,paste0("tvd_mean_time_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+print(mean_tvd_plot)
+dev.off()
+
+jpeg(file.path(export_path,paste0("tvd_max_time_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+print(max_tvd_plot)
 dev.off()
 
 
