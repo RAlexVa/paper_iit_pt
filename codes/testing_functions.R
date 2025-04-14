@@ -870,11 +870,39 @@ library(RcppArmadillo)
 Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
 p <- 800
 tot_swaps <- 10
-inter_swap <- 100
-burn_in <- 100
+inter_swap <- 500
+burn_in <- 2000
 temperatures <- c(1,0.9)
 bal_f <- rep("sq",length(temperatures))
 
 set.seed(89)
-PT_a_IIT_sim(p,1,1,tot_swaps,inter_swap,burn_in,temperatures, bal_f,"gset/G1.txt",num_states_visited=5,-1, decreasing_constant=500,"iterations")
+(sim_c <- PT_a_IIT_sim(p,1,1,tot_swaps,inter_swap,burn_in,temperatures, bal_f,"gset/G1.txt",num_states_visited=5,-1, decreasing_constant=.000000001,"iterations"))
+(sim_c <- PT_a_IIT_sim(p,1,1,tot_swaps,inter_swap,burn_in,temperatures, bal_f,"gset/G1.txt",num_states_visited=5,-1, decreasing_constant=.00005,"never"))
+
+list_bk <- list()
+
+for(e in names(sim_c)){
+  list_bk[[e]] <- sim_c[[e]]
+}
+
+
+
+#### Testing report of TVD #####
+##### Testing IPT #####
+library(Rcpp)
+library(RcppArmadillo)
+# setwd('..')
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+p <- 16
+total_iter <- 30000
+iter_swap <- 400
+burn_in_iter <- 1000
+temperatures <- c(1,0.5,0.3)
+bal_f <- rep("sq",length(temperatures))
+#PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix, int initial_state)
+
+rev <- PT_IIT_sim(p,1,5,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, 500)
+rev2 <- PT_a_IIT_sim(p,1,5,trunc(total_iter/iter_swap), iter_swap, burn_in_iter, temperatures, bal_f, 500, 0.0005, "iterations")
+rev3 <- PT_a_IIT_sim_RF(p,1,5,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, 500, 0.0005, "iterations")
+
 
