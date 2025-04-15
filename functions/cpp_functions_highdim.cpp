@@ -112,6 +112,21 @@ bool CompareVectors(const vec& v1, const vec& v2) {
   return true;
 }
 
+
+// [[Rcpp::export]]
+int L1_distance(const vec& v1, const vec& v2) {
+  // Check if the vectors have the same size
+  if (v1.n_elem != v2.n_elem) {
+    Rcpp::Rcout <<"Vectors are not the same size" << std::endl;
+    return -1;
+  }else{
+    int dist=sum(abs(v1-v2));
+    return dist;
+  }
+}
+
+
+
 ////////// Balancing functions //////////
 
 ///// List of balancing functions that apply to log-likelihoods
