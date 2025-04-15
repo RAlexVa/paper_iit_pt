@@ -35,7 +35,7 @@ chosen_ids <- chosen_bimodal
 #### Chosen for lowdim multimodal problem ####
 # For PT-IIT and PT A-IITw we only use 3 temperatures because it had the best performance in TVD
 # For PT A-IITm we still have to identify the best temperature
-
+# 
 # chosen_multimodal <- c(165,167,169, 190)
 # print_multimodal <- TRUE
 # chosen_ids <- chosen_multimodal
@@ -675,14 +675,6 @@ sum_tvd <- tvd_report |> mutate(measurement=measurement/max(measurement)) |>
             max_tvd=max(tvd)) 
 
 
-sum_tvd|> 
-  ggplot(aes(x=measurement, y=q2_tvd, col=alg)) + 
-  geom_point()+
-  geom_line()+
-  scale_x_continuous(labels = scales::percent)+
-  labs(color='Algorithm', x="% of progress", y="Total Variation Distance")
-
-
 max_tvd_plot <- sum_tvd |> 
   ggplot(aes(x=max_time,y=max_tvd, col=alg))+
   geom_point()+
@@ -696,7 +688,17 @@ mean_tvd_plot <- sum_tvd |>
   geom_line()+
   scale_x_continuous()+
   labs(title='Mean TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
-mean_tvd_plot
+mean_tvd_plot 
+
+sum_tvd |> 
+  ggplot(aes(x=max_time,y=q2_tvd, fill=alg, col=alg))+
+  geom_line(linewidth=0.8)+
+  geom_point(pch=1,size=1.5)+
+  geom_ribbon(aes(ymin=q1_tvd, ymax=q3_tvd),alpha=0.04)
+  
+
+
+
 sum_tvd |> 
   ggplot(aes(x=max_time,y=q2_tvd, col=alg))+
   geom_point()+
@@ -704,11 +706,20 @@ sum_tvd |>
   scale_x_continuous()+
   labs(title='Median TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
 
-jpeg(file.path(export_path,paste0("tvd_mean_time_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+sum_tvd |> 
+  ggplot(aes(x=max_time,y=min_tvd, col=alg))+
+  geom_point()+
+  geom_line()+
+  scale_x_continuous()+
+  labs(title='Minimum TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
+
+
+
+jpeg(file.path(export_path,paste0("tvd_mean_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
 print(mean_tvd_plot)
 dev.off()
 
-jpeg(file.path(export_path,paste0("tvd_max_time_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+jpeg(file.path(export_path,paste0("tvd_max_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
 print(max_tvd_plot)
 dev.off()
 
