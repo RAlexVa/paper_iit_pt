@@ -727,15 +727,26 @@ Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
 p <- 800
 op1 <- c(0,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,0,1,0,1,0,1,1,0,1,1,1,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1,1,1,0,0,0,1,0,0,1,0,1,1,1,1,0,0,0,1,0,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,1,1,1,0,0,0,1,1,1,1,0,0,1,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0,0,1,0,1,0,1,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,1,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,1,1,1,1,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0,1,1,0,0,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,0,0,0,0,1,0,0,1,0,0,1,1,1,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,1,0,0,1,1,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1)
 op2 <- c(1,0,0,0,1,1,1,1,1,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,0,0,0,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,1,0,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,0,1,1,0,1,0,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,1,1,0,1,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,1,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,0,1,0,1,0,0,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,1,0,1,0,0,1,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,1,1,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,0,1,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,1,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,1,1,0,0,1,1,0,1,1,1,0,1,1,0,1,0,0,0,1,1,0,0,1,0,0,0,0,1,0,1,1,0,0)
-eval_lik("gset/G1.txt",op1)
+(l1 <- eval_lik("gset/G1.txt",op1))
 eval_lik("gset/G1.txt",1-op1)
-eval_lik("gset/G1.txt",op2)
+(l2 <- eval_lik("gset/G1.txt",op2))
+
+(lo <- eval_lik("gset/G1.txt",c(1,rep(0,p-1))))
 
 path <- lik_path("gset/G1.txt",op1,op2)
 
+### Definition of minimum temperature
+#### Considering this we can take temperature 0.005 as a starting point for this problem
+min_temperature <- 0.005
+min(path)^min_temperature
+l1^min_temperature
+l2^min_temperature
+lo^min_temperature
+
 prop_temp <- 0.0005
 total_temps <- 30
-temp_ladder <- c(1,0.95,0.90,0.8,0.7,0.5)
+temp_ladder <- c(1,0.95,0.90,0.8,0.7,0.5,0.4,0.3,0.2,0.1,0.09,0.05,0.01,0.005,0.001)
+total_temps <- length(temp_ladder)
 temp_ladder
 # temp_ladder <- c(0.0005,0.0006)
 data_plot <- tibble(x=numeric(0),y=numeric(0),logy=numeric(0),temp=numeric(0))
@@ -759,7 +770,7 @@ library(Rcpp)
 library(RcppArmadillo)
 library(tidyverse)
 Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
-p <- 800
+p <- 200
 
 v1 <- rep(c(0,1),p/2)
 v2 <- rep(c(1,0),p/2)
@@ -768,7 +779,7 @@ Q_matrix <- cbind(v1,v2)
 v0 <- rep(0,p)
 loglik(v0,Q_matrix)
 loglik(v1,Q_matrix)
-loglik(v1,Q_matrix)
+loglik(v2,Q_matrix)
 loglik(rbinom(p,1,0.4),Q_matrix)
 
 vector1 <- rep(0,p)
@@ -787,12 +798,24 @@ for(i in 1:p){
   lik_p2[i] <- loglik(vector2,Q_matrix)
   lik_modes[i] <- loglik(vector3,Q_matrix)
 }
+
+### Definition of minimum temperature
+#### Considering this we can take temperature 0.0001 as a starting point for this problem
+min_temperature <- 0.0001
+exp(min(lik_modes)*min_temperature)
+exp(loglik(v1,Q_matrix)*min_temperature)
+exp(loglik(v2,Q_matrix)*min_temperature)
+exp(loglik(v0,Q_matrix)*min_temperature)
+
+
+
 plot(1:p,lik_p1)
 plot(1:p,lik_p2)
 
 dif_modes <- lik_modes[-p]-lik_modes[-1]
 
-prop_temp <- 0.0006
+# prop_temp <- 0.0006
+prop_temp <- 0.0001
 
 tibble(x=1:p,y1=lik_modes, y2=lik_modes*prop_temp) |> 
   ggplot(aes(x=x,y=y1))+
@@ -823,6 +846,8 @@ for(i in 1:total_temps){
 data_plot |> ggplot(aes(x=x,y=y,col=temp))+geom_point(size=0.5)
 
 data_plot |> ggplot(aes(x=x,y=logy,col=temp))+geom_point(size=0.5)
+
+
 
 
 temperatures <- c(1.15,1.1,1.05,1,0.95,0.9,0.85)
@@ -905,4 +930,114 @@ rev <- PT_IIT_sim(p,1,5,total_iter, iter_swap, burn_in_iter, temperatures, bal_f
 rev2 <- PT_a_IIT_sim(p,1,5,trunc(total_iter/iter_swap), iter_swap, burn_in_iter, temperatures, bal_f, 500, 0.0005, "iterations")
 rev3 <- PT_a_IIT_sim_RF(p,1,5,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, 500, 0.0005, "iterations")
 
+
+##### Testing L1_distance function #####
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(tidyverse)
+# setwd('..')
+Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp")
+
+op1 <- c(0,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,0,1,0,1,0,1,1,0,1,1,1,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1,1,1,0,0,0,1,0,0,1,0,1,1,1,1,0,0,0,1,0,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,1,1,1,0,0,0,1,1,1,1,0,0,1,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0,0,1,0,1,0,1,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,1,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,1,1,1,1,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0,1,1,0,0,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,0,0,0,0,1,0,0,1,0,0,1,1,1,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,1,0,0,1,1,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1)
+op2 <- c(1,0,0,0,1,1,1,1,1,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,0,0,0,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,1,0,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,0,1,1,0,1,0,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,1,1,0,1,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,1,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,0,1,0,1,0,0,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,1,0,1,0,0,1,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,1,1,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,0,1,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,1,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,1,1,0,0,1,1,0,1,1,1,0,1,1,0,1,0,0,0,1,1,0,0,1,0,0,0,0,1,0,1,1,0,0)
+
+L1_distance(op1,op2)
+L1_distance(c(0,1,1,1,1,0),c(0,0,1,0,0,1))
+
+p <- 800
+total_iter <- 2000
+iter_swap <- 2000
+burn_in_iter <- 10
+temperatures <- c(1,0.5,0.1,0.05)
+bal_f <- rep("sq",length(temperatures))
+
+rev <- PT_IIT_sim(p,1,2,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, filename="gset/G1.txt", num_states_visited=5, starting_coord=-1)
+rev2 <- PT_a_IIT_sim_RF(p,1,2,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, filename="gset/G1.txt", num_states_visited=5, starting_coord=-1, decreasing_constant=.5, reduc_model="never")
+rev3 <- PT_a_IIT_sim(p,1,1,trunc(total_iter/iter_swap), iter_swap, burn_in_iter, temperatures, bal_f,filename="gset/G1.txt", num_states_visited=5, starting_coord=-1, decreasing_constant=.5, reduc_model="never")
+
+
+p <- 800
+total_iter <- 200
+iter_swap <- total_iter
+burn_in_iter <- 1
+temperatures <- c(.1)
+# temperatures <- c(0)
+bal_f <- rep("sq",length(temperatures))
+rev3 <- PT_a_IIT_sim(p,1,1,trunc(total_iter/iter_swap), iter_swap, burn_in_iter, temperatures, bal_f,filename="gset/G1.txt", num_states_visited=5, starting_coord=-1, decreasing_constant=0, reduc_model="never")
+m1 <- rev3$distance_mode1[,1,1]
+m2 <- rev3$distance_mode2[,1,1]
+m3 <- rev3$distance_origin[,1,1]
+
+tibble(y1=m1,y2=m2,y0=m3,x=1:length(m1)) |> 
+  pivot_longer(y1:y0,names_to = "mode",values_to = "distance") |> 
+  ggplot(aes(x=x,y=distance, col=mode))+
+  geom_line()+labs(title='A-IIT')
+
+rev <- PT_IIT_sim(p,1,1,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, filename="gset/G1.txt", num_states_visited=5, starting_coord=-1)
+m1 <- rev$distance_mode1[,1,1]
+m2 <- rev$distance_mode2[,1,1]
+m3 <- rev$distance_origin[,1,1]
+
+tibble(y1=m1,y2=m2,y0=m3,x=1:length(m1)) |> 
+  pivot_longer(y1:y0,names_to = "mode",values_to = "distance") |> 
+  ggplot(aes(x=x,y=distance, col=mode))+
+  geom_line()+labs(title='PT-IIT')
+
+rev2 <- PT_a_IIT_sim_RF(p,1,1,total_iter, iter_swap, burn_in_iter, temperatures, bal_f, TRUE, filename="gset/G1.txt", num_states_visited=5, starting_coord=-1, decreasing_constant=.5, reduc_model="never")
+m1 <- rev2$distance_mode1[,1,1]
+m2 <- rev2$distance_mode2[,1,1]
+m3 <- rev2$distance_origin[,1,1]
+
+tibble(y1=m1,y2=m2,y0=m3,x=1:length(m1)) |> 
+  pivot_longer(y1:y0,names_to = "mode",values_to = "distance") |> 
+  ggplot(aes(x=x,y=distance, col=mode))+
+  geom_line()+labs(title='PT-IIT RF')
+
+#### Testing L1_distance function in bimodal highdim example
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
+p <- 200
+numiter <- 5000
+burn_in <- 1000
+iterswap <- 5000
+total_swaps <- numiter/iterswap
+Q_matrix <- matrix(0,nrow=p,ncol=2)
+for(i in 1:p){
+  if(i%%2==1){Q_matrix[i,2]=1}
+  if(i%%2==0){Q_matrix[i,1]=1}
+}
+mode1 <- Q_matrix[,1]
+mode2 <- Q_matrix[,2]
+L1_distance(mode1,mode2)
+L1_distance(mode1,rep(0,p))
+
+temperatures <- c(0.1)
+bal_f <- rep("sq",length(temperatures))
+
+set.seed(456)
+check_res <- PT_IIT_sim(p,1,1,numiter, iterswap,burn_in, temperatures,bal_f, TRUE,"anything",3,-1)
+output <- check_res
+tibble(y1=output$distance_mode1,y2=output$distance_mode2,y0=output$distance_origin,x=1:length(output$distance_mode1)) |> 
+  pivot_longer(y1:y0,names_to = "mode",values_to = "distance") |> 
+  ggplot(aes(x=x,y=distance, col=mode))+
+  geom_line()+labs(title='PT-IIT RF')
+
+set.seed(456)
+check_ad <- PT_a_IIT_sim(p,1,1,total_swaps,iterswap,burn_in, temperatures, bal_f,"anything",3,-1, decreasing_constant = 0, reduc_model = "never")
+output <- check_ad
+tibble(y1=output$distance_mode1,y2=output$distance_mode2,y0=output$distance_origin,x=1:length(output$distance_mode1)) |> 
+  pivot_longer(y1:y0,names_to = "mode",values_to = "distance") |> 
+  ggplot(aes(x=x,y=distance, col=mode))+
+  geom_line()+labs(title='PT-IIT RF')
+
+set.seed(456)
+check_rf <- PT_a_IIT_sim_RF(p,1,1,numiter,iterswap,burn_in, temperatures, bal_f,TRUE, "anything",3,-1, decreasing_constant = 0, reduc_model = "never")
+output <- check_rf
+tibble(y1=output$distance_mode1,y2=output$distance_mode2,y0=output$distance_origin,x=1:length(output$distance_mode1)) |> 
+  pivot_longer(y1:y0,names_to = "mode",values_to = "distance") |> 
+  ggplot(aes(x=x,y=distance, col=mode))+
+  geom_line()+labs(title='PT-IIT RF')
 
