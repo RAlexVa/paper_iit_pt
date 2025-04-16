@@ -406,9 +406,12 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   
   vec mode1={0,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,0,1,0,1,0,1,1,0,1,1,1,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1,1,1,0,0,0,1,0,0,1,0,1,1,1,1,0,0,0,1,0,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,1,1,1,0,0,0,1,1,1,1,0,0,1,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0,0,1,0,1,0,1,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,1,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,1,1,1,1,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0,1,1,0,0,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,0,0,0,0,1,0,0,1,0,0,1,1,1,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,1,0,0,1,1,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1};
   vec mode2={1,0,0,0,1,1,1,1,1,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,0,0,0,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,1,0,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,0,1,1,0,1,0,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,1,1,0,1,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,1,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,0,1,0,1,0,0,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,1,0,1,0,0,1,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,1,1,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,0,1,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,1,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,1,1,0,0,1,1,0,1,1,1,0,1,1,0,1,0,0,0,1,1,0,0,1,0,0,0,0,1,0,1,1,0,0};
-  mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
-  cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
-  
+  mat distance_mode1(numiter,T);//Matrix to store distance to mode 1 for each replica
+  mat distance_mode2(numiter,T);//Matrix to store distance to mode 2 for each replica
+  mat distance_origin(numiter,T);//Matrix to store distance to origin for each replica
+  cube full_distance_mode1(numiter,T,total_sim);//Cube to store distance to mode 1 for each replica and simulation
+  cube full_distance_mode2(numiter,T,total_sim);//Cube to store distance to mode 2 for each replica and simulation
+  cube full_distance_origin(numiter,T,total_sim);//Cube to store distance to origin for each replica and simulation
   // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
   // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
   
@@ -424,23 +427,15 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
     swap_total.zeros();
     swap_success.zeros();
-    iter_visit_modes.zeros();
+    distance_mode1.fill(-1);
+    distance_mode2.fill(-1);
+    distance_origin.fill(-1);
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 100 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
-        //Check if the current state is one of the modes
-        if(CompareVectors(mode1,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
-            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
-            iter_visit_modes(index_process(replica),0)=-1*i; 
-          }}
-        if(CompareVectors(mode2,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
-            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
-            iter_visit_modes(index_process(replica),1)=-1*i;
-          }}
+
         output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
         X.col(replica)=vec(output(0)); //Update current state of the chain
       }
@@ -494,7 +489,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
           }
         }
       }
-    }// Finish burn-in period
+    }
+/////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
     std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
@@ -504,17 +500,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
-        //Check if the current state is one of the modes
-        if(CompareVectors(mode1,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),0)=i; 
-            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
-          }}
-        if(CompareVectors(mode2,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),1)=i;
-            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
-          }}
+        //Measure distance to the modes
+        distance_mode1(i,index_process(replica))=L1_distance(X.col(replica),mode1);
+        distance_mode2(i,index_process(replica))=L1_distance(X.col(replica),mode2);
+        distance_origin(i,index_process(replica))=sum(X.col(replica));
         // Rcpp::Rcout <<"Inside replica loop, with replica: "<< replica << std::endl;
         //Depending on the chosen method
         //// Update each replica independently
@@ -526,7 +515,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         found_min=curr_loglik_visited.index_min();
         temporal_loglik=loglik(X.col(replica),Q_matrix);
           if(curr_loglik_visited(found_min)<temporal_loglik){
-             Rcpp::Rcout << "Found big likelihood" <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
+             Rcpp::Rcout << "Found big likelihood: " <<exp(temporal_loglik)<<" in index: "<<found_min<< std::endl;
             // Rcpp::Rcout << "Updates state!\n with likelihood " <<curr_loglik_visited(found_min)<<" to loglik: "<<temporal_loglik<<" in poisition "<<found_min<< std::endl;
             loglikelihood_visited(found_min,s)=temporal_loglik;//Record new loglikelihood
             // Rcpp::Rcout << "Stores likelihood" << std::endl;
@@ -621,7 +610,9 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     
-    full_iter_visit_modes.slice(s)=iter_visit_modes;//Store iterations to visit the modes
+    full_distance_mode1.slice(s)=distance_mode1;
+    full_distance_mode2.slice(s)=distance_mode2;
+    full_distance_origin.slice(s)=distance_origin;
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
@@ -632,7 +623,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
   ret["time_taken"]=time_taken;
-  ret["modes_visit"]=full_iter_visit_modes;
+  // ret["modes_visit"]=full_iter_visit_modes;
+  ret["distance_mode1"]=full_distance_mode1;
+  ret["distance_mode2"]=full_distance_mode2;
+  ret["distance_origin"]=full_distance_origin;
   return ret;
 }
 
@@ -686,8 +680,16 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   sp_mat Q_matrix=readSparseMatrix(filename);
   vec mode1={0,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,0,1,0,1,0,1,1,0,1,1,1,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1,1,1,0,0,0,1,0,0,1,0,1,1,1,1,0,0,0,1,0,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,1,1,1,0,0,0,1,1,1,1,0,0,1,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0,0,1,0,1,0,1,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,1,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,1,1,1,1,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0,1,1,0,0,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,0,0,0,0,1,0,0,1,0,0,1,1,1,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,1,0,0,1,1,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1};
   vec mode2={1,0,0,0,1,1,1,1,1,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,0,0,0,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,1,0,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,0,1,1,0,1,0,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,1,1,0,1,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,1,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,0,1,0,1,0,0,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,1,0,1,0,0,1,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,1,1,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,0,1,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,1,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,1,1,0,0,1,1,0,1,1,1,0,1,1,0,1,0,0,0,1,1,0,0,1,0,0,0,0,1,0,1,1,0,0};
-  mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
-  cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
+  int numiter=total_swaps*sample_inter_swap;//Compute the total number of iterations to perform
+  mat distance_mode1(numiter,T);//Matrix to store distance to mode 1 for each replica
+  mat distance_mode2(numiter,T);//Matrix to store distance to mode 1 for each replica
+  mat distance_origin(numiter,T);//Matrix to store distance to origin for each replica
+  mat temporal_mat1(sample_inter_swap,T);//Matrix to store the distances computed between each replica swap
+  mat temporal_mat2(sample_inter_swap,T);//Matrix to store the distances computed between each replica swap
+  mat temporal_origin(sample_inter_swap,T);//Matrix to store the distances computed between each replica swap  
+  cube full_distance_mode1(numiter,T,total_sim);//Cube to store distance to mode 1 for each replica and simulation
+  cube full_distance_mode2(numiter,T,total_sim);//Cube to store distance to mode 2 for each replica and simulation
+  cube full_distance_origin(numiter,T,total_sim);//Cube to store distance to origin for each replica and simulation
   
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   // Probability to update
@@ -716,17 +718,19 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
-    iter_visit_modes.zeros();
+    distance_mode1.fill(-1);
+    distance_mode2.fill(-1);
+    distance_origin.fill(-1);
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
     ////Start the loop for burn-in period
-    Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << "Starting burn-in period "<< std::endl;
+    Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Starting burn-in period "<< std::endl;
     int track_burn_in=0;
     while(track_burn_in<burn_in){
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
         int samples_replica=0;
-        while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
+        while(samples_replica<sample_inter_swap && samples_replica<burn_in){//Loop to create samples for each replica until we reach the defined threshold
           current_temp=temp(replica);// Extract temperature of the replica
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
@@ -793,25 +797,29 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
-    ////Finish the loop for burn-in period
+//////////////////////Finish the loop for burn-in period
     swap_count=0; //Reset swap count
     std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
+      temporal_mat1.fill(-1); //Reset the temporal matrix to store distance to modes
+      temporal_mat2.fill(-1); //Reset the temporal matrix to store distance to modes
+      temporal_origin.fill(-1);//Reset the temporal matrix to store distance to modes
       if (i % 10 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         // Rcpp::Rcout << "Sim: " << s+startsim << " Swap: " << i <<"replica: "<<replica<< std::endl;
         int samples_replica=0;
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
+          if(total_swaps<10){Rcpp::Rcout << "Replica: " << index_process(replica) << " Sampled: " << (static_cast<double>(samples_replica) / sample_inter_swap)<< std::endl;}
           total_iterations(i,index_process(replica),s)+=1;//increase the number of iterations
           current_temp=temp(index_process(replica));// Extract temperature of the replica
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
           output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
           
-          //// Compute weight
+//// Compute weight
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
@@ -832,10 +840,10 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             new_samples=sample_inter_swap;
           }
           if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
-            new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
+            new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
           }
-          samples_replica+=new_samples; // Update number of samples obtained from the replica
-          //// Store weight of replica with temperature 1
+
+//// Store weight of replica with temperature 1
           if(current_temp==1){ // For the original temperature replica
             // Rcpp::Rcout << "Starts update of visited states" << std::endl;
             vec curr_loglik_visited=loglikelihood_visited.col(s);
@@ -877,26 +885,32 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               }
             } 
           }
-          
-          //Check if the current state is one of the modes
-          if(CompareVectors(mode1,X.col(replica))){
-            if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
-              mat current_slice=total_iterations.slice(s);//Extract current slice
-              iter_visit_modes(index_process(replica),0)=sum(current_slice.col(index_process(replica)));//Store the iterations from original chain
-              Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
-            }}
-          if(CompareVectors(mode2,X.col(replica))){
-            if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
-              mat current_slice=total_iterations.slice(s);//Extract current slice
-              iter_visit_modes(index_process(replica),1)=sum(current_slice.col(index_process(replica)));//Store the iterations from original chain
-              Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
-            }}
-          
+///// Measure distance to modes
+double temp_dist1=L1_distance(X.col(replica),mode1);
+double temp_dist2=L1_distance(X.col(replica),mode2);
+double temp_origin=sum(X.col(replica));
+// Rcpp::Rcout <<"Before storing in temporal matrix" << std::endl;
+///// Store the measured distance in the temporal matrix
+for(int j=samples_replica;j<(samples_replica+new_samples);j++){
+  temporal_mat1(j,index_process(replica))=temp_dist1;
+  temporal_mat2(j,index_process(replica))=temp_dist2;
+  temporal_origin(j,index_process(replica))=temp_origin;
+}
+// Rcpp::Rcout <<"Succesfully stored in temporal matrix" << std::endl;
+///// Updating before the next iteration of the loop          
+          samples_replica+=new_samples; // Update number of samples obtained from the replica
           X.col(replica)=vec(output(0)); //Update current state of the chain
           log_bound_vector(index_process(replica))=output(2); //Update log-bound
           max_log_bound_vector(index_process(replica))=output(3); //Update maximum log-bound found
-        }
-      }//End loop to update replicas
+        }//End loop to update a single replica
+      }//End loop to update all replicas
+      
+///// Store the temporal matrix into the big matrix
+// Rcpp::Rcout <<"Storing distance in big matrix" << std::endl;
+distance_mode1.rows(i*sample_inter_swap,((i+1)*sample_inter_swap)-1)=temporal_mat1;
+distance_mode2.rows(i*sample_inter_swap,((i+1)*sample_inter_swap)-1)=temporal_mat2;
+distance_origin.rows(i*sample_inter_swap,((i+1)*sample_inter_swap)-1)=temporal_origin;
+// Rcpp::Rcout <<"Succesfully stored in big matrix" << std::endl;
 //// Start replica swap process
 Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;    
       swap_count+=1;//Increase the count of swaps
@@ -943,7 +957,9 @@ Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;
     // Store result of the simulation
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
-    full_iter_visit_modes.slice(s)=iter_visit_modes;//Store iterations to visit the modes
+    full_distance_mode1.slice(s)=distance_mode1;//Store distance to mode 1
+    full_distance_mode2.slice(s)=distance_mode2;//Store distance to mode 2
+    full_distance_origin.slice(s)=distance_origin;
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
@@ -955,7 +971,10 @@ Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;
   ret["iter_visit"]=iter_to_visit;
   ret["total_iter"]=total_iterations;
   ret["time_taken"]=time_taken;
-  ret["modes_visit"]=full_iter_visit_modes;
+  // ret["modes_visit"]=full_iter_visit_modes;
+  ret["distance_mode1"]=full_distance_mode1;
+  ret["distance_mode2"]=full_distance_mode2;
+  ret["distance_origin"]=full_distance_origin;
   ret["max_bounds"]=max_log_bound_vector;
   ret["final_bounds"]=log_bound_vector;
   return ret;
@@ -1009,8 +1028,12 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   sp_mat Q_matrix=readSparseMatrix(filename);
   vec mode1={0,1,1,1,0,0,0,0,0,1,1,0,0,1,0,1,1,0,0,0,1,1,0,0,0,0,1,0,1,0,1,1,1,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,1,1,0,0,1,0,1,1,1,1,0,0,0,1,1,1,0,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,1,1,0,0,1,1,1,1,1,0,1,1,0,1,0,1,0,1,0,1,1,0,1,0,1,1,0,0,1,0,1,0,1,1,0,1,1,1,0,0,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,1,1,1,0,0,0,1,0,0,1,0,1,1,1,1,0,0,0,1,0,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,1,1,1,0,0,0,1,1,1,1,0,0,1,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0,0,1,0,1,0,1,1,1,0,1,0,0,1,0,1,0,1,1,0,1,0,1,0,1,1,0,0,1,1,0,1,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,0,1,1,0,0,1,1,1,1,1,0,0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,1,1,1,1,0,0,1,1,1,0,0,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,1,1,1,1,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,1,0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,0,1,0,1,1,1,0,1,0,1,1,0,1,0,1,1,0,0,1,1,1,0,0,0,1,1,0,0,1,1,1,1,0,0,0,1,0,1,1,0,0,1,1,0,1,1,0,1,1,0,1,1,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,1,0,0,0,0,1,0,0,1,0,0,1,1,1,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1,1,1,1,0,0,1,1,0,0,0,0,0,1,0,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,1,0,0,1,1,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1};
   vec mode2={1,0,0,0,1,1,1,1,1,0,0,1,1,0,1,0,0,1,1,1,0,0,1,1,1,1,0,1,0,1,0,0,0,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,1,0,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,0,1,0,1,1,1,1,1,0,1,0,0,1,1,0,0,0,0,0,1,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,0,1,1,0,1,0,1,0,0,1,0,0,0,1,1,0,0,0,1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,0,1,1,1,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,1,0,1,1,1,1,1,1,1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,1,0,1,1,1,0,1,1,1,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,0,0,0,1,1,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,1,1,1,0,0,0,0,1,1,0,0,0,0,1,0,1,1,0,0,1,1,1,0,1,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,1,0,1,1,0,1,1,0,1,0,1,0,0,0,1,0,1,1,0,1,0,1,0,0,1,0,1,0,1,0,0,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,1,0,0,0,1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,1,1,0,0,0,0,0,1,1,0,1,1,1,0,0,1,1,0,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,0,1,1,1,0,0,1,1,1,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,0,1,0,1,0,0,0,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,1,0,1,0,0,1,1,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,1,1,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,0,1,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,0,0,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,1,1,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,1,1,0,1,1,0,1,1,1,0,1,0,1,0,1,0,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,1,1,0,0,0,1,0,1,1,1,0,1,1,1,1,1,0,0,1,1,0,1,1,1,0,1,1,0,1,0,0,0,1,1,0,0,1,0,0,0,0,1,0,1,1,0,0};
-  mat iter_visit_modes(T,2);//Matrix to store in which iteration the mode is visited
-  cube full_iter_visit_modes(T,2,total_sim,fill::zeros);//Cube to export the iterations in which modes were visited
+  mat distance_mode1(numiter,T);//Matrix to store distance to mode 1 for each replica
+  mat distance_mode2(numiter,T);//Matrix to store distance to mode 1 for each replica
+  mat distance_origin(numiter,T);//Matrix to store distance to mode 1 for each replica
+  cube full_distance_mode1(numiter,T,total_sim);//Cube to store distance to mode 1 for each replica and simulation
+  cube full_distance_mode2(numiter,T,total_sim);//Cube to store distance to mode 2 for each replica and simulation
+  cube full_distance_origin(numiter,T,total_sim);//Cube to store distance to mode 2 for each replica and simulation
   
   // Rcpp::Rcout << "First rows Q_matrix: " << Q_matrix.rows(0,5) << std::endl;
   // Rcpp::Rcout << "Last rows Q_matrix: " << Q_matrix.rows(p-6,p-1) << std::endl;
@@ -1039,7 +1062,9 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     swap_total.zeros();
     swap_success.zeros();
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
-    iter_visit_modes.zeros();
+    distance_mode1.fill(-1);
+    distance_mode2.fill(-1);
+    distance_origin.fill(-1);
     
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
@@ -1051,17 +1076,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
-        //Check if the current state is one of the modes
-        if(CompareVectors(mode1,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),0)=-1*i;
-            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
-          }}
-        if(CompareVectors(mode2,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),1)=-1*i;
-            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" burn-in iteration: "<<i<< std::endl;//Print that we visited a mode
-          }}
+
         output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
         //During burn-in:
         ////// Update = true, we always update the constant
@@ -1133,17 +1148,10 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
         current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
-        //Check if the current state is one of the modes
-        if(CompareVectors(mode1,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),0)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),0)=i; 
-            Rcpp::Rcout << "Visit mode 1, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
-          }}
-        if(CompareVectors(mode2,X.col(replica))){
-          if(iter_visit_modes(index_process(replica),1)==0){//In case is the first visit
-            iter_visit_modes(index_process(replica),1)=i;
-            Rcpp::Rcout << "Visit mode 2, Replica: " << index_process(replica) <<" with current temp: "<<current_temp<<" iteration: "<<i<< std::endl;//Print that we visited a mode
-          }}
+        //Measure distance to the modes
+        distance_mode1(i,index_process(replica))=L1_distance(X.col(replica),mode1);
+        distance_mode2(i,index_process(replica))=L1_distance(X.col(replica),mode2);
+        distance_origin(i,index_process(replica))=sum(X.col(replica));
         //Depending on the chosen method
         //// Update each replica independently
         // output=IIT_update_w(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp);
@@ -1260,7 +1268,9 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     // Store result of the simulation
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
-    // Rcpp::Rcout <<"Final state "<< X << std::endl;
+    full_distance_mode1.slice(s)=distance_mode1;
+    full_distance_mode2.slice(s)=distance_mode2;
+    full_distance_origin.slice(s)=distance_origin;
   }//End loop simulations
   List ret;
   
@@ -1270,7 +1280,10 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   ret["loglik_visited"]=loglikelihood_visited;
   ret["iter_visit"]=iter_to_visit;
   ret["time_taken"]=time_taken;
-  ret["modes_visit"]=full_iter_visit_modes;
+  // ret["modes_visit"]=full_iter_visit_modes;
+  ret["distance_mode1"]=full_distance_mode1;
+  ret["distance_mode2"]=full_distance_mode2;
+  ret["distance_origin"]=full_distance_origin;
   ret["max_bounds"]=max_log_bound_vector;
   ret["final_bounds"]=log_bound_vector;
   return ret;
