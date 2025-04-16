@@ -34,7 +34,7 @@ run_highd <- function(list_ids){
       print("Reading one set of C++ functions")
       print(paste0("Model = ",tot_models))
       if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
-      file_matrix <- paste0("gset/",sim_chosen$file,".txt");
+      file_matrix <- paste0("gset/",unique(parameters|> filter(id %in% list_ids) |> pull(file)),".txt");
       p <- readParameters(file_matrix);}
       if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
         p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
@@ -74,8 +74,8 @@ run_highd <- function(list_ids){
     #Parameters for PT with A-IIT
     sample_inter_swap <- sim_chosen$interswap #Number of original samples to get before trying a replica swap
     total_swap <- sim_chosen$total_swap #Total number of swaps to try
-    reduc_constant <- sim_chosen$reduc_constant
-    reduc_model <- sim_chosen$reduc_model
+    reduc_constant <- sim_chosen$reduc_constant;if(is.null(reduc_constant)){reduc_constant <- 0}
+    reduc_model <- sim_chosen$reduc_model;if(is.null(reduc_model)){reduc_model <- "never"}
     
     export <- list();
     #### Function depending on algorithm to use
