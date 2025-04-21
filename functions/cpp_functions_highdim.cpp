@@ -424,7 +424,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
     // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
-    X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
+    ppp=Rcpp::runif(1);
+    X=initializeRandom(p,T,ppp(0));//Randomly initialize the state of each replica.
     swap_total.zeros();
     swap_success.zeros();
     distance_mode1.fill(-1);
@@ -714,7 +715,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
     // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
-    X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
+    ppp=Rcpp::runif(1);
+    X=initializeRandom(p,T,ppp(0));//Randomly initialize the state of each replica.
 
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
@@ -1057,7 +1059,8 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
     // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
-    X=initializeRandom(p,T,0.5);//Randomly initialize the state of each replica.
+    ppp=Rcpp::runif(1);
+    X=initializeRandom(p,T,ppp(0));//Randomly initialize the state of each replica.
     
     swap_total.zeros();
     swap_success.zeros();
