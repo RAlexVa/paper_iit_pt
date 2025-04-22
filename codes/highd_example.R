@@ -155,3 +155,7 @@ run_highd <- function(list_ids){
   }
 }
 
+if (!interactive()) {
+  args <- commandArgs(trailingOnly = TRUE)
+  run_highd(args[1])
+}

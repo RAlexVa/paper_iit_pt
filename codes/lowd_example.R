@@ -220,7 +220,10 @@ run_lowd <- function(list_ids){
   }
 }
 
-
+if (!interactive()) {
+  args <- commandArgs(trailingOnly = TRUE)
+  run_lowd(args[1])
+}
 
 
 
