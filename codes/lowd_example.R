@@ -1,7 +1,7 @@
 rm(list=ls())
 library(Rcpp)
 library(RcppArmadillo)
-library(dplyr)
+library(dplyr, warn.conflicts = F)
 library(readr)
 
 ##### import functions #####
@@ -19,7 +19,7 @@ run_lowd <- function(list_ids){
     if(!is.character(list_ids)){ list_ids <- as.character(list_ids)}
     list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
     ##### Read file for parameters #####
-    parameters <- as.data.frame(read_csv("results/simulation_details_lowd.csv"))
+    parameters <- as.data.frame(read_csv("results/simulation_details_lowd.csv", col_types = cols()))
     {#Code to compute the true pi for both models and have it in memory
       Rcpp::sourceCpp("functions/cpp_functions.cpp")# To use vec_to_num function
       ##### Low-dimensional 7 modes setup #####

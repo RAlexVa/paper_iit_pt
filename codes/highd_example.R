@@ -1,7 +1,7 @@
 rm(list=ls())
 library(Rcpp)
 library(RcppArmadillo)
-library(dplyr)
+library(dplyr, warn.conflicts = F)
 library(readr)
 # install.packages("Rcpp")
 # install.packages("RcppArmadillo")
@@ -24,7 +24,7 @@ run_highd <- function(list_ids){
     if(!is.character(list_ids)){ list_ids <- as.character(list_ids)}
     list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
   ##### Read file for parameters #####
-  parameters <- as.data.frame(read_csv("results/simulation_details_highd.csv"))
+  parameters <- as.data.frame(read_csv("results/simulation_details_highd.csv", col_types = cols()))
   
 #Check how many models we're doing
     tot_models <- unique(parameters|> filter(id %in% list_ids) |> pull(model))
