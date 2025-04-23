@@ -14,12 +14,12 @@ theme_update(base_size = 17,legend.key.size = unit(1, 'cm'));
 ### Process simulation results ###
 
 # Choose dimension
-chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+# chosen_dim <- "highdim"; file_dim <- "highd"
+chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
-chosen_ids <-86#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
-# chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)
+chosen_ids <-201:204#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
+# chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
@@ -42,7 +42,7 @@ chosen_ids <-86#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
 
 
 #List of files
-parameters <- read_csv(paste0("results/simulation_details_",file_dim,".csv"))
+parameters <- read_csv(paste0("results/simulation_details_",file_dim,".csv"), col_types = cols())
 #Create table with available files
 data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.Rds")) |> 
   mutate(id=as.numeric(str_extract(file_names, "(?<=id_)[0-9]+(?=\\.Rds)")),
@@ -392,7 +392,7 @@ time_taken <- time_taken |> filter(!is.na(alg))
 
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen_dim,"_ex")
-export_file_name <- paste0(paste0(chosen_ids,collapse="_"),"_"chosen_dim)
+export_file_name <- paste0(paste0(chosen_ids,collapse="_"),"_",chosen_dim)
 if(print_bimodal){export_file_name <- "bimodal"}
 if(print_multimodal){export_file_name <- "multimodal"}
 # full_path <- file.path(export_path,paste0("tvd_",export_file_name,".jpg"))
