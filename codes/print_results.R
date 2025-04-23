@@ -14,11 +14,11 @@ theme_update(base_size = 17,legend.key.size = unit(1, 'cm'));
 ### Process simulation results ###
 
 # Choose dimension
-# chosen_dim <- "highdim"; file_dim <- "highd"
-chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+chosen_dim <- "highdim"; file_dim <- "highd"
+# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
-chosen_ids <-c(182:185)
+chosen_ids <-86#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
 # chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)
 
 #### Chosen for lowdim bimodal problem ####
@@ -28,15 +28,15 @@ chosen_ids <-c(182:185)
 #For PT A-IITw it seems to have been better with 4 temperatures
 # but still doesn't get the needed swap rate
 
-chosen_bimodal <- c(129,135,137,139)
-print_bimodal <- TRUE
-chosen_ids <- chosen_bimodal
+# chosen_bimodal <- c(129,135,137,139)
+# print_bimodal <- TRUE
+# chosen_ids <- chosen_bimodal
 
 #### Chosen for lowdim multimodal problem ####
 # For PT-IIT and PT A-IITw we only use 3 temperatures because it had the best performance in TVD
 # For PT A-IITm we still have to identify the best temperature
 # 
-# chosen_multimodal <- c(165,167,169, 190)
+# chosen_multimodal <- c(165,167,169,190)
 # print_multimodal <- TRUE
 # chosen_ids <- chosen_multimodal
 
@@ -191,13 +191,16 @@ if(chosen_dim=="highdim"){
   }else{
     num_replicas <- ncol(check_number_replicas |> select(-id))
     round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(round_trip) <- c("alg","sim",1:num_replicas)
-    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))
+    if(num_replicas>1){    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1))); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))}
     iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2))); colnames(iterations) <- c("alg","sim",1:num_replicas)
     
     list_of_states <- list()
     iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
     loglik_visited <- as.data.frame(matrix(NA,ncol=4));colnames(loglik_visited) <- c("alg","sim","state","loglik")
     max_lik <- as.data.frame(matrix(NA,ncol=4));colnames(max_lik) <- c("alg","sim","iteration","lik")
+    
+    distances <- tibble(alg=character(),sim=numeric(),temperature=numeric(),iteration=numeric(),mode=character(),dist=numeric())
+    
   }
 
 }
@@ -212,6 +215,12 @@ for(i in 1:nrow(data_sum)){
   data <- readRDS(file.path("results",data_sum[i,1]))
   tot_sim <- data_sum |> slice(i)|> pull(simulations)
   algorithm <- data_sum |> slice(i) |> pull(algorithm)
+  tot_iter <- data_sum |> slice(i) |> pull(iterations)
+  tot_swap <- data_sum |> slice(i) |> pull(total_swap)
+  interswap <- data_sum |> slice(i) |> pull(interswap)
+  temperatures <- as.numeric(data_sum |> slice(i) |> select(matches("^t\\d{1,2}$")))
+  temperatures <- temperatures[!is.na(temperatures)]# all the temperatures are in order and consecutive in the CSV file
+  
   if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT m"}
   if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
   if(algorithm=="PT_IIT_Z"){algorithm <- paste0("PT-IIT (",data_sum |> slice(i)|> pull(bf),")")}
@@ -309,66 +318,42 @@ if(chosen_dim=="highdim"){
     if(data_sum|> slice(i) |> pull(model)=="gset"){
       file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
       p <- readParameters(file_matrix)
-      
- ### Evaluate maximum likelihood found     
-      state_max <- matrix(NA,nrow=p,ncol=tot_sim)
-      likelihood_max <- rep(0,tot_sim)
-      #Extract specific state
-      for(i in 1:tot_sim){#Extract 1 state for each simulation
-        vec_temp <- data[["states"]][,index_max[i],i]
-        state_max[,i] <- vec_temp
-        # likelihood_max[i] <- eval_lik(file_matrix,vec_temp)
-      }
-      likelihood_max <- eval_lik_matrix(file_matrix,state_max)
-      temp$lik <- likelihood_max
-      max_lik <- rbind(max_lik,temp)
-      
     }
-    
-# Each column is a simulation   
-# Identifying maximum likelihood visited in each simulation
-    index_max <- apply(data[["loglik_visited"]],2,which.max)
-    full_index_max <- cbind(index_max,1:tot_sim)
-    
-    
-    #Storing number of iterations to visit the state with max likelihood and the value of likelihood
-    temp <- data[["iter_visit"]]
-    temp <- as.data.frame(temp[full_index_max])
-    colnames(temp) <- "iteration"
-    temp$sim <- 1:tot_sim
-    temp$alg <- algorithm
-    temp <- temp |> select(alg,sim,everything())
-    
+### Extract distance to modes
+  temp <- data[["distance_mode1"]][,1,1]
+  for (s in 1:tot_sim){
+    for(t in 1:length(temperatures)){
+      # Distance mode has rows=iterations, columns=replicas, slices=simulations
+      temp_tibble1 <- tibble(dist=data[["distance_mode1"]][,t,s],
+                            alg=algorithm,
+                            sim=s,
+                            temperature=temperatures[t],
+                            iteration=1:length(dist),
+                            mode="m1")
+      temp_tibble2 <- tibble(dist=data[["distance_mode2"]][,t,s],
+                            alg=algorithm,
+                            sim=s,
+                            temperature=temperatures[t],
+                            iteration=1:length(dist),
+                            mode="m2")
+      temp_tibble0 <- tibble(dist=data[["distance_origin"]][,t,s],
+                            alg=algorithm,
+                            sim=s,
+                            temperature=temperatures[t],
+                            iteration=1:length(dist),
+                            mode="m0")
+      
+      
+      distances <- rbind(distances,temp_tibble1,temp_tibble2,temp_tibble0)
+      rm(list=c("temp","temp_tibble1","temp_tibble2","temp_tibble0"))
+    }
+  }
 
-    
-    
-# ###### Storing number of iterations to visit modes
-#     temp <- as.data.frame(data[["iter_visit"]])
-#     colnames(temp) <- 1:ncol(temp)
-#     temp$state <- 1:nrow(temp)
-#     temp$alg <- algorithm
-#     temp <- temp |> select(alg,state,everything())
-#     iter_visit <- rbind(iter_visit,temp)
-###### Storing likelihood of visited states
-    temp <- as.data.frame(data[["loglik_visited"]])
-    #As many rows as number of states we were tracking
-    number_sim <- ncol(temp)
-    colnames(temp) <- paste0("s",1:number_sim) #As many columns as simulations
-    temp$state <- 1:nrow(temp)
-    temp$alg <- algorithm
-    temp <- temp  |> select(alg,state,everything()) |> 
-      pivot_longer(cols=all_of(paste0("s",1:number_sim)),names_to = "sim",values_to='loglik')
-    
-    #> 
-    loglik_visited <- rbind(loglik_visited,temp)
-
-    #Storing full list of states
-    list_of_states[[Q]] <- data[["states"]]
-    Q <- Q+1
+  
   }
   
   
-  if(!is_empty(data[["round_trips"]])){
+  if(!is_empty(data[["round_trips"]]) && ncol(data[["round_trips"]])>1){
     #Extract number of round trips rate
     temp <- as.data.frame(data[["round_trips"]])
     colnames(temp) <- 1:ncol(temp)
@@ -384,7 +369,7 @@ if(chosen_dim=="highdim"){
     temp <- temp |> select(alg,sim,everything())
     swap_rate <- rbind(swap_rate,temp)
   }
-  if(!is_empty(data[["total_iter"]])){ 
+  if(!is_empty(data[["total_iter"]])&& ncol(data[["total_iter"]])>1){ 
     # Extract total iterations
     dims<- dim(data[["total_iter"]])
     full_iter[[k]] <- data[["total_iter"]]
@@ -400,14 +385,14 @@ if(chosen_dim=="highdim"){
 }
 ##### Delete first row with NA#####
 round_trip <- round_trip |> filter(!is.na(alg))
-swap_rate <- swap_rate |> filter(!is.na(alg))
+if(exists("swap_rate")){swap_rate <- swap_rate |> filter(!is.na(alg))}
 iterations <- iterations |> filter(!is.na(alg))
 time_taken <- time_taken |> filter(!is.na(alg))
 
 
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen_dim,"_ex")
-export_file_name <- paste0(chosen_dim,"_",paste0(chosen_ids,collapse="_"))
+export_file_name <- paste0(paste0(chosen_ids,collapse="_"),"_"chosen_dim)
 if(print_bimodal){export_file_name <- "bimodal"}
 if(print_multimodal){export_file_name <- "multimodal"}
 # full_path <- file.path(export_path,paste0("tvd_",export_file_name,".jpg"))
@@ -432,7 +417,7 @@ time_table <- time_taken |> filter(!str_starts(alg,'IIT')) |>
             q3=quantile(time,probs=0.75),
             max=max(time))
 
-jpeg(file.path(export_path,paste0("time_table_",export_file_name,".jpg")),width=80*ncol(time_table),height=35*nrow(time_table),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_time_table",".jpg")),width=80*ncol(time_table),height=35*nrow(time_table),pointsize = 30)
 grid.arrange(tableGrob(time_table))
 dev.off()
 
@@ -444,29 +429,34 @@ dev.off()
 ##### Report on average swap rate
 
 #First create column names depending on the number of replicas
-swap_names <- c()
-for(i in 1:(num_replicas-1)){
-  swap_names <- c(swap_names,paste0(i,"↔",i+1))
+if(num_replicas>1){
+  
+  swap_names <- c()
+  for(i in 1:(num_replicas-1)){
+    swap_names <- c(swap_names,paste0(i,"↔",i+1))
+  }
+  
+  swap_report <- swap_rate |> 
+    group_by(alg) |>
+    summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
+  colnames(swap_report) <- c("alg",swap_names)
+  
+  jpeg(file.path(export_path,paste0(export_file_name,"_table_swap_rate",".jpg")),width=93*ncol(swap_report),height=33*nrow(swap_report),pointsize = 30)
+  grid.arrange(tableGrob(swap_report))
+  dev.off()
+  
+  ##### Report on average round trip rate
+  rt_report <- round_trip |> 
+    group_by(alg) |>
+    summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
+  colnames(rt_report) <- c("alg",paste0("R",1:num_replicas))
+  
+  jpeg(file.path(export_path,paste0(export_file_name,"_table_roundtrip_rate",".jpg")),width=90*ncol(rt_report),height=40*nrow(rt_report),pointsize = 30)
+  grid.arrange(tableGrob(rt_report))
+  dev.off()
+  
 }
 
-swap_report <- swap_rate |> 
-  group_by(alg) |>
-  summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
-colnames(swap_report) <- c("alg",swap_names)
-
-jpeg(file.path(export_path,paste0("table_swap_rate_",export_file_name,".jpg")),width=93*ncol(swap_report),height=33*nrow(swap_report),pointsize = 30)
-grid.arrange(tableGrob(swap_report))
-dev.off()
-
-##### Report on average round trip rate
-rt_report <- round_trip |> 
-  group_by(alg) |>
-  summarize(across(-sim, function(x) mean(x, na.rm = TRUE)))
-colnames(rt_report) <- c("alg",paste0("R",1:num_replicas))
-
-jpeg(file.path(export_path,paste0("table_roundtrip_rate_",export_file_name,".jpg")),width=90*ncol(rt_report),height=40*nrow(rt_report),pointsize = 30)
-grid.arrange(tableGrob(rt_report))
-dev.off()
 
 if(chosen_dim=="lowdim"){
   ##### Delete first row with NA#####
@@ -529,7 +519,7 @@ grid.arrange(tableGrob(max_tvd_compare))
 #     theme(legend.key.size = unit(1, 'cm'))
   tvd_plot
   
-  jpeg(file.path(export_path,paste0("tvd_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+  jpeg(file.path(export_path,paste0(export_file_name,"_tvd",".jpg")),width=800,height =400,pointsize = 30)
   print(tvd_plot)
   dev.off()
 ##### First visit to modes #####
@@ -552,7 +542,7 @@ table_visited <- mode_sum |> rename(algorithm=alg) |>
               values_from = count,
               values_fill=0)
 
-jpeg(file.path(export_path,paste0("table_visited_modes_",export_file_name,".jpg")),width=100 + (60*(ncol(table_visited)-1)),height=40*nrow(table_visited),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_table_visited_modes",".jpg")),width=100 + (60*(ncol(table_visited)-1)),height=40*nrow(table_visited),pointsize = 30)
 grid.arrange(tableGrob(table_visited))
 dev.off()
 
@@ -566,7 +556,7 @@ iterations_to_explore <- mode_sum |> filter(!str_starts(alg,'IIT')) |>
             q3=quantile(last_visit,probs=0.75),
             max=max(last_visit))
 
-jpeg(file.path(export_path,paste0("table_iterations_",export_file_name,".jpg")),width=150*nrow(iterations_to_explore),height=40*nrow(iterations_to_explore),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_table_iterations",".jpg")),width=40*ncol(iterations_to_explore),height=40*nrow(iterations_to_explore),pointsize = 30)
 grid.arrange(tableGrob(iterations_to_explore))
 dev.off()
 
@@ -600,7 +590,7 @@ if(nrow(iterations)>0){
   
 }
 
-jpeg(file.path(export_path,paste0("table_swaps_",export_file_name,".jpg")),width=140*nrow(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_table_swaps",".jpg")),width=40*ncol(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
 
@@ -653,7 +643,7 @@ summarise(min=min(last_time),
 
 grid.arrange(tableGrob(table_time_mode))
 
-jpeg(file.path(export_path,paste0("time_mode_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_time_mode",".jpg")),width=800,height =400,pointsize = 30)
 print(plot_surv_mode)
 dev.off()
 
@@ -715,11 +705,11 @@ sum_tvd |>
 
 
 
-jpeg(file.path(export_path,paste0("tvd_mean_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_tvd_mean",".jpg")),width=800,height =400,pointsize = 30)
 print(mean_tvd_plot)
 dev.off()
 
-jpeg(file.path(export_path,paste0("tvd_max_",export_file_name,".jpg")),width=800,height =400,pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_tvd_max",".jpg")),width=800,height =400,pointsize = 30)
 print(max_tvd_plot)
 dev.off()
 
@@ -733,6 +723,47 @@ if(chosen_dim=="highdim"){
   loglik_visited <- loglik_visited |> filter(!is.na(alg))
   iter_visit <- iter_visit|> filter(!is.na(alg))
 
+  
+  # distances |> 
+  #   filter(str_detect(alg,"76")) |> 
+  #   filter(iteration>1950000) |> 
+  #   filter(mode%in%c("m0","m1")) |>
+  #   ggplot(aes(x=iteration,y=dist,col=mode))+
+  #   geom_line()
+  
+  distance_report <- distances |> group_by(alg, temperature, mode) |> 
+    summarise(closer=min(dist),
+              farther=max(dist), 
+              average=mean(dist),
+              d1=quantile(dist,0.1),
+              d2=quantile(dist,0.2),
+              q1=quantile(dist,.25),
+              d3=quantile(dist,0.3),
+              d4=quantile(dist,0.4),
+              q2=quantile(dist,0.5),
+              d6=quantile(dist,0.6),
+              d7=quantile(dist,0.7),
+              q3=quantile(dist,0.75),
+              d8=quantile(dist,0.8),
+              d9=quantile(dist,0.9))
+ if(unique(p)==800){dist_to_modes <- 785}else{dist_to_modes <- unique(p)}
+
+  distance_report <- distance_report|> ungroup() |> add_row(alg=paste0("p=",unique(p)),
+                             temperature=NA,
+                             mode="M2M",
+                             closer=dist_to_modes,
+                             farther=dist_to_modes,
+                             average=dist_to_modes,
+                             d1=0,d2=0,q1=0,
+                             d3=0,d4=0,q2=0,
+                             d6=0,d7=0,q3=0,
+                             d8=0,d9=0)
+  
+  jpeg(file.path(export_path,paste0(export_file_name,"_distance_modes",".jpg")),width=44*ncol(distance_report),height=25*nrow(distance_report),pointsize = 30)
+  grid.arrange(tableGrob(distance_report))
+  dev.off()  
+  
+  
 }
 
 
