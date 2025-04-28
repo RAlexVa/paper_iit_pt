@@ -18,7 +18,7 @@ theme_update(base_size = 17,legend.key.size = unit(1, 'cm'));
 chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
-chosen_ids <-201:204#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
+chosen_ids <-c(213:216)#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
 # chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
@@ -205,7 +205,7 @@ if(chosen_dim=="highdim"){
 
 }
 time_taken <- as.data.frame(matrix(NA,ncol=2));colnames(time_taken) <- c("alg","time")
-
+full_iter_names <- c() #To identify the list of full_iter with the corresponding algorithms
 full_iter <- list()
 k <- 1
 Q <- 1
@@ -373,6 +373,7 @@ if(chosen_dim=="highdim"){
     # Extract total iterations
     dims<- dim(data[["total_iter"]])
     full_iter[[k]] <- data[["total_iter"]]
+    full_iter_names[k] <- algorithm
     k <- k+1;
     temp <- as.data.frame(t(colSums(data[["total_iter"]])))/dims[1]
     #temp is the average number of Rejection Free steps before trying a swap
@@ -556,7 +557,7 @@ iterations_to_explore <- mode_sum |> filter(!str_starts(alg,'IIT')) |>
             q3=quantile(last_visit,probs=0.75),
             max=max(last_visit))
 
-jpeg(file.path(export_path,paste0(export_file_name,"_table_iterations",".jpg")),width=40*ncol(iterations_to_explore),height=40*nrow(iterations_to_explore),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_table_iterations",".jpg")),width=60*ncol(iterations_to_explore),height=35*nrow(iterations_to_explore),pointsize = 30)
 grid.arrange(tableGrob(iterations_to_explore))
 dev.off()
 
@@ -590,7 +591,7 @@ if(nrow(iterations)>0){
   
 }
 
-jpeg(file.path(export_path,paste0(export_file_name,"_table_swaps",".jpg")),width=40*ncol(swaps_to_explore),height=40*nrow(swaps_to_explore),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_table_swaps",".jpg")),width=60*ncol(swaps_to_explore),height=35*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
 
@@ -616,8 +617,8 @@ forsurv <- mode_time |>group_by(alg,sim) |>
   select(alg,last_time)
 
 fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~alg,data=forsurv)
-if(print_bimodal){time_br <- 0.2}
-if(print_multimodal){time_br <- 0.5}
+if(check_number_modes=="bimodal"){time_br <- 0.2}
+if(check_number_modes=="7_mode"){time_br <- 0.5}
 (plot_surv_mode <- ggsurvplot(fit,
            data=forsurv,
            fun="event",
@@ -625,7 +626,7 @@ if(print_multimodal){time_br <- 0.5}
            xlab = "Time (seconds)",
            ylab = "Prop. of simulations visiting all modes",
            legend.title = "Algorithm",
-           break.time.by = time_br,
+           # break.time.by = time_br,
            font.x = 15,        # X-axis label font size
            font.y = 15,        # Y-axis label font size
            font.tickslab = 12, # Axis tick labels (numbers) font size
@@ -730,6 +731,7 @@ if(chosen_dim=="highdim"){
   #   filter(mode%in%c("m0","m1")) |>
   #   ggplot(aes(x=iteration,y=dist,col=mode))+
   #   geom_line()
+  ### Report on how far each replica was of each mode
   
   distance_report <- distances |> group_by(alg, temperature, mode) |> 
     summarise(closer=min(dist),
@@ -762,7 +764,19 @@ if(chosen_dim=="highdim"){
   jpeg(file.path(export_path,paste0(export_file_name,"_distance_modes",".jpg")),width=44*ncol(distance_report),height=25*nrow(distance_report),pointsize = 30)
   grid.arrange(tableGrob(distance_report))
   dev.off()  
+  #Report on how quickly they reached the closer and farther distance to modes
   
+  speed_to_mode <- distances |> 
+    group_by(alg,sim,temperature,mode) |> 
+    summarise(min_dist=min(dist),
+              iteration_at_min_distance = iteration[which.min(dist)][1], # takes first if ties
+              max_dist=max(dist),
+              iteration_at_max_distance = iteration[which.max(dist)][1])
+ 
+  jpeg(file.path(export_path,paste0(export_file_name,"_speed_to_modes",".jpg")),width=100*ncol(speed_to_mode),height=25*nrow(speed_to_mode),pointsize = 30)
+  grid.arrange(tableGrob(speed_to_mode))
+  dev.off()   
+
   
 }
 
