@@ -216,3 +216,5 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 214,PT_IIT_Z,100,12000000,50,NA,0,20381,min,1,0.155,0.06,,0,0,0,7_mode,"Final results, mas interswap"
 215,PT_A_IIT_RF,100,12000000,50,NA,0,20381,,1,0.155,0.055,,0,0,never,7_mode,"Final results, mas interswap"
 216,PT_A_IIT,100,NA,50,240000,0,20381,,1,0.15,0.095,,0,0,never,7_mode,"Final results, mas interswap"
+217,PT_A_IIT,1,NA,50,12000,0,66,,1,0.37,0.24,,0,0,zero,bimodal,checking bias
+218,PT_A_IIT,1,NA,50,10,0,66,,1,0.37,0.24,,0,0,zero,bimodal,checking bias
