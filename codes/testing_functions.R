@@ -1041,3 +1041,25 @@ tibble(y1=output$distance_mode1,y2=output$distance_mode2,y0=output$distance_orig
   ggplot(aes(x=x,y=distance, col=mode))+
   geom_line()+labs(title='PT-IIT RF')
 
+
+### Checking the possible bias of A-IIT
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
+p <- 200
+Q_matrix <- matrix(0,nrow=p,ncol=2)
+for(i in 1:p){
+  if(i%%2==1){Q_matrix[i,2]=1}
+  if(i%%2==0){Q_matrix[i,1]=1}
+}
+mode1 <- Q_matrix[,1]
+mode2 <- Q_matrix[,2]
+
+
+a <- a_IIT_update(mode1,Q_matrix,"sq",1,0,FALSE, 0, 0,0)
+
+1/a$Z
+
+
+
