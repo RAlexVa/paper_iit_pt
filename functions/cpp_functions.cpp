@@ -260,7 +260,7 @@ double checking_max_logprob=bal_func(max(max_logprobs),"sq");
           double delta_bound = decreasing_constant/exp(temporal_log_b);
           //log(a-b)=log(a)+log(1-b/a) ≈ log(a) - b/a if b/a is very small
           //a=exp(temporal_log_b), b=decreasing_constant
-          if(delta_bound>1){//If the decreasing constant is too big
+          if(delta_bound>=1){//If the decreasing constant is too big
             //log(1-b/a) would be undefined
             log_bound=0;//Go the minimum 
           }else{
@@ -691,7 +691,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
             new_samples=sample_inter_swap;
           }
-          if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
+          if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
             new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
           }
           samples_replica+=new_samples; // Update number of samples obtained from the replica
@@ -759,7 +759,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
             new_samples=sample_inter_swap;
           }
-          if(samples_replica+new_samples>sample_inter_swap){//If we're going to surpass the required number of samples
+          if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
             new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
           }
           samples_replica+=new_samples; // Update number of samples obtained from the replica
