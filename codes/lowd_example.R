@@ -95,13 +95,13 @@ run_lowd <- function(list_ids){
       #In case there are more than 1 model, I need to re-read functions depending on model
       if(!only_1_model){
         print(paste0("Reading C++ functions for id: ",id_chosen," model: ",sim_chosen$model))
-        if(tot_models=="7_mode"){
+        if(sim_chosen |> pull(model)=="7_mode"){
           Rcpp::sourceCpp("functions/cpp_functions.cpp")
           pi.true <- pi.true.7;
           modes <- modes.7;
         }
-        if(tot_models=="bimodal"){
-          Rcpp::sourceCpp("functions/cpp_func_multilow.cpp")
+        if(sim_chosen |> pull(model)=="bimodal"){
+          Rcpp::sourceCpp("functions/cpp_functions_lowdim_2.cpp")
           pi.true <- pi.true.2;
           modes <- modes.2;
         }
