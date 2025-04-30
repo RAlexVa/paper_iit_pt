@@ -701,9 +701,14 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   double percentage_end=0.70;
   int total_replica_iterations=sample_inter_swap*total_swaps;
   int sample_iterations_count;
-  if(reduc_model=="always"){prob_to_dec=1;}
-  if(reduc_model=="never"){prob_to_dec=0;}
-  if(reduc_model=="iterations"){update_prob=true;}
+  if(false){}
+  else if(reduc_model=="always"){prob_to_dec=1;}
+  else if(reduc_model=="never"){prob_to_dec=0;}
+  else if(reduc_model=="iterations"){update_prob=true;}
+  else if(reduc_model=="zero"){update_constant=false;}
+  else {Rcpp::Rcout <<"reduc_model= " <<reduc_model<<" is not a valid reduc_model. Default to standard"<< std::endl;
+    Rcpp::Rcout <<" The standard is: Bounding constant always increases."<< std::endl;
+    prob_to_dec=0;}//If we don't define a reduc_model
   
   
   
@@ -737,6 +742,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
           output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
+          bool update_state=true;
           //During burn-in:
           ////// Update = true, we always update the constant
           ////// prob_to_dec=0, we never decrease the constant 
@@ -764,10 +770,13 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             new_samples=sample_inter_swap;
           }
           if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
-            new_samples = sample_inter_swap-samples_replica;//Wee force to stop at sample_inter_swap
+            new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
+            update_state=false;//We don't update the state (the chain don't move)
           }
           samples_replica+=new_samples; // Update number of samples obtained from the replica
-          X.col(replica)=vec(output(0)); //Update current state of the chain
+          if(update_state){
+            X.col(replica)=vec(output(0)); //Update current state of the chain
+          }
           log_bound_vector(index_process(replica))=output(2); //Update log-bound 
           max_log_bound_vector(index_process(replica))=output(3); //Update MAX log-bound 
         }
@@ -808,7 +817,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       temporal_mat1.fill(-1); //Reset the temporal matrix to store distance to modes
       temporal_mat2.fill(-1); //Reset the temporal matrix to store distance to modes
       temporal_origin.fill(-1);//Reset the temporal matrix to store distance to modes
-      if (i % 10 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         // Rcpp::Rcout << "Sim: " << s+startsim << " Swap: " << i <<"replica: "<<replica<< std::endl;
@@ -820,7 +829,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_log_bound=log_bound_vector(index_process(replica));// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
           output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,prob_to_dec,decreasing_constant,max_log_bound_vector(index_process(replica)));
-          
+          bool update_state=true;
 //// Compute weight
           Z = output(1); //Extract the Z-factor
           new_samples=1+R::rgeom(Z);
@@ -843,6 +852,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           }
           if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
             new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
+            update_state=false;//We don't update the state (the chain don't move)
           }
 
 //// Store weight of replica with temperature 1
@@ -901,7 +911,9 @@ for(int j=samples_replica;j<(samples_replica+new_samples);j++){
 // Rcpp::Rcout <<"Succesfully stored in temporal matrix" << std::endl;
 ///// Updating before the next iteration of the loop          
           samples_replica+=new_samples; // Update number of samples obtained from the replica
-          X.col(replica)=vec(output(0)); //Update current state of the chain
+          if(update_state){
+              X.col(replica)=vec(output(0)); //Update current state of the chain
+          }
           log_bound_vector(index_process(replica))=output(2); //Update log-bound
           max_log_bound_vector(index_process(replica))=output(3); //Update maximum log-bound found
         }//End loop to update a single replica
@@ -1048,9 +1060,14 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
   double percentage_end=0.70;
   int total_replica_iterations=numiter;
   int sample_iterations_count;
-  if(reduc_model=="always"){prob_to_dec=1;}
-  if(reduc_model=="never"){prob_to_dec=0;}
-  if(reduc_model=="iterations"){update_prob=true;}
+  if(false){}
+  else if(reduc_model=="always"){prob_to_dec=1;}
+  else if(reduc_model=="never"){prob_to_dec=0;}
+  else if(reduc_model=="iterations"){update_prob=true;}
+  else if(reduc_model=="zero"){update_constant=false;}
+  else {Rcpp::Rcout <<"reduc_model= " <<reduc_model<<" is not a valid reduc_model. Default to standard"<< std::endl;
+    Rcpp::Rcout <<" The standard is: Bounding constant always increases."<< std::endl;
+    prob_to_dec=0;}//If we don't define a reduc_model
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
