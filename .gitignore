@@ -7,5 +7,5 @@ codes/hmm_bw0.sh
 codes/main_template.R
 results/sim_lowdim_id_201.Rds
 results/sim_lowdim_id_208.Rds
-
 results/sim_highdim_id_6*.Rds
+drac_logs
