@@ -1046,20 +1046,37 @@ tibble(y1=output$distance_mode1,y2=output$distance_mode2,y0=output$distance_orig
 rm(list=ls())
 library(Rcpp)
 library(RcppArmadillo)
-Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp")
-p <- 200
+Rcpp::sourceCpp("functions/cpp_functions_lowdim_2.cpp")
+p <- 16
 Q_matrix <- matrix(0,nrow=p,ncol=2)
 for(i in 1:p){
-  if(i%%2==1){Q_matrix[i,2]=1}
-  if(i%%2==0){Q_matrix[i,1]=1}
+  if(i%%2==0){Q_matrix[i,2]=1}
+  if(i%%2==1){Q_matrix[i,1]=1}
 }
 mode1 <- Q_matrix[,1]
 mode2 <- Q_matrix[,2]
 
 
-a <- a_IIT_update(mode1,Q_matrix,"sq",1,0,FALSE, 0, 0,0)
+a <- a_IIT_update(mode1,"sq",1,0,FALSE, 0, 0,0)
+b <- a_IIT_update(mode2,"sq",1,0,FALSE, 0, 0,0)
 
-1/a$Z
+loglik(mode1)
+l1 <- c()
+l2 <- c()
+for(i in 1:p){
+  tempx <- mode1;
+  tempx[i] <- 1-tempx[i];
+  l1[i] <- loglik(tempx)
+  tempx <- mode2;
+  tempx[i] <- 1-tempx[i];
+  l2[i]<- loglik(tempx)
+}
 
+#For this parameters the normalizing constant is
+((1+exp(-6))^p + (1+exp(-6))^p)
 
-
+#Con estos calculos, usar como bounding constant gamma=0
+#nos da lo mismo que cambiar la balancing function
+# a ser MIN{1,r}, o sea es traditional MH
+#El problema era que cuando se me acababan los L samples
+#Yo si cambiaba de estado, y no debia
