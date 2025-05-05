@@ -777,7 +777,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_temp=temp(replica);// Extract temperature of the replica
           current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
           current_state=X.col(replica);
-          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
+          output=a_IIT_update(current_state,Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,0,0,max_log_bound_vector(replica));
           bool update_state=true;
           //During burn-in:
           ////// Update = true, we always update the constant
@@ -1137,7 +1137,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,in
         current_temp=temp(index_process(replica));
         current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
         
-        output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,true,0,0,max_log_bound_vector(replica));
+        output=a_IIT_update(X.col(replica),Q_matrix,bal_function[index_process(replica)],current_temp,current_log_bound,update_constant,0,0,max_log_bound_vector(replica));
         //During burn-in:
         ////// Update = true, we always update the constant
         ////// prob_to_dec=0, we never decrease the constant 
