@@ -606,7 +606,6 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
   return ret;
 }
 
-
 // [[Rcpp::export]]
 List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function, int initial_state, double decreasing_constant,std::string reduc_model){
   //// Initialize variables to use in the code
