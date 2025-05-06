@@ -18,7 +18,7 @@ theme_update(base_size = 17,legend.key.size = unit(1, 'cm'));
 chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
-chosen_ids <-c(213:216)#c(71:75)#c(81:85)#c(76:80)#c(71:75)## #
+chosen_ids <-228:231#223:227#c(900,902,903,905)#c(126:129)
 # chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
