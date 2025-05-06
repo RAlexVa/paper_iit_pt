@@ -200,15 +200,15 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 198,PT_A_IIT,5,NA,500,20000,0,701,,1,0.15,0.1,,1000000,0,never,7_mode,,,,
 199,PT_A_IIT,1,NA,500,20000,0,65,,1,0.15,0.1,,1000000,0,never,7_mode,,,,
 200,PT_A_IIT,1,NA,500,20000,0,65,,1,0.15,0.11,,1000000,0,never,7_mode,,,,
-201,PT_A_IIT,100,NA,10,600000,0,70520,,1,0.37,0.24,,0,0,never,bimodal,Need to modify temperatures (bias fix),Time limit (10hr),Simulation 10 iteration 77001,"En mercury (Stil running) sim 20 on may 5, en DRAC 50hr,16cores, 20GB ram"
+201,PT_A_IIT,100,NA,10,600000,0,70520,,1,0.37,0.24,,0,0,never,bimodal,Need to modify temperatures (bias fix),Time limit (10hr),Simulation 10 iteration 77001,Los maté en todos lados
 202,PT_IIT_Z,100,6000000,10,NA,0,70520,sq,1,0.37,0.15,,0,0,0,bimodal,"Final results, pocos interswap",OK,En mercury,
 203,PT_IIT_Z,100,6000000,10,NA,0,70520,min,1,0.37,0.15,,0,0,0,bimodal,"Final results, pocos interswap",OK,En mercury,
 204,PT_A_IIT_RF,100,6000000,10,NA,0,70520,sq,1,0.37,0.15,,0,0,never,bimodal,"Final results, pocos interswap",OK,En mercury,
 205,PT_IIT_Z,100,12000000,10,NA,0,70520,sq,1,0.16,0.05,,0,0,0,7_mode,"Final results, pocos interswap",OK,"Corrio en 24hr, 10GB ram, 12 cores",
 206,PT_IIT_Z,100,12000000,10,NA,0,70520,min,1,0.155,0.06,,0,0,0,7_mode,"Final results, pocos interswap",OK,"Corrio en 26hr,10GB,12 cores",
 207,PT_A_IIT_RF,100,12000000,10,NA,0,70520,,1,0.155,0.055,,0,0,never,7_mode,"Final results, pocos interswap",OK,"Corrio en 30hr,10GB,12 cores",
-208,PT_A_IIT,100,NA,10,1200000,0,70520,,1,0.15,0.095,,0,0,never,7_mode,Need to modify temperatures (bias fix),"Time limit, se acabaron 10hr","13GB ram, 12 cores, Ya habia acabado","en DRAC 25hr, 16cores, 15GB ram"
-209,PT_A_IIT,100,NA,50,120000,0,20381,,1,0.37,0.24,,0,0,never,bimodal,Need to modify temperatures (bias fix),"Time limit, se le acabaron 40hr","2GB ram, 12 cores, sim 77","en DRAC 50hr,16cores, 20GB ram"
+208,PT_A_IIT,100,NA,10,1200000,0,70520,,1,0.15,0.095,,0,0,never,7_mode,Need to modify temperatures (bias fix),"Time limit, se acabaron 10hr","13GB ram, 12 cores, Ya habia acabado",Los maté en todos lados
+209,PT_A_IIT,100,NA,50,120000,0,20381,,1,0.37,0.24,,0,0,never,bimodal,Need to modify temperatures (bias fix),"Time limit, se le acabaron 40hr","2GB ram, 12 cores, sim 77",Los maté en todos lados
 210,PT_IIT_Z,100,6000000,50,NA,0,20381,sq,1,0.37,0.15,,0,0,0,bimodal,"Final results, mas interswap",seems OK,,
 211,PT_IIT_Z,100,6000000,50,NA,0,20381,min,1,0.37,0.15,,0,0,0,bimodal,"Final results, mas interswap",seems OK,,
 212,PT_A_IIT_RF,100,6000000,50,NA,0,20381,sq,1,0.37,0.15,,0,0,never,bimodal,"Final results, mas interswap",seems OK,,
@@ -218,9 +218,9 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 216,PT_A_IIT,100,NA,50,240000,0,20381,,1,0.15,0.095,,0,0,never,7_mode,Need to modify temperatures (bias fix),seems OK,,
 217,PT_A_IIT,1,NA,50,12000,0,66,,1,0.37,0.24,,0,0,zero,bimodal,checking bias... FIXING BIAS!!!,No se mando,,
 218,PT_A_IIT,1,NA,50,10,0,66,,1,0.37,0.24,,0,0,zero,bimodal,checking bias,No se mando,,
-219,PT_A_IIT,100,NA,10,600000,0,70520,,1,0.37,0.24,,0,0,zero,bimodal,Need to modify temperatures (bias fix),Time limit (10hr),imulation: 10 Swap: 537201,"En mercury (Stil running) sim 20 on may 5, en DRAC 50hr,16cores, 20GB ram"
-220,PT_A_IIT,100,NA,10,1200000,0,70520,,1,0.15,0.095,,0,0,zero,7_mode,Need to modify temperatures (bias fix),Time limit (10hr),"Ya habia terminado en 10r, 13GB ram,12cores","en DRAC 25hr, 16cores, 15GB ram"
-221,PT_A_IIT,100,NA,50,120000,0,20381,,1,0.37,0.24,,0,0,zero,bimodal,Need to modify temperatures (bias fix),Time limit (40hr),"Sim 65, 24k (en 24), sim 76 70k en 40","en DRAC 50hr,16cores, 20GB ram"
+219,PT_A_IIT,100,NA,10,600000,0,70520,,1,0.37,0.24,,0,0,zero,bimodal,Need to modify temperatures (bias fix),Time limit (10hr),imulation: 10 Swap: 537201,Los maté en todos lados
+220,PT_A_IIT,100,NA,10,1200000,0,70520,,1,0.15,0.095,,0,0,zero,7_mode,Need to modify temperatures (bias fix),Time limit (10hr),"Ya habia terminado en 10r, 13GB ram,12cores",Los maté en todos lados
+221,PT_A_IIT,100,NA,50,120000,0,20381,,1,0.37,0.24,,0,0,zero,bimodal,Need to modify temperatures (bias fix),Time limit (40hr),"Sim 65, 24k (en 24), sim 76 70k en 40",Los maté en todos lados
 222,PT_A_IIT,100,NA,50,240000,0,20381,,1,0.15,0.095,,0,0,zero,7_mode,Need to modify temperatures (bias fix),seems OK,,
 223,PT_A_IIT,1,NA,10,100000,0,70520,,1,0.5,0.33,,100000,0,never,bimodal,Finding new temperatures,,,
 224,PT_A_IIT,1,NA,50,100000,0,20381,,1,0.5,0.33,,100000,0,never,bimodal,Finding new temperatures,,,
@@ -231,10 +231,10 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 229,PT_A_IIT,1,NA,50,200000,0,20381,,1,0.21,0.14,,100000,0,never,7_mode,Finding new temperatures,,,
 230,PT_A_IIT,1,NA,10,200000,0,70520,,1,0.21,0.14,,100000,0,zero,7_mode,Finding new temperatures,,,
 231,PT_A_IIT,1,NA,50,200000,0,20381,,1,0.21,0.14,,100000,0,zero,7_mode,Finding new temperatures,,,
-232,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,s1,
-233,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,s2,
-234,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,s3,
-235,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,s4,
+232,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,"Sim 8, los mate",Sim 8
+233,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,"Sim 34, los mate",Sim 34
+234,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,"Sim 8, los mate",Sim 8
+235,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,"Sim 34, los mate",Sim 34
 236,PT_A_IIT,100,NA,10,1200000,0,9949,,1,0.21,0.14,,0,0,never,7_mode,"Final results, new temperatures",Running in probability,s5,
 237,PT_A_IIT,100,NA,50,240000,0,9949,,1,0.21,0.14,,0,0,never,7_mode,"Final results, new temperatures",Running in probability,s6,
 238,PT_A_IIT,100,NA,10,1200000,0,9949,,1,0.21,0.14,,0,0,zero,7_mode,"Final results, new temperatures",Running in probability,s7,
