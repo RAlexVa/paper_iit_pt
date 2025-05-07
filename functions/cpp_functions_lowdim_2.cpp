@@ -704,11 +704,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   mat tvd_report(total_sim,tvd_measurements); //Create a matrix to store the tvd measurements
   mat tvd_time_report(total_sim,tvd_measurements); //Create a matrix to store the time of tvd measurements    
  
- // Variables to store number of visits to the modes
- int mode1=21845;//Mode corresponding to 1,0,1,0,...
- int mode2=43690;//Mode corresponding to 0,1,0,1,...
-  mat info_mode1(1,2);
-  mat info_mode2(1,2);
+
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -837,17 +833,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           if(current_temp==1){ // For the original temperature replica
             int state=vec_to_num(X.col(replica));
             pi_est(state)+=new_samples;//Add weight
-//// Store the information for the modes
-            if(state==mode1){
-              rowvec new_row={Z,new_samples*1.0};
-              info_mode1.insert_rows(info_mode1.n_rows,new_row);
-              // Rcpp::Rcout << "Assigned to mode1: "<<new_samples<<" originally: "<<total_samples_bk<< std::endl;
-            }
-            if(state==mode2){
-              rowvec new_row={Z,new_samples*1.0};
-              info_mode2.insert_rows(info_mode2.n_rows,new_row);
-              // Rcpp::Rcout << "Assigned to mode2: "<<new_samples<<" originally: "<<total_samples_bk<< std::endl;
-            }
+
             //// Check if it's the first time that replica with temperature 1 visits this state
             if(first_visit(state)==0){
               mat current_slice=total_iterations.slice(s);//Extract current slice
@@ -974,8 +960,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   ret["tvd_report"]=tvd_report;
   ret["tvd_measurements"]=swap_to_measure;
   ret["tvd_time_report"]=tvd_time_report;
-  ret["info_mode1"]=info_mode1;
-  ret["info_mode2"]=info_mode2;
   return ret;
 }
 
