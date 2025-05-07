@@ -231,13 +231,13 @@ id,algorithm,simulations,iterations,interswap,total_swap,start_state,seed,bf,t1,
 229,PT_A_IIT,1,NA,50,200000,0,20381,,1,0.21,0.14,,100000,0,never,7_mode,Finding new temperatures,,,
 230,PT_A_IIT,1,NA,10,200000,0,70520,,1,0.21,0.14,,100000,0,zero,7_mode,Finding new temperatures,,,
 231,PT_A_IIT,1,NA,50,200000,0,20381,,1,0.21,0.14,,100000,0,zero,7_mode,Finding new temperatures,,,
-232,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,"Sim 8, los mate",Sim 8
-233,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,"Sim 34, los mate",Sim 34
-234,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,"Sim 8, los mate",Sim 8
-235,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,"Sim 34, los mate",Sim 34
-236,PT_A_IIT,100,NA,10,1200000,0,9949,,1,0.21,0.14,,0,0,never,7_mode,"Final results, new temperatures",Running in probability,s5,
+232,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,s1 (lo volvi a correr en 6 mayo),
+233,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,never,bimodal,"Final results, new temperatures",Running in probability,s2 (lo volvi a correr en 6 mayo),
+234,PT_A_IIT,100,NA,10,600000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,s3 (lo volvi a correr en 6 mayo),
+235,PT_A_IIT,100,NA,50,120000,0,9949,,1,0.5,0.33,,0,0,zero,bimodal,"Final results, new temperatures",Running in probability,s4 (lo volvi a correr en 6 mayo),
+236,PT_A_IIT,100,NA,10,1200000,0,9949,,1,0.21,0.14,,0,0,never,7_mode,"Final results, new temperatures",Running in probability,"s5, finishing",
 237,PT_A_IIT,100,NA,50,240000,0,9949,,1,0.21,0.14,,0,0,never,7_mode,"Final results, new temperatures",Running in probability,s6,
-238,PT_A_IIT,100,NA,10,1200000,0,9949,,1,0.21,0.14,,0,0,zero,7_mode,"Final results, new temperatures",Running in probability,s7,
+238,PT_A_IIT,100,NA,10,1200000,0,9949,,1,0.21,0.14,,0,0,zero,7_mode,"Final results, new temperatures",Running in probability,"s7, finishing",
 239,PT_A_IIT,100,NA,50,240000,0,9949,,1,0.21,0.14,,0,0,zero,7_mode,"Final results, new temperatures",Running in probability,s8,
 ,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,
