@@ -841,7 +841,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         }
       }
       track_burn_in+=sample_inter_swap;
-      Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
+      // Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
 //////////////////////Finish the loop for burn-in period
@@ -853,7 +853,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       temporal_mat1.fill(-1); //Reset the temporal matrix to store distance to modes
       temporal_mat2.fill(-1); //Reset the temporal matrix to store distance to modes
       temporal_origin.fill(-1);//Reset the temporal matrix to store distance to modes
-      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;
+        Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         // Rcpp::Rcout << "Sim: " << s+startsim << " Swap: " << i <<"replica: "<<replica<< std::endl;
@@ -962,7 +963,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       distance_origin.rows(i*sample_inter_swap,((i+1)*sample_inter_swap)-1)=temporal_origin;
       // Rcpp::Rcout <<"Succesfully stored in big matrix" << std::endl;
       //// Start replica swap process
-      Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;    
+      // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;    
       swap_count+=1;//Increase the count of swaps
       // Rcpp::Rcout << "Trying swap: " << swap_count << std::endl;
       epsilon_indic.fill(-1); //Epsilon indic starts as -1

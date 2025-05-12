@@ -781,9 +781,10 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         }
       }
       track_burn_in+=sample_inter_swap;
-      Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
+      // Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << ". Done " << track_burn_in <<" samples in burn-in period"<< std::endl;
     }
     ////Finish the loop for burn-in period
+    Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
     swap_count=0; //Reset swap count
     // Rcpp::Rcout <<"After burn-in log-bound vector:\n "<< log_bound_vector << std::endl;
     // Rcpp::Rcout <<"After burn-in  MAX log-bound vector:\n "<< max_log_bound_vector << std::endl;
@@ -791,7 +792,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;
+        Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       // if (i % 10 == 1) {Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;}
       // Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;
       //   bool check_bool= log_bound_vector(J)==0;
