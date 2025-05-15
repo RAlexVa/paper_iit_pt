@@ -188,6 +188,7 @@ run_lowd <- function(list_ids){
           }
         }
         #First export everything
+        saveRDS(output,file=file.path("results",paste0("raw_sim_lowdim_id_",id_chosen,".Rds")))
         for(e in names(output)){
           export[[e]] <- output[[e]]
         }
