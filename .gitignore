@@ -1,4 +1,5 @@
 .Rproj*
+results/raw_exports
 paper_iit_pt.Rproj
 *.jpg
 .Rdata
