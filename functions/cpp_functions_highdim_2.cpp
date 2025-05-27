@@ -297,30 +297,29 @@ List IIT_update_w(vec X,const arma::mat& M,String chosen_bf, double temperature)
 
 // [[Rcpp::export]]
 List a_IIT_update(vec X,const arma::mat& M, String chosen_bf, const double& temperature, double log_bound, const bool& update, double prob_to_dec, const double& decreasing_constant, double max_logbound_found){
-  const double threshold = 1e-5;//Threshold for updating maximum bound. It has to change at least this
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
+  double logpi_current= loglik(X,M);// likelihood of current state
+  
+  const double threshold = 1e-5;//Threshold for updating maximum bound. It has to change at least this
   vec logprobs(total_neighbors, fill::zeros); //probabilities
   vec max_logprobs(total_neighbors,fill::zeros);//vector to store max-log-probabilities
-  ////// Compute likelihood of current state
-  double logpi_current=0;
-  logpi_current = loglik(X,M);
-  ////// Compute weight for all neighbors
   double temporal=0;
-  // double temp_bound = 0;
   vec newX;
-  for(int j=0; j<total_neighbors;j++){
-    newX = X;
-    newX.row(j) = 1-X.row(j);//Change coordinate of the state to define new neighbor
-    temporal= temperature*(loglik(newX,M)-logpi_current);
-    //Apply balancing function to log probability times temperature ////
-    logprobs(j)=temporal;//Store raw log_probability
-    max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
-  }// End of loop to compute raw log-probability of neighbors
-  // // Update bound if needed
-  // temp_bound=bal_func(temperature*(logpi_current-loglik(newX,M)), chosen_bf); //apply bf to the highest of pix-piy or piy-pix
-  // log_bound=ret_max(temporal,temp_bound,log_bound);
+
+
+  
+  
+  
   if(update){//If it's defined to keep updating the bounding constant
-    // Rcpp::Rcout <<"Temp: "<< temperature<<" C_max_bound: "<<max_logbound_found<<" new max bound: "<<bal_func(max(max_logprobs),"sq")<<std::endl;
+    ////// Compute weight for all neighbors
+    for(int j=0; j<total_neighbors;j++){
+      newX = X;
+      newX.row(j) = 1-X.row(j);//Change coordinate of the state to define new neighbor
+      temporal= temperature*(loglik(newX,M)-logpi_current);
+      logprobs(j)=temporal;//Store raw log_probability
+      max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
+    }// End of loop to compute raw log-probability of neighbors
+    
     double checking_max_logprob=bal_func(max(max_logprobs),"sq");
     if(max_logbound_found<checking_max_logprob && (checking_max_logprob-max_logbound_found)>=threshold){
       // Rcpp::Rcout <<"Diff en log bound: "<< checking_max_logprob-max_logbound_found<<std::endl;
@@ -359,14 +358,25 @@ List a_IIT_update(vec X,const arma::mat& M, String chosen_bf, const double& temp
         // Rcpp::Rcout <<"Rejected a bounding constant decrease"<< std::endl;
       }
     }
+    //// Apply bounding B.F. with updated constant    
+    for(int j=0;j<total_neighbors;j++){
+      logprobs(j)=bound_sq(logprobs(j),log_bound);
+    }
+  }else{//In case we don't update the bouding constant
+    
+    //// Apply bounded B.F. without modifying the constant
+    for(int j=0;j<total_neighbors;j++){
+      newX = X;
+      newX.row(j) = 1-X.row(j); //Change coordinate of the state to define new neighbor
+      temporal = temperature*(loglik(newX,M)-logpi_current);
+      logprobs(j)=bound_sq(temporal,log_bound);
+    }
   }
-  //After the bound has been updated we apply the bounded balancing function to the vector of log probabilities
+  
   /////////////
   ////IMPORTANT: we're only using bound sqrt root for the adaptive IIT
   /////////////
-  for(int j=0;j<total_neighbors;j++){
-    logprobs(j)=bound_sq(logprobs(j),log_bound);
-  }
+
   //////Choose the next neighbor
   vec u = Rcpp::runif(total_neighbors);
   vec probs_choose = log(-log(u)) - logprobs;
