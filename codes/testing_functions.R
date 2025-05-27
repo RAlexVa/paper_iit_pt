@@ -737,15 +737,15 @@ path <- lik_path("gset/G1.txt",op1,op2)
 
 ### Definition of minimum temperature
 #### Considering this we can take temperature 0.005 as a starting point for this problem
-min_temperature <- 0.005
+min_temperature <- 0.0005
 min(path)^min_temperature
 l1^min_temperature
 l2^min_temperature
 lo^min_temperature
 
 prop_temp <- 0.0005
-total_temps <- 30
-temp_ladder <- c(1,0.95,0.90,0.8,0.7,0.5,0.4,0.3,0.2,0.1,0.09,0.05,0.01,0.005,0.001)
+total_temps <- 20
+temp_ladder <- c(1,0.95,0.90,0.8,0.7,0.5,0.4,0.3,0.2,0.1,0.09,0.05,0.01,0.0005)
 total_temps <- length(temp_ladder)
 temp_ladder
 # temp_ladder <- c(0.0005,0.0006)
