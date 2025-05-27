@@ -18,8 +18,8 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 # chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
-chosen_ids <-c(190,191,193,194,196-199)#223:227#c(900,902,903,905)#c(126:129)
-# chosen_ids <-c(130,132,134,136,138,142,143,144)#c(129,131,133,135,137,139,140,141)>
+# chosen_ids <-c(205,206,207,237,239,319,328,294)#c(318:333)#c(265:287)#c(205,206,207,237,239)#c(190,191,193,194,196:199)#223:227#c(900,902,903,905)#c(126:129)
+chosen_ids <-292:301#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
@@ -27,8 +27,8 @@ chosen_ids <-c(190,191,193,194,196-199)#223:227#c(900,902,903,905)#c(126:129)
 #For PT A-IITm there doesn't seem to be a big issue
 #For PT A-IITw it seems to have been better with 4 temperatures
 # but still doesn't get the needed swap rate
-
-# chosen_bimodal <- c(129,135,137,139)
+# 
+# chosen_bimodal <- c(202,203,282,252,254)#c(202,203,204,233,235,272,282,252,254)#c(129,135,137,139)
 # print_bimodal <- TRUE
 # chosen_ids <- chosen_bimodal
 
@@ -36,7 +36,7 @@ chosen_ids <-c(190,191,193,194,196-199)#223:227#c(900,902,903,905)#c(126:129)
 # For PT-IIT and PT A-IITw we only use 3 temperatures because it had the best performance in TVD
 # For PT A-IITm we still have to identify the best temperature
 # 
-# chosen_multimodal <- c(165,167,169,190)
+# chosen_multimodal <- c(205,206,328,294)#c(205,206,207,237,239,319,328,294)#c(165,167,169,190)
 # print_multimodal <- TRUE
 # chosen_ids <- chosen_multimodal
 
@@ -233,6 +233,7 @@ for(i in 1:nrow(data_sum)){
   if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
   if(algorithm=="PT_IIT_Z"){algorithm <- paste0("PT-IIT (",data_sum |> slice(i)|> pull(bf),")")}
   if(algorithm=="PT_A_IIT_RF"){algorithm <- "PT A-IIT w"}
+  if(chosen_dim=="lowdim"){  if(data_sum |> slice(i) |> pull(reduc_model)=="zero"){algorithm <- "RF-MH"}}
   
 ##### Optional add the ID of the simulation into the name of the algorithm
   if(!(print_bimodal || print_multimodal)){algorithm <- paste0(algorithm,"(",data_sum |> slice(i) |> pull(id),")")}
@@ -659,9 +660,26 @@ if(nrow(iterations)>0){
               max=round(max(last_visit),2))
   swaps_to_explore <- rbind(swaps_to_explore,temp)
   
+## Report on number of iterations interswap
+  
+  interswap_report <- data_sum |> select(id,interswap)
+  
+  rep_iter <- iterations |> 
+    mutate(id=as.numeric(str_extract(alg,"\\d+"))) |> 
+    left_join(interswap_report,by="id") |> 
+    select(-id) |> 
+    group_by(alg,interswap) |> 
+    summarise(across(-sim, mean))
+
+  if(print_bimodal || print_multimodal){rep_iter <- rep_iter |> select(-interswap)}
+  jpeg(file.path(export_path,paste0(export_file_name,"_interswaps",".jpg")),width=85*ncol(rep_iter),height=35*nrow(rep_iter),pointsize = 30)
+  grid.arrange(tableGrob(rep_iter))
+  dev.off()  
+  
+  
 }
 
-jpeg(file.path(export_path,paste0(export_file_name,"_table_swaps",".jpg")),width=60*ncol(swaps_to_explore),height=35*nrow(swaps_to_explore),pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_table_swaps",".jpg")),width=100*ncol(swaps_to_explore),height=35*nrow(swaps_to_explore),pointsize = 30)
 grid.arrange(tableGrob(swaps_to_explore))
 dev.off()
 
@@ -686,6 +704,8 @@ forsurv <- mode_time |>group_by(alg,sim) |>
   summarise(first_time=min(time),last_time=max(time)) |> ungroup() |> 
   select(alg,last_time)
 
+# forsurv <- forsurv |> filter(str_detect(alg,"\\(26[7]\\)|\\(27[1268]\\)|\\(28[023]\\)"))
+
 fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~alg,data=forsurv)
 if(check_number_modes=="bimodal"){time_br <- 0.2}
 if(check_number_modes=="7_mode"){time_br <- 0.5}
@@ -700,7 +720,7 @@ if(check_number_modes=="7_mode"){time_br <- 0.5}
            font.x = 15,        # X-axis label font size
            font.y = 15,        # Y-axis label font size
            font.tickslab = 12, # Axis tick labels (numbers) font size
-           font.legend = 16))   # Legend text font size)
+           font.legend = 10))   # Legend text font size)
 
 table_time_mode <- mode_time |> group_by(alg,sim) |>
   summarise(first_time=min(time),last_time=max(time)) |> 
@@ -714,7 +734,7 @@ summarise(min=min(last_time),
 
 grid.arrange(tableGrob(table_time_mode))
 
-jpeg(file.path(export_path,paste0(export_file_name,"_time_mode",".jpg")),width=800,height =400,pointsize = 30)
+jpeg(file.path(export_path,paste0(export_file_name,"_time_mode",".jpg")),width=800,height =400,pointsize = 30, quality=100)
 print(plot_surv_mode)
 dev.off()
 
@@ -751,6 +771,15 @@ mean_tvd_plot <- sum_tvd |>
   labs(title='Mean TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")
 mean_tvd_plot 
 
+trunc_mean_tvd_plot <- sum_tvd |> filter(mean_tvd<0.1) |> 
+  ggplot(aes(x=max_time,y=mean_tvd, col=alg))+
+  geom_point(size=2.5)+
+  geom_line(linewidth=0.8)+
+  scale_x_continuous()+
+  labs(title='Mean TVD',color='Algorithm', x="Seconds", y="Total Variation Distance")+
+  theme_minimal()
+trunc_mean_tvd_plot
+
 sum_tvd |> 
   ggplot(aes(x=max_time,y=q2_tvd, fill=alg, col=alg))+
   geom_line(linewidth=0.8)+
@@ -778,6 +807,10 @@ sum_tvd |>
 
 jpeg(file.path(export_path,paste0(export_file_name,"_tvd_mean",".jpg")),width=800,height =400,pointsize = 30)
 print(mean_tvd_plot)
+dev.off()
+
+jpeg(file.path(export_path,paste0(export_file_name,"_tvd_mean_trunc",".jpg")),width=800,height =400,pointsize = 30)
+print(trunc_mean_tvd_plot)
 dev.off()
 
 jpeg(file.path(export_path,paste0(export_file_name,"_tvd_max",".jpg")),width=800,height =400,pointsize = 30)
@@ -850,16 +883,27 @@ if(chosen_dim=="highdim"){
                 fastest_min=min(min_iter),
                 mean_min=mean(min_iter),
                 slowest_min=max(min_iter))
+ # ### Report for each algorithm   
+ #    for(id in chosen_ids){
+ #      id_text <- as.character(id)
+ #      cat(paste0("printing report for id:",id_text,"\n"))
+ #      temp_report <- distance_report |> filter(str_detect(alg,id_text))
+ #      jpeg(file.path(export_path,paste0(id_text,"_",chosen_dim,"_distance_report",".jpg")),width=80*ncol(temp_report),height=23*nrow(temp_report),pointsize = 30)
+ #      grid.arrange(tableGrob(temp_report))
+ #      dev.off()
+ #    }
     
-    for(id in chosen_ids){
-      id_text <- as.character(id)
-      cat(paste0("printing report for id:",id_text,"\n"))
-      temp_report <- distance_report |> filter(str_detect(alg,id_text))
-      jpeg(file.path(export_path,paste0(id_text,"_",chosen_dim,"_distance_report",".jpg")),width=80*ncol(temp_report),height=23*nrow(temp_report),pointsize = 30)
-      grid.arrange(tableGrob(temp_report))
-      dev.off()
-    }
-    
+### Report of temperature 1
+temp_1_report <- distance_report |> filter(temperature==1)
+jpeg(file.path(export_path,paste0(export_file_name,"_dist_to_modes_t1",".jpg")),width=90*ncol(temp_1_report),height=25*nrow(temp_1_report),pointsize = 30)
+grid.arrange(tableGrob(temp_1_report))
+dev.off()   
+
+temp_max_report <- distance_report |> filter(temperature==max(temperatures))
+jpeg(file.path(export_path,paste0(export_file_name,"_dist_to_modes_tmax",".jpg")),width=90*ncol(temp_1_report),height=25*nrow(temp_1_report),pointsize = 30)
+grid.arrange(tableGrob(temp_max_report))
+dev.off()  
+
     
   }
 
