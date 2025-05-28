@@ -83,10 +83,10 @@ mat initializeMatrix(const std::vector<int>& coordinates, int size, int num_repl
 }
 
 // [[Rcpp::export]]
-mat initializeRandom(const int& nun_rows,const int& num_cols, const double& prob) {
+mat initializeRandom(const int& num_rows,const int& num_cols, const double& prob) {
 
   // Initialize a matrix with random values between 0 and 1
-  arma::mat A = arma::randu<arma::mat>(nun_rows, num_cols);
+  arma::mat A = arma::randu<arma::mat>(num_rows, num_cols);
   
   // Threshold the random values to 0 or 1
   A = arma::conv_to<arma::mat>::from(A > prob);
