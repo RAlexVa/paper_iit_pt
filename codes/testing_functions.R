@@ -1080,3 +1080,50 @@ for(i in 1:p){
 # a ser MIN{1,r}, o sea es traditional MH
 #El problema era que cuando se me acababan los L samples
 #Yo si cambiaba de estado, y no debia
+
+
+##### Testing function to find temperatures #####
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/find_temp_func.cpp")
+
+p <- 16
+interswap <- 50
+theta <- 6
+temp_ini <- 1
+bal_function <- "sq"
+
+set.seed(123)
+temperature_PT_IIT(p,interswap, temp_ini,bal_function, theta)
+
+
+
+p <- 800
+interswap <- 100
+temp_ini <- 1
+bal_function <- "sq"
+theta <- 3
+
+set.seed(125)
+temperature_PT_IIT(p,interswap, temp_ini,bal_function, theta)
+# FINAL RESULTS:
+#   Swap: 374 avg. swap prob: 0.234261 new temperature: 0.90526
+
+
+set.seed(888)
+temperature_PT_IIT(p,interswap, temp_ini,bal_function, theta)
+
+#log(1/x - 1)
+#1/(1+exp(x))
+
+
+##### Testing writing files
+
+for(i in 1:5){
+  if(i==1){
+    write(paste0("Iteration \n",i," result: ",runif(1)), file = "results/results.txt", append = FALSE)
+  }else{
+    write(paste0("Iteration ",i," result: ",runif(1)), file = "results/results.txt", append = TRUE)
+  }
+}
