@@ -68,9 +68,9 @@ find_temps <- function(list_ids){
     }
     
     if(t_counter==1){
-      write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,"\ntemp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,".txt"), append = FALSE)
+      write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,"\ntemp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_",id_chosen,"_alg_",alg,".txt"), append = FALSE)
     }else{
-      write(paste0("temp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,".txt"), append = TRUE)
+      write(paste0("temp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_",id_chosen,"_alg_",alg,".txt"), append = TRUE)
     }
     temp_ini <- output;
   } ## End for loop for the temperatures        
