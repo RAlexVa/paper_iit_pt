@@ -1114,6 +1114,29 @@ temperature_PT_IIT(p,interswap, temp_ini,bal_function, theta)
 set.seed(888)
 temperature_PT_IIT(p,interswap, temp_ini,bal_function, theta)
 
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/find_temp_func.cpp")
+
+p <- 16
+interswap <- 100
+theta <- 6
+temp_ini <- 1
+bal_function <- "sq"
+
+set.seed(13)
+temperature_PT_a_IIT(p,interswap, temp_ini,bal_function, theta)
+# FINAL RESULTS:
+#   Swap: 97553 avg. swap prob: 0.234799 new temperature: 0.380702
+
+
+set.seed(54)
+temperature_PT_a_IIT(p,interswap, temp_ini,bal_function, theta)
+# FINAL RESULTS:
+#   Swap: 22866 avg. swap prob: 0.234593 new temperature: 0.082487
+
 #log(1/x - 1)
 #1/(1+exp(x))
 
