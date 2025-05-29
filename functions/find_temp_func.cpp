@@ -458,7 +458,7 @@ double temperature_PT_IIT(int p,int interswap, double temp_ini, const std::strin
   if(swap_count % 1000 == 0){
     Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
   }
-  if(swap_count == 2000000){// Force finishing of algorithm
+  if(swap_count == 1000000){// Force finishing of algorithm
     stay_in_loop=false;
   } 
 
@@ -614,7 +614,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
           Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
         } 
         
-        if(swap_count == 2000000){// Force finishing of algorithm
+        if(swap_count == 1000000){// Force finishing of algorithm
           stay_in_loop=false;
         } 
 
