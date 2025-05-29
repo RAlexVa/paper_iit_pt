@@ -351,7 +351,7 @@ double temperature_PT_IIT(int p,int interswap, double temp_ini, const std::strin
   List output; //To store output of the update function
   
 //// Parameters for the temperature finding   
-  double rho=0;//1.3;//-2.6; // To define initial second temperature
+  double rho=-3;//1.3;//-2.6; // To define initial second temperature
   double threshold=0.001;//.1;//0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   
@@ -364,7 +364,7 @@ double temperature_PT_IIT(int p,int interswap, double temp_ini, const std::strin
 //// Initialize temperatures
   vec temp={temp_ini,round_to(temp_ini/(1+exp(rho)),precision)};
   double avg_swap_prob=0;
-  
+  int count_convergence=0;
   
   double current_temp;
   int swap_count=0; //To count how many swaps were performed
@@ -449,15 +449,22 @@ double temperature_PT_IIT(int p,int interswap, double temp_ini, const std::strin
  }
 
  //Check current threshold
- 
- if(abs(target_swap_rate-avg_swap_prob)<threshold && swap_count>1){
+ // Rcpp::Rcout <<"Avg. swap_rate: "<<avg_swap_prob << std::endl; 
+ if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
+   count_convergence+=1;
+   if(count_convergence>=3){
      stay_in_loop=false;
+   }
+     
+ }else{
+   count_convergence=0;
  }
  
 
-  if(swap_count % 1000 == 0){
+  if(swap_count % 500 == 0){
     Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
   }
+  
   if(swap_count == 1000000){// Force finishing of algorithm
     stay_in_loop=false;
   } 
@@ -489,7 +496,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   int temp_count_iter=0;
   
   //// Parameters for the temperature finding   
-  double rho=0;//1.3;//-2.6; // To define initial second temperature
+  double rho=-3;//1.3;//-2.6; // To define initial second temperature
   double threshold=.0003;//.01;////0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   int count_convergence=0;
@@ -598,8 +605,12 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
         }
         
         //Check current threshold
+        // Rcpp::Rcout <<"Target swap_rate: "<<target_swap_rate << std::endl; 
+        // Rcpp::Rcout <<"Threshold: "<<threshold << std::endl; 
+        // Rcpp::Rcout <<"Diff swap_rate: "<<target_swap_rate-avg_swap_prob << std::endl; 
+        // Rcpp::Rcout <<"Abs.Diff swap_rate: "<<abs(target_swap_rate-avg_swap_prob) << std::endl; 
         
-        if(abs(target_swap_rate-avg_swap_prob)<threshold && swap_count>1){
+        if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
           count_convergence+=1;
           if(count_convergence>=10){
             stay_in_loop=false; 
@@ -610,9 +621,9 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
         }
         
         
-        if(swap_count % 1000 == 0){
+        if(swap_count % 500 == 0){
           Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-        } 
+        }
         
         if(swap_count == 1000000){// Force finishing of algorithm
           stay_in_loop=false;
