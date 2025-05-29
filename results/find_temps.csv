@@ -1,0 +1,13 @@
+id,algorithm,interswap,seed,model,p,theta,bf,t1,num_temp,comments,Servers comments
+1,PT_IIT_Z,200,1,bimodal,800,3,sq,1,5,repeated below to check convergence,
+2,PT_IIT_Z,200,2,bimodal,800,3,sq,1,5,,
+3,PT_A_IIT,100,3,bimodal,800,3,sq,1,5,repeated below to check convergence,
+4,PT_A_IIT,100,4,bimodal,800,3,sq,1,5,,
+5,PT_IIT_Z,200,5,bimodal,1000,3,sq,1,5,repeated below to check convergence,
+6,PT_IIT_Z,200,6,bimodal,1000,3,sq,1,5,,
+7,PT_A_IIT,100,7,bimodal,1000,3,sq,1,5,repeated below to check convergence,
+8,PT_A_IIT,100,8,bimodal,1000,3,sq,1,5,,
+9,PT_IIT_Z,200,9,bimodal,2000,3,sq,1,5,repeated below to check convergence,
+10,PT_IIT_Z,200,10,bimodal,2000,3,sq,1,5,,
+11,PT_A_IIT,100,11,bimodal,2000,3,sq,1,5,repeated below to check convergence,
+12,PT_A_IIT,100,12,bimodal,2000,3,sq,1,5,,
