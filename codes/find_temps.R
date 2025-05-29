@@ -38,7 +38,6 @@ find_temps <- function(list_ids){
       model <- as.character(sim_chosen$model)
       temp_ini <- as.numeric(sim_chosen$t1)
       number_temperatures <- as.numeric(sim_chosen$num_temp)
-      export <- list();
       #### Function depending on algorithm to use
 #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)      
       writeLines(c("Parameters:",
@@ -53,7 +52,7 @@ find_temps <- function(list_ids){
                    paste0("Balancing function: ",bal_f)))
       
       
-  for(t in 1:number_temperatures){
+  for(t_counter in 1:number_temperatures){
     if(alg=="PT_IIT_Z"){
       # Using Z factor bias correction
       #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
@@ -61,22 +60,21 @@ find_temps <- function(list_ids){
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT with multiplicity list in each replica
-      # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
-      # output <- temperature_PT_a_IIT(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state,reduc_constant,reduc_model)
+      #temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
+      output_list <- temperature_PT_a_IIT(p,interswap,temp_ini,bal_f,theta)
+      output <- output_list[["temp"]];
+      write.table(output_list["iter"], file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,"_iterations_",t_counter,".txt"), 
+                  row.names = FALSE, col.names = FALSE)
     }
     
-    if(t==1){
-      write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,"\ntemp ",t+1," ",output), file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,".txt"), append = FALSE)
+    if(t_counter==1){
+      write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,"\ntemp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,".txt"), append = FALSE)
     }else{
-      write(paste0("temp ",t+1," ",output), file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,".txt"), append = TRUE)
+      write(paste0("temp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,".txt"), append = TRUE)
     }
     temp_ini <- output;
   } ## End for loop for the temperatures        
    
-       
-      
-             
-        
   }## End of the for loop that runs over IDS
 
 
@@ -85,9 +83,5 @@ find_temps <- function(list_ids){
 
 if (!interactive()) {
   args <- commandArgs(trailingOnly = TRUE)
-  run_lowd(args[1])
+  find_temps(args[1])
 }
-
-
-
-
