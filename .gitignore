@@ -8,6 +8,7 @@ codes/hmm_bw0.sh
 codes/main_template.R
 drac_logs
 results/*.Rds
+results/*.txt
 Rpackages
 results/.~lock.find_temps.csv\#
 results/.~lock.simulation_details_highd.csv\#
