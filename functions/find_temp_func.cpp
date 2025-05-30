@@ -355,7 +355,7 @@ List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string 
   double threshold=0.001;//.1;//0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   
-  int precision=5;//To round values
+  int precision=3;//To round values
 
   bool stay_in_loop=true;
   double swap_prob;
@@ -474,9 +474,9 @@ List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string 
 
   // return round_to(temp(1),3);
   List ret;
-  ret["temp"]=round_to(temp(1),3);
+  ret["temp"]=round_to(temp(1),precision);
   ret["swap"]=swap_count;
-  ret["swap_rate"]=avg_swap_prob;
+  ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
   return ret;
 }
 
@@ -503,7 +503,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   double threshold=.0003;//.01;////0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   int count_convergence=0;
-  int precision=5;//To round values
+  int precision=3;//To round values
   
   bool stay_in_loop=true;
   double swap_prob;
@@ -637,10 +637,10 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
   List ret;
   
-  ret["temp"]=round_to(temp(1),3);
+  ret["temp"]=round_to(temp(1),precision);
   ret["iter"]=count_iterations;
   ret["swap"]=swap_count;
-  ret["swap_rate"]=avg_swap_prob;
+  ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
   return ret;
 }
 
