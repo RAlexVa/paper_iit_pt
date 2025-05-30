@@ -64,7 +64,7 @@ find_temps <- function(list_ids){
       #temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
       output_list <- temperature_PT_a_IIT(p,interswap,temp_ini,bal_f,theta)
       output <- output_list[["temp"]];
-      write.table(output_list["iter"], file = paste0("results/temperatures_id_ ",id_chosen,"_alg_",alg,"_iterations_",t_counter,".txt"), 
+      write.table(output_list["iter"], file = paste0("results/temperatures_id_ ",id_chosen,"_iterations_",t_counter,".txt"), 
                   row.names = FALSE, col.names = FALSE)
     }
     
