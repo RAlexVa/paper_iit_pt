@@ -335,7 +335,7 @@ List a_IIT_update(vec X,const arma::mat& M, String chosen_bf, const double& temp
 ////////// Code to find temperatures for Parallel Tempering //////////
 
 // [[Rcpp::export]]
-double temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta){
+List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta){
   // Inputs are:
   // p:dimension
   //interswap: number of iterations to try between replica swaps
@@ -472,10 +472,13 @@ double temperature_PT_IIT(int p,int interswap, double temp_ini, const std::strin
     } 
     Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
 
-  return round_to(temp(1),3);
+  // return round_to(temp(1),3);
+  List ret;
+  ret["temp"]=round_to(temp(1),3);
+  ret["swap"]=swap_count;
+  ret["swap_rate"]=avg_swap_prob;
+  return ret;
 }
-
-
 
 
 // [[Rcpp::export]]
@@ -636,6 +639,8 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   
   ret["temp"]=round_to(temp(1),3);
   ret["iter"]=count_iterations;
+  ret["swap"]=swap_count;
+  ret["swap_rate"]=avg_swap_prob;
   return ret;
 }
 

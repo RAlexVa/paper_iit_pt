@@ -56,7 +56,8 @@ find_temps <- function(list_ids){
     if(alg=="PT_IIT_Z"){
       # Using Z factor bias correction
       #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
-      output <- temperature_PT_IIT(p,interswap,temp_ini,bal_f, theta)
+      output_list <- temperature_PT_IIT(p,interswap,temp_ini,bal_f, theta)
+      output <- output_list[["temp"]];
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT with multiplicity list in each replica
@@ -68,17 +69,20 @@ find_temps <- function(list_ids){
     }
     
     if(t_counter==1){
-      write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,"\ntemp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_",id_chosen,"_alg_",alg,".txt"), append = FALSE)
+      write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,
+                   "\ntemp ",t_counter+1,": ",output,
+                   ", swap_rate: ",output_list[["swap_rate"]],
+                   ", num_swap: ",output_list[["swap"]]), file = paste0("results/temperatures_id_",id_chosen,".txt"), append = FALSE)
     }else{
-      write(paste0("temp ",t_counter+1,": ",output), file = paste0("results/temperatures_id_",id_chosen,"_alg_",alg,".txt"), append = TRUE)
+      write(paste0("temp ",t_counter+1,": ",output,
+                   ", swap_rate: ",output_list[["swap_rate"]],
+                   ", num_swap: ",output_list[["swap"]]), file = paste0("results/temperatures_id_",id_chosen,".txt"), append = TRUE)
     }
     temp_ini <- output;
   } ## End for loop for the temperatures        
    
   }## End of the for loop that runs over IDS
 
-
-  
 }## End of function
 
 if (!interactive()) {
