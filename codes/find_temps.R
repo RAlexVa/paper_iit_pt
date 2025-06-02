@@ -64,20 +64,31 @@ find_temps <- function(list_ids){
       #temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
       output_list <- temperature_PT_a_IIT(p,interswap,temp_ini,bal_f,theta)
       output <- output_list[["temp"]];
-      write.table(output_list["iter"], file = paste0("results/temperatures_id_ ",id_chosen,"_iterations_",t_counter,".txt"), 
-                  row.names = FALSE, col.names = FALSE)
     }
     
     if(t_counter==1){
       write(paste0("alg: ",alg,"\ntemp_ini: ",temp_ini,
                    "\ntemp ",t_counter+1,": ",output,
                    ", swap_rate: ",output_list[["swap_rate"]],
-                   ", num_swap: ",output_list[["swap"]]), file = paste0("results/temperatures_id_",id_chosen,".txt"), append = FALSE)
+                   ", num_swap: ",output_list[["swap"]],
+                   ", seconds: ",output_list[["seconds"]]), 
+            file = paste0("results/temperatures_id_",id_chosen,".txt"), 
+            append = FALSE)
     }else{
       write(paste0("temp ",t_counter+1,": ",output,
                    ", swap_rate: ",output_list[["swap_rate"]],
-                   ", num_swap: ",output_list[["swap"]]), file = paste0("results/temperatures_id_",id_chosen,".txt"), append = TRUE)
+                   ", num_swap: ",output_list[["swap"]],
+                   ", seconds: ",output_list[["seconds"]]), 
+            file = paste0("results/temperatures_id_",id_chosen,".txt"), 
+            append = TRUE)
     }
+## Output de number of iterations
+    if(alg=="PT_A_IIT"){
+      write(paste0("Iterations: ",paste0(round(t(output_list[["iter"]]),3),collapse = ", ")),
+            file = paste0("results/temperatures_id_",id_chosen,".txt"), 
+            append = TRUE)}
+
+    
     temp_ini <- output;
   } ## End for loop for the temperatures        
    
