@@ -81,6 +81,7 @@ double loglik(const arma::Col<double>& X,const arma::Mat<double>& M, const doubl
     
   }else{
     Rcpp::Rcout << "Error matrix number of columns isn't 2" << std::endl;
+    Rcpp::Rcout <<"M: " <<M<< std::endl;
     return(-10000);
   }
 
@@ -99,21 +100,22 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
   return(A);
 }
 
+///// Here just parallelize the update for each replica /////
 
 //// Definition of worker
 struct Parallel_replica_update : public Worker
 {
   //// Data
-  // RMatrix<double> X_n_matrix;//State matrix
-  arma::Mat<double> X_n_matrix;//State matrix
-  // const RMatrix<double> Q_matrix; //Matrix with modes
-  const arma::Mat<double> Q_matrix; //Matrix with modes
+  RMatrix<double> X_n_matrix;//State matrix
+  // arma::Mat<double> X_n_matrix;//State matrix
+  const RMatrix<double> Q_matrix; //Matrix with modes
+  // const arma::Mat<double> Q_matrix; //Matrix with modes
   const int bal_func; //Specified balancing function
-  // const RVector<double> temperatures;//Vector of temperatures
-  const arma::Col<double> temperatures;//Vector of temperatures
+  const RVector<double> temperatures;//Vector of temperatures
+  // const arma::Col<double> temperatures;//Vector of temperatures
   const double theta; //Parameter for 
-  // RMatrix<double> output;
-  arma::Mat<double> output;
+  RMatrix<double> output;
+  // arma::Mat<double> output;
   const std::size_t dim_p; // dimension of the problem (and length of X columns)
   const std::size_t num_temp; // dimension of the problem (and length of X columns)
   
@@ -126,48 +128,50 @@ struct Parallel_replica_update : public Worker
                     const double& theta);
   
   ////  Functions to transform data
-  // arma::Mat<double> convert_X(){
-  //   RMatrix<double> tmp_matrix = X_n_matrix;
-  //   arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_temp, false,true);
-  //   return MAT;
-  // }
-  // 
-  // arma::Mat<double> convert_Q(){
-  //   RMatrix<double> tmp_matrix = Q_matrix;
-  //   arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_temp, false,true);
-  //   return MAT;
-  // }
-  // 
-  // arma::Col<double> convert_temps(){
-  //   RVector<double> tmp_vec = temperatures;
-  //   arma::Col<double> vec(tmp_vec.begin(),num_temp,false,true);
-  //   return vec;
-  // }
+  arma::Mat<double> convert_X(){
+    RMatrix<double> tmp_matrix = X_n_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_temp, false,true);
+    return MAT;
+  }
+
+  arma::Mat<double> convert_Q(){
+    RMatrix<double> tmp_matrix = Q_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
+    return MAT;
+  }
+
+  arma::Col<double> convert_temps(){
+    RVector<double> tmp_vec = temperatures;
+    arma::Col<double> vec(tmp_vec.begin(),num_temp,false,true);
+    return vec;
+  }
   
   
   
   //// Main constructor
   Parallel_replica_update(
-    // NumericMatrix X_n_matrix_in,
-    arma::Mat<double> X_n_matrix_in,
-    // const NumericMatrix Q_matrix_in,
-    const  arma::Mat<double> Q_matrix_in,
+    NumericMatrix X_n_matrix_in,
+    // arma::Mat<double> X_n_matrix_in,
+    const NumericMatrix Q_matrix_in,
+    // const  arma::Mat<double> Q_matrix_in,
     const int bal_func_in,
-    // const NumericVector temperature_in,
-    const arma::Col<double> temperature_in,
+    const NumericVector temperature_in,
+    // const arma::Col<double> temperature_in,
     const double theta_in,
-    // NumericMatrix output_in,
-    arma::Mat<double> output_in)://This binds the class members (defined above) to the constructor arguments
+    NumericMatrix output_in,
+    // arma::Mat<double> output_in,
+    const std::size_t dim_p_in,
+    const std::size_t num_temp_in)://This binds the class members (defined above) to the constructor arguments
     X_n_matrix(X_n_matrix_in),
     Q_matrix(Q_matrix_in),
     bal_func(bal_func_in),
     temperatures(temperature_in),
     theta(theta_in),
     output(output_in),
-    dim_p(X_n_matrix.n_rows),
-    num_temp(X_n_matrix.n_cols)
-    // dim_p(X_n_matrix.n_rows), //I'm not sure how to get the dim
-    // num_tmep(x_n_matrix.n_cols) //I'm not sure how to get the dim
+    dim_p(dim_p_in),
+    num_temp(num_temp_in)
+    //// dim_p(X_n_matrix.n_rows), //I'm not sure how to get the dim
+    //// num_temp(x_n_matrix.n_cols) //I'm not sure how to get the dim
   {}
   
   
@@ -175,19 +179,24 @@ struct Parallel_replica_update : public Worker
   //// Operator
   void operator()(std::size_t begin, std::size_t end){
     //First transform all the inputs
-    // arma::Mat<double> X = convert_X();
-    // arma::Mat<double> Q_matrix = convert_Q();
-    // arma::Col<double> temperatures = convert_temps();
-    
-    
+    arma::Mat<double> X = convert_X();
+    arma::Mat<double> Q_matrix = convert_Q();
+    arma::Col<double> temperatures = convert_temps();
+    int dim_p_int = static_cast<int>(dim_p);
     for(std::size_t r=begin; r<end;r++){ // For for each replica
       double current_temp = temperatures(r);
-      arma::Col temporal_X=IIT_update_p(X_n_matrix,
+    
+      arma::Col<double> temporal_X=IIT_update_p(X.col(r),
                                         Q_matrix,
                                         bal_func,
                                         current_temp,
                                         theta);
-        output.col(r)=temporal_X;
+      // arma::Col<double> temporal_X(dim_p);
+      // temporal_X.zeros();
+      for(int i=0;i<dim_p_int;i++){
+        output(i,r)=temporal_X[i];
+      }
+        
     }
     
   }//End operator
@@ -214,6 +223,8 @@ arma::Col<double> Parallel_replica_update::IIT_update_p(arma::Col<double> X,
   }
   //////Choose the next neighbor
   vec u(total_neighbors,fill::randu);
+  // vec u;
+  // u.fill(0.5);
   vec probs_choose = log(-log(u)) - probs;
   int neigh_pos = (std::min_element(probs_choose.begin(), probs_choose.end()))-probs_choose.begin();
   X.row(neigh_pos) = 1-X.row(neigh_pos); //modify the coordinate of the chosen neighbor
@@ -225,9 +236,15 @@ arma::Col<double> Parallel_replica_update::IIT_update_p(arma::Col<double> X,
 
 //Function to run simulations
 // [[Rcpp::export]]
-arma::Mat<double> PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> temperatures, const std::string bal_func, double theta){
-  int T=temperatures.n_rows;
-  arma::Mat<double> output(p,T);
+NumericMatrix PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> original_temperatures, const std::string bal_func, double theta){
+  int T=original_temperatures.n_rows;
+  
+  const std::size_t dim_p = static_cast<size_t>(p);
+  const std::size_t num_temps = static_cast<size_t>(T);
+  
+  const std::size_t begin = static_cast <size_t> (0);
+  const std::size_t end = static_cast <size_t> (T); 
+  
   // Change String of balancing function into int
   int chosen_bal_func;
   if(bal_func=="sq"){
@@ -240,30 +257,35 @@ arma::Mat<double> PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> tem
   }
   
   //// Define two modes
-  arma::Mat<double> Q_matrix(p,2);
+  NumericMatrix Q_matrix(p,2);
   for(int i=0;i<p;i++){
     if(i%2==0){Q_matrix(i,1)=1;}
     if(i%2==1){Q_matrix(i,0)=1;}
   }
   
   double ppp=randu();
-  arma::Mat<double> X(p,T);
-  X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  arma::Mat<double> original_X(p,T);
+  original_X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
   
   
-  
+  //After initialization of vectors and matrices we transform them to Nuneric variables
+  NumericMatrix X=Rcpp::wrap(original_X);
+  NumericVector temperatures=Rcpp::wrap(original_temperatures);
+  // Rcpp::Rcout <<"Before parallel X:\n "<<X<< std::endl;
+  // Now we start the for loop
   for(int i=0;i<num_iter;i++){
-    arma::Mat<double> output(p,T);
+    NumericMatrix output(p,T);
     
     Parallel_replica_update par_rep_update(
         X,Q_matrix,
         chosen_bal_func,
         temperatures,
         theta,
-        output);// Initialize the worker
+        output,
+        dim_p,
+        num_temps);// Initialize the worker
     
-    const std::size_t begin = static_cast <size_t> (0);
-    const std::size_t end = static_cast <size_t> (T); 
+    
     
     parallelFor(begin,end,par_rep_update);//Perform the for
       X=output;  
@@ -271,6 +293,410 @@ arma::Mat<double> PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> tem
   
   return X;
 }
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+///// Here include the for in the parallelization /////
+//// Definition of worker
+struct Parallel_replica_update_wfor : public Worker
+{
+  //// Data
+  RMatrix<double> X_n_matrix;//State matrix
+  // arma::Mat<double> X_n_matrix;//State matrix
+  const RMatrix<double> Q_matrix; //Matrix with modes
+  // const arma::Mat<double> Q_matrix; //Matrix with modes
+  const int bal_func; //Specified balancing function
+  const RVector<double> temperatures;//Vector of temperatures
+  // const arma::Col<double> temperatures;//Vector of temperatures
+  const double theta; //Parameter for 
+  RMatrix<double> output;
+  // arma::Mat<double> output;
+  const std::size_t dim_p; // dimension of the problem (and length of X columns)
+  const std::size_t num_temp; // dimension of the problem (and length of X columns)
+  const int num_iter;//Number of iterations in the for loop
+  
+  
+  //// Functions to use from outside
+  arma::Col<double> IIT_update_p(arma::Col<double> X,
+                                 const arma::Mat<double>& M,
+                                 const int chosen_bf,
+                                 const double& temperature,
+                                 const double& theta);
+  
+  ////  Functions to transform data
+  arma::Mat<double> convert_X(){
+    RMatrix<double> tmp_matrix = X_n_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_temp, false,true);
+    return MAT;
+  }
+  
+  arma::Mat<double> convert_Q(){
+    RMatrix<double> tmp_matrix = Q_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
+    return MAT;
+  }
+  
+  arma::Col<double> convert_temps(){
+    RVector<double> tmp_vec = temperatures;
+    arma::Col<double> vec(tmp_vec.begin(),num_temp,false,true);
+    return vec;
+  }
+  
+  
+  
+  //// Main constructor
+  Parallel_replica_update_wfor(
+    NumericMatrix X_n_matrix_in,
+    // arma::Mat<double> X_n_matrix_in,
+    const NumericMatrix Q_matrix_in,
+    // const  arma::Mat<double> Q_matrix_in,
+    const int bal_func_in,
+    const NumericVector temperature_in,
+    // const arma::Col<double> temperature_in,
+    const double theta_in,
+    NumericMatrix output_in,
+    // arma::Mat<double> output_in,
+    const std::size_t dim_p_in,
+    const std::size_t num_temp_in,
+    const int num_iter_in)://This binds the class members (defined above) to the constructor arguments
+    X_n_matrix(X_n_matrix_in),
+    Q_matrix(Q_matrix_in),
+    bal_func(bal_func_in),
+    temperatures(temperature_in),
+    theta(theta_in),
+    output(output_in),
+    dim_p(dim_p_in),
+    num_temp(num_temp_in),
+    num_iter(num_iter_in)
+    //// dim_p(X_n_matrix.n_rows), //I'm not sure how to get the dim
+    //// num_temp(x_n_matrix.n_cols) //I'm not sure how to get the dim
+  {}
+  
+  
+  
+  //// Operator
+  void operator()(std::size_t begin, std::size_t end){
+    //First transform all the inputs
+    arma::Mat<double> X = convert_X();
+    arma::Mat<double> Q_matrix = convert_Q();
+    arma::Col<double> temperatures = convert_temps();
+    int dim_p_int = static_cast<int>(dim_p);
+    
+    for(std::size_t r=begin; r<end;r++){ // For for each replica
+      double current_temp = temperatures(r);
+      arma::Col<double> selected_X=X.col(r); // Get the status of the replica
+      arma::Col<double> temporal_X(dim_p);
+      for(int k=0;k<num_iter;k++){//Repeat for as many iterations
+        temporal_X=IIT_update_p(selected_X,
+                                Q_matrix,
+                                bal_func,
+                                current_temp,
+                                theta);
+        selected_X=temporal_X;//Assign new state for the loop
+      }
+      // After num_iter updates, export the resulting file
+      for(int i=0;i<dim_p_int;i++){
+        output(i,r)=temporal_X[i];
+      }
+    }
+    
+  }//End operator
+};// End of worker
+
+// Full definition of update function used inside the worker
+arma::Col<double> Parallel_replica_update_wfor::IIT_update_p(arma::Col<double> X,
+                                                        const arma::Mat<double>& M,
+                                                        const int chosen_bf,
+                                                        const double& temperature,
+                                                        const double& theta){
+  int total_neighbors = X.n_rows; // total number of neighbors is p spacial
+  vec probs(total_neighbors, fill::zeros); //vector of probabilities
+  double logpi_current = loglik(X,M,theta);  // Compute likelihood of current state
+  
+  ////// Compute weight for all neighbors
+  double temporal=0;
+  vec newX;
+  for(int j=0; j<total_neighbors;j++){
+    newX = X;
+    newX.row(j) = 1-X.row(j);
+    temporal=loglik(newX,M,theta)-logpi_current;
+    probs(j)=apply_bal_func(temporal*temperature, chosen_bf);//Apply balancing function to log probability times temperature
+  }
+  //////Choose the next neighbor
+  vec u(total_neighbors,fill::randu);
+  // vec u;
+  // u.fill(0.5);
+  vec probs_choose = log(-log(u)) - probs;
+  int neigh_pos = (std::min_element(probs_choose.begin(), probs_choose.end()))-probs_choose.begin();
+  X.row(neigh_pos) = 1-X.row(neigh_pos); //modify the coordinate of the chosen neighbor
+  return X;
+}
+
+
+
+
+//Function to run simulations
+// [[Rcpp::export]]
+NumericMatrix PT_IIT_parallel_sim_wfor(int p, int num_iter, arma::Col<double> original_temperatures, const std::string bal_func, double theta){
+  int T=original_temperatures.n_rows;
+  
+  const std::size_t dim_p = static_cast<size_t>(p);
+  const std::size_t num_temps = static_cast<size_t>(T);
+  
+  const std::size_t begin = static_cast <size_t> (0);
+  const std::size_t end = static_cast <size_t> (T); 
+  
+  // Change String of balancing function into int
+  int chosen_bal_func;
+  if(bal_func=="sq"){
+    chosen_bal_func=2;
+  }else if(bal_func=="min"){
+    chosen_bal_func=1;
+  }else{
+    Rcpp::Rcout << "Incorrect definition of Balancing function.\n Defaulting to sq " << std::endl;
+    chosen_bal_func=2;
+  }
+  
+  //// Define two modes
+  NumericMatrix Q_matrix(p,2);
+  for(int i=0;i<p;i++){
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
+  }
+  
+  double ppp=randu();
+  arma::Mat<double> original_X(p,T);
+  // original_X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  original_X.zeros();
+  
+  //After initialization of vectors and matrices we transform them to Nuneric variables
+  NumericMatrix X=Rcpp::wrap(original_X);
+  NumericVector temperatures=Rcpp::wrap(original_temperatures);
+  // Rcpp::Rcout <<"Before parallel X:\n "<<X<< std::endl;
+  // Now we apply the parallelized loop
+
+    NumericMatrix output(p,T);//Declare output
+    
+    Parallel_replica_update_wfor par_rep_update_wfor(
+        X,Q_matrix,
+        chosen_bal_func,
+        temperatures,
+        theta,
+        output,
+        dim_p,
+        num_temps,
+        num_iter);// Initialize the worker
+    
+    parallelFor(begin,end,par_rep_update_wfor);//Perform the for
+  
+  
+  return output;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+///// Here include the for in the parallelization AND try to make it replicable /////
+//// Definition of worker
+struct Parallel_replica_update_rep : public Worker
+{
+  //// Data
+  RMatrix<double> X_n_matrix;//State matrix
+  const RMatrix<double> Q_matrix; //Matrix with modes
+  const int bal_func; //Specified balancing function
+  const RVector<double> temperatures;//Vector of temperatures
+  const double theta; //Parameter for 
+  RMatrix<double> output;
+  const std::size_t dim_p; // dimension of the problem (and length of X columns)
+  const std::size_t num_temp; // dimension of the problem (and length of X columns)
+  const int num_iter;//Number of iterations in the for loop
+  std::vector<std::mt19937_64>& rngs;//Vector of RNGs
+  //// Functions to use from outside
+  arma::Col<double> IIT_update_p(arma::Col<double> X,
+                                 const arma::Mat<double>& M,
+                                 const int chosen_bf,
+                                 const double& temperature,
+                                 const double& theta,
+                                 std::mt19937_64& rng);
+  
+  ////  Functions to transform data
+  arma::Mat<double> convert_X(){
+    RMatrix<double> tmp_matrix = X_n_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_temp, false,true);
+    return MAT;
+  }
+  arma::Mat<double> convert_Q(){
+    RMatrix<double> tmp_matrix = Q_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
+    return MAT;
+  }
+  arma::Col<double> convert_temps(){
+    RVector<double> tmp_vec = temperatures;
+    arma::Col<double> vec(tmp_vec.begin(),num_temp,false,true);
+    return vec;
+  }
+  
+  //// Main constructor
+  Parallel_replica_update_rep(
+    NumericMatrix X_n_matrix_in,
+    const NumericMatrix Q_matrix_in,
+    const int bal_func_in,
+    const NumericVector temperature_in,
+    const double theta_in,
+    NumericMatrix output_in,
+    const std::size_t dim_p_in,
+    const std::size_t num_temp_in,
+    const int num_iter_in,
+    std::vector<std::mt19937_64>& rngs_in)://This binds the class members (defined above) to the constructor arguments
+    X_n_matrix(X_n_matrix_in),
+    Q_matrix(Q_matrix_in),
+    bal_func(bal_func_in),
+    temperatures(temperature_in),
+    theta(theta_in),
+    output(output_in),
+    dim_p(dim_p_in),
+    num_temp(num_temp_in),
+    num_iter(num_iter_in),
+    rngs(rngs_in)
+  {}
+  
+  //// Operator
+  void operator()(std::size_t begin, std::size_t end){
+    //First transform all the inputs
+    arma::Mat<double> X = convert_X();
+    arma::Mat<double> Q_matrix = convert_Q();
+    arma::Col<double> temperatures = convert_temps();
+    int dim_p_int = static_cast<int>(dim_p);
+    
+    for(std::size_t r=begin; r<end;r++){ // For for each replica
+      double current_temp = temperatures(r);
+      arma::Col<double> selected_X=X.col(r); // Get the status of the replica
+      arma::Col<double> temporal_X(dim_p);
+      std::mt19937_64 selected_rng=rngs[r];
+      for(int k=0;k<num_iter;k++){//Repeat for as many iterations
+        temporal_X=IIT_update_p(selected_X,
+                                Q_matrix,
+                                bal_func,
+                                current_temp,
+                                theta,
+                                selected_rng);
+        selected_X=temporal_X;//Assign new state for the loop
+      }
+      // After num_iter updates, export the resulting file
+      for(int i=0;i<dim_p_int;i++){
+        output(i,r)=temporal_X[i];
+      }//End loop for the export 
+    }// End loop for each replica
+    
+  }//End operator
+};// End of worker
+
+// Full definition of update function used inside the worker
+arma::Col<double> Parallel_replica_update_rep::IIT_update_p(arma::Col<double> X,
+                                                             const arma::Mat<double>& M,
+                                                             const int chosen_bf,
+                                                             const double& temperature,
+                                                             const double& theta,
+                                                             std::mt19937_64& rng){
+  int total_neighbors = X.n_rows; // total number of neighbors is p spacial
+  vec probs(total_neighbors, fill::zeros); //vector of probabilities
+  double logpi_current = loglik(X,M,theta);  // Compute likelihood of current state
+  
+  ////// Compute weight for all neighbors
+  double temporal=0;
+  vec newX;
+  for(int j=0; j<total_neighbors;j++){
+    newX = X;
+    newX.row(j) = 1-X.row(j);
+    temporal=loglik(newX,M,theta)-logpi_current;
+    probs(j)=apply_bal_func(temporal*temperature, chosen_bf);//Apply balancing function to log probability times temperature
+  }
+  //////Choose the next neighbor
+  // vec u(total_neighbors,fill::randu);
+  vec u(total_neighbors);
+  std::uniform_real_distribution<double> dist(0.0, 1.0);
+  for(int j=0; j<total_neighbors; j++) {
+    u(j) = dist(rng);
+  }
+  vec probs_choose = log(-log(u)) - probs;
+  int neigh_pos = (std::min_element(probs_choose.begin(), probs_choose.end()))-probs_choose.begin();
+  X.row(neigh_pos) = 1-X.row(neigh_pos); //modify the coordinate of the chosen neighbor
+  return X;
+}
+
+
+
+// Function to initialize the rng according to the seed
+std::vector<std::mt19937_64> initialize_rngs(int n, int base_seed) {
+  std::vector<std::mt19937_64> rngs(n);
+  for(size_t i = 0; i < n; i++) {
+    rngs[i].seed(base_seed + i);  // Unique seed for each RNG
+  }
+  return rngs;
+}
+//Function to run simulations
+// [[Rcpp::export]]
+NumericMatrix PT_IIT_parallel_sim_rep(int p, int num_iter, arma::Col<double> original_temperatures, const std::string bal_func, double theta, int base_seed){
+  int T=original_temperatures.n_rows;
+  const std::size_t dim_p = static_cast<size_t>(p);
+  const std::size_t num_temps = static_cast<size_t>(T);
+  const std::size_t begin = static_cast <size_t> (0);
+  const std::size_t end = static_cast <size_t> (T); 
+  // Change String of balancing function into int
+  int chosen_bal_func;
+  if(bal_func=="sq"){
+    chosen_bal_func=2;
+  }else if(bal_func=="min"){
+    chosen_bal_func=1;
+  }else{
+    Rcpp::Rcout << "Incorrect definition of Balancing function.\n Defaulting to sq " << std::endl;
+    chosen_bal_func=2;
+  }
+  //// Define two modes
+  NumericMatrix Q_matrix(p,2);
+  for(int i=0;i<p;i++){
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
+  }
+  double ppp=randu();
+  arma::Mat<double> original_X(p,T);
+  original_X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  std::vector<std::mt19937_64> defined_rngs=initialize_rngs(T,base_seed); // Initialize RNGs
+  //After initialization of vectors and matrices we transform them to Nuneric variables
+  NumericMatrix X=Rcpp::wrap(original_X);
+  NumericVector temperatures=Rcpp::wrap(original_temperatures);
+  // Now we apply the parallelized loop
+  
+  NumericMatrix output(p,T);//Declare output
+  Parallel_replica_update_rep par_rep_update_rep(//Declare Worker
+      X,Q_matrix,
+      chosen_bal_func,
+      temperatures,
+      theta,
+      output,
+      dim_p,
+      num_temps,
+      num_iter,
+      defined_rngs);// Initialize the worker
+  
+  parallelFor(begin,end,par_rep_update_rep);//Perform the for loop
+
+  return output;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
