@@ -36,16 +36,17 @@ double invoke(double x, double (*func)(double)) {
   return func(x);
 }
 
-double bal_func(double x,const Rcpp::String& chosen){
-  if (chosen == "sq") {
+double apply_bal_func(double x,const int chosen){
+  if (chosen == 2) {
     return invoke(x, &bf_sq);
-  } else if (chosen == "min") {
+  } else if (chosen == 1) {
     return invoke(x, &bf_min);
   } else {
-    Rcpp::Rcout <<"Name of the balancing function does exist!" << std::endl;
-    return 0; // Default return for unknown operation
+    Rcpp::Rcout <<"The balancing function does exist!" << std::endl;
+    return -1000; // Default return for unknown operation
   }
 }
+
 
 int L1_distance(const arma::Col<double>& v1, const arma::Col<double>& v2) {
   // Check if the vectors have the same size
@@ -107,7 +108,7 @@ struct Parallel_replica_update : public Worker
   arma::Mat<double> X_n_matrix;//State matrix
   // const RMatrix<double> Q_matrix; //Matrix with modes
   const arma::Mat<double> Q_matrix; //Matrix with modes
-  const Rcpp::String bal_func; //Specified balancing function
+  const int bal_func; //Specified balancing function
   // const RVector<double> temperatures;//Vector of temperatures
   const arma::Col<double> temperatures;//Vector of temperatures
   const double theta; //Parameter for 
@@ -120,7 +121,7 @@ struct Parallel_replica_update : public Worker
   //// Functions to use from outside
   arma::Col<double> IIT_update_p(arma::Col<double> X,
                     const arma::Mat<double>& M,
-                    const Rcpp::String& chosen_bf,
+                    const int chosen_bf,
                     const double& temperature,
                     const double& theta);
   
@@ -151,7 +152,7 @@ struct Parallel_replica_update : public Worker
     arma::Mat<double> X_n_matrix_in,
     // const NumericMatrix Q_matrix_in,
     const  arma::Mat<double> Q_matrix_in,
-    const Rcpp::String bal_func_in,
+    const int bal_func_in,
     // const NumericVector temperature_in,
     const arma::Col<double> temperature_in,
     const double theta_in,
@@ -195,7 +196,7 @@ struct Parallel_replica_update : public Worker
 // Full definition of update function used inside the worker
 arma::Col<double> Parallel_replica_update::IIT_update_p(arma::Col<double> X,
                                                         const arma::Mat<double>& M,
-                                                        const Rcpp::String& chosen_bf,
+                                                        const int chosen_bf,
                                                         const double& temperature,
                                                         const double& theta){
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
@@ -209,7 +210,7 @@ arma::Col<double> Parallel_replica_update::IIT_update_p(arma::Col<double> X,
     newX = X;
     newX.row(j) = 1-X.row(j);
     temporal=loglik(newX,M,theta)-logpi_current;
-    probs(j)=bal_func(temporal*temperature, chosen_bf);//Apply balancing function to log probability times temperature
+    probs(j)=apply_bal_func(temporal*temperature, chosen_bf);//Apply balancing function to log probability times temperature
   }
   //////Choose the next neighbor
   vec u(total_neighbors,fill::randu);
@@ -222,11 +223,21 @@ arma::Col<double> Parallel_replica_update::IIT_update_p(arma::Col<double> X,
 
 
 
-//Function to call the worker
+//Function to run simulations
+// [[Rcpp::export]]
 arma::Mat<double> PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> temperatures, const std::string bal_func, double theta){
   int T=temperatures.n_rows;
   arma::Mat<double> output(p,T);
-  
+  // Change String of balancing function into int
+  int chosen_bal_func;
+  if(bal_func=="sq"){
+    chosen_bal_func=2;
+  }else if(bal_func=="min"){
+    chosen_bal_func=1;
+  }else{
+    Rcpp::Rcout << "Incorrect definition of Balancing function.\n Defaulting to sq " << std::endl;
+    chosen_bal_func=2;
+  }
   
   //// Define two modes
   arma::Mat<double> Q_matrix(p,2);
@@ -246,7 +257,7 @@ arma::Mat<double> PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> tem
     
     Parallel_replica_update par_rep_update(
         X,Q_matrix,
-        bal_func,
+        chosen_bal_func,
         temperatures,
         theta,
         output);// Initialize the worker
