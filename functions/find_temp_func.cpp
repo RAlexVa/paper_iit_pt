@@ -9,63 +9,11 @@ using namespace arma;
 
 ////////// Other functions //////////
 
-// Return maximum of 3 numbers
-// [[Rcpp::export]]
-double ret_max(double a,double b,double c){
-  vec temp={a,b,c};
-  return(max(temp));
-}
-
-// [[Rcpp::export]]
 double ret_min(double a,double b,double c){
   vec temp={a,b,c};
   return(min(temp));
 }
 
-// Transform vector representation of base 2 into decimal representation
-// [[Rcpp::export]]
-int vec_to_num(vec X){
-  int n=X.n_rows;
-  int number=0;
-  for(int i=0;i<n;i++){
-    if(X(i)==1){
-      number+=std::pow(2,i); 
-    }
-  }
-  return number;
-}
-// Transform number in decimal base to vector in base 2 representation
-// [[Rcpp::export]]
-vec num_to_vec(int n, int d){
-  vec X(d);
-  X.zeros();
-  int temp;
-  if((n<0) | (n>=std::pow(2,d))){
-    Rcpp::Rcout <<"Error, number bigger than dimension " << std::endl;
-    return(X);
-  }else{
-    for(int i=0;i<d;i++){
-      // Rcpp::Rcout <<"iteration: " <<i<< std::endl;
-      temp=n % 2;
-      X(i)=temp;
-      if(temp==1){n = (n-1)/2;}
-      if(temp==0){n=n/2;}
-    }
-  }
-  return(X);
-}
-// Take coordinates and create a binary vector with 1 in the defined coordinates
-
-// [[Rcpp::export]]
-vec createBinaryVector(const std::vector<int>& coordinates, int size) {
-  vec binaryVector(size, fill::zeros); // Initialize vector with 0s
-  for (int coord : coordinates) {
-    if (coord >= 0 && coord < size) {
-      binaryVector(coord) = 1; // Set the specified coordinates to 1
-    }
-  }
-  return binaryVector;
-}
 
 // [[Rcpp::export]]
 mat initializeRandom(const int& num_rows,const int& num_cols, const double& prob) {
@@ -185,9 +133,6 @@ double loglik(const arma::vec& X,const arma::mat& M, const double& theta){
   
   
 }
-
-
-
 
 ////////// Updating functions //////////
 
@@ -379,9 +324,8 @@ List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string 
 
     vec ppp=Rcpp::runif(1);
     X=initializeRandom(p,2,ppp(0));//Randomly initialize the state of each replica.
-
+    std::clock_t start = std::clock(); /// Start timer
     while(stay_in_loop){
-      
     //// Start the loop for all iterations
     for(int i=0;i<interswap;i++){
       
@@ -469,7 +413,10 @@ List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string 
     stay_in_loop=false;
   } 
 
-    } 
+    }
+    std::clock_t end = std::clock(); // Stop timer
+    // Calculate the time taken in seconds
+    double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
     Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
 
   // return round_to(temp(1),3);
@@ -477,6 +424,7 @@ List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string 
   ret["temp"]=round_to(temp(1),precision);
   ret["swap"]=swap_count;
   ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
+  ret["seconds"]=duration;
   return ret;
 }
 
@@ -500,7 +448,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   
   //// Parameters for the temperature finding   
   double rho=-3;//1.3;//-2.6; // To define initial second temperature
-  double threshold=.0003;//.01;////0.001;//Stop when the updates differ less than this much
+  double threshold=.5;//.0003;//.01;////0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   int count_convergence=0;
   int precision=3;//To round values
@@ -530,7 +478,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   vec ppp=Rcpp::runif(1);
   X=initializeRandom(p,2,ppp(0));//Randomly initialize the state of each replica.
   
-
+std::clock_t start = std::clock(); /// Start timer
   while(stay_in_loop){
     log_bound_vector.zeros();
     max_log_bound_vector.zeros();
@@ -633,7 +581,10 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
         } 
 
 
-  } 
+  }
+  std::clock_t end = std::clock(); // Stop timer
+  // Calculate the time taken in seconds
+  double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;  
   Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
   List ret;
   
@@ -641,6 +592,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   ret["iter"]=count_iterations;
   ret["swap"]=swap_count;
   ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
+  ret["seconds"]=duration;
   return ret;
 }
 
