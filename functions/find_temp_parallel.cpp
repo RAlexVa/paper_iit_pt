@@ -100,6 +100,7 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
   return(A);
 }
 
+
 ///// Here just parallelize the update for each replica /////
 
 //// Definition of worker
@@ -122,10 +123,10 @@ struct Parallel_replica_update : public Worker
   
   //// Functions to use from outside
   arma::Col<double> IIT_update_p(arma::Col<double> X,
-                    const arma::Mat<double>& M,
-                    const int chosen_bf,
-                    const double& temperature,
-                    const double& theta);
+                                 const arma::Mat<double>& M,
+                                 const int chosen_bf,
+                                 const double& temperature,
+                                 const double& theta);
   
   ////  Functions to transform data
   arma::Mat<double> convert_X(){
@@ -133,13 +134,13 @@ struct Parallel_replica_update : public Worker
     arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_temp, false,true);
     return MAT;
   }
-
+  
   arma::Mat<double> convert_Q(){
     RMatrix<double> tmp_matrix = Q_matrix;
     arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
     return MAT;
   }
-
+  
   arma::Col<double> convert_temps(){
     RVector<double> tmp_vec = temperatures;
     arma::Col<double> vec(tmp_vec.begin(),num_temp,false,true);
@@ -185,18 +186,18 @@ struct Parallel_replica_update : public Worker
     int dim_p_int = static_cast<int>(dim_p);
     for(std::size_t r=begin; r<end;r++){ // For for each replica
       double current_temp = temperatures(r);
-    
+      
       arma::Col<double> temporal_X=IIT_update_p(X.col(r),
-                                        Q_matrix,
-                                        bal_func,
-                                        current_temp,
-                                        theta);
+                                                Q_matrix,
+                                                bal_func,
+                                                current_temp,
+                                                theta);
       // arma::Col<double> temporal_X(dim_p);
       // temporal_X.zeros();
       for(int i=0;i<dim_p_int;i++){
         output(i,r)=temporal_X[i];
       }
-        
+      
     }
     
   }//End operator
@@ -288,7 +289,7 @@ NumericMatrix PT_IIT_parallel_sim(int p, int num_iter, arma::Col<double> origina
     
     
     parallelFor(begin,end,par_rep_update);//Perform the for
-      X=output;  
+    X=output;  
   }
   
   return X;
@@ -407,10 +408,10 @@ struct Parallel_replica_update_wfor : public Worker
 
 // Full definition of update function used inside the worker
 arma::Col<double> Parallel_replica_update_wfor::IIT_update_p(arma::Col<double> X,
-                                                        const arma::Mat<double>& M,
-                                                        const int chosen_bf,
-                                                        const double& temperature,
-                                                        const double& theta){
+                                                             const arma::Mat<double>& M,
+                                                             const int chosen_bf,
+                                                             const double& temperature,
+                                                             const double& theta){
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
   vec probs(total_neighbors, fill::zeros); //vector of probabilities
   double logpi_current = loglik(X,M,theta);  // Compute likelihood of current state
@@ -468,28 +469,28 @@ NumericMatrix PT_IIT_parallel_sim_wfor(int p, int num_iter, arma::Col<double> or
   
   double ppp=randu();
   arma::Mat<double> original_X(p,T);
-  // original_X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
-  original_X.zeros();
+  original_X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  // original_X.zeros();
   
   //After initialization of vectors and matrices we transform them to Nuneric variables
   NumericMatrix X=Rcpp::wrap(original_X);
   NumericVector temperatures=Rcpp::wrap(original_temperatures);
   // Rcpp::Rcout <<"Before parallel X:\n "<<X<< std::endl;
   // Now we apply the parallelized loop
-
-    NumericMatrix output(p,T);//Declare output
-    
-    Parallel_replica_update_wfor par_rep_update_wfor(
-        X,Q_matrix,
-        chosen_bal_func,
-        temperatures,
-        theta,
-        output,
-        dim_p,
-        num_temps,
-        num_iter);// Initialize the worker
-    
-    parallelFor(begin,end,par_rep_update_wfor);//Perform the for
+  
+  NumericMatrix output(p,T);//Declare output
+  
+  Parallel_replica_update_wfor par_rep_update_wfor(
+      X,Q_matrix,
+      chosen_bal_func,
+      temperatures,
+      theta,
+      output,
+      dim_p,
+      num_temps,
+      num_iter);// Initialize the worker
+  
+  parallelFor(begin,end,par_rep_update_wfor);//Perform the for
   
   
   return output;
@@ -595,11 +596,11 @@ struct Parallel_replica_update_rep : public Worker
 
 // Full definition of update function used inside the worker
 arma::Col<double> Parallel_replica_update_rep::IIT_update_p(arma::Col<double> X,
-                                                             const arma::Mat<double>& M,
-                                                             const int chosen_bf,
-                                                             const double& temperature,
-                                                             const double& theta,
-                                                             std::mt19937_64& rng){
+                                                            const arma::Mat<double>& M,
+                                                            const int chosen_bf,
+                                                            const double& temperature,
+                                                            const double& theta,
+                                                            std::mt19937_64& rng){
   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
   vec probs(total_neighbors, fill::zeros); //vector of probabilities
   double logpi_current = loglik(X,M,theta);  // Compute likelihood of current state
@@ -631,7 +632,7 @@ arma::Col<double> Parallel_replica_update_rep::IIT_update_p(arma::Col<double> X,
 // Function to initialize the rng according to the seed
 std::vector<std::mt19937_64> initialize_rngs(int n, int base_seed) {
   std::vector<std::mt19937_64> rngs(n);
-  for(size_t i = 0; i < n; i++) {
+  for(int i = 0; i < n; i++) {
     rngs[i].seed(base_seed + i);  // Unique seed for each RNG
   }
   return rngs;
@@ -682,7 +683,7 @@ NumericMatrix PT_IIT_parallel_sim_rep(int p, int num_iter, arma::Col<double> ori
       defined_rngs);// Initialize the worker
   
   parallelFor(begin,end,par_rep_update_rep);//Perform the for loop
-
+  
   return output;
 }
 
@@ -697,6 +698,194 @@ NumericMatrix PT_IIT_parallel_sim_rep(int p, int num_iter, arma::Col<double> ori
 
 
 
+/////////////////////////////////////////////////////////////////////////////////
+///// Here Parallelize IIT_update /////
 
+struct IIT_visit_neighbors : public Worker
+{
+  //// Data
+  RVector<double> X_n;//State matrix
+  const RMatrix<double> Q_matrix; //Matrix with modes
+  const int bal_func; //Specified balancing function
+  const double temperature;//Chosen temperature
+  const double theta; //Parameter for likelihood
+  RVector<double> output;
+  const std::size_t dim_p; // dimension of the problem (and length of X columns)
+  
+  //// Functions to use from outside
+  double loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta);
+  
+  double apply_bal_func_internal(double x,const int chosen);
+  ////  Functions to transform data
+  arma::Col<double> convert_X(){
+    RVector<double> tmp_X = X_n;
+    arma::Col<double> VEC(tmp_X.begin(), dim_p, false,true);
+    return VEC;
+  }
+  arma::Mat<double> convert_Q(){
+    RMatrix<double> tmp_matrix = Q_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
+    return MAT;
+  }
+  
+  //// Main constructor
+  IIT_visit_neighbors(
+    NumericVector X_n_in,
+    const NumericMatrix Q_matrix_in,
+    const int bal_func_in,
+    const double temperature_in,
+    const double theta_in,
+    NumericVector output_in,
+    const size_t dim_p_in)://This binds the class members (defined above) to the constructor arguments
+    X_n(X_n_in),
+    Q_matrix(Q_matrix_in),
+    bal_func(bal_func_in),
+    temperature(temperature_in),
+    theta(theta_in),
+    output(output_in),
+    dim_p(dim_p_in)
+  {}
+  
+  
+  
+  //// Operator
+  void operator()(std::size_t begin, std::size_t end){
+    //First transform all the inputs
+    arma::Col<double> X = convert_X();
+    arma::Mat<double> M = convert_Q();
+    // int dim_p_int = X.n_rows;
+    double logpi_current=loglik(X,M,theta);
+      
+    for(std::size_t n = begin; n < end;n++){ // For for each neighbor
+      arma::Col<double> temp_X=X;
+      temp_X(n)=1-temp_X(n);//Switch the nth coordinate
+      double mid_step=loglik_internal(temp_X,M,theta)-logpi_current;
+      output[n]=apply_bal_func_internal(mid_step*temperature,bal_func);
+      
+    }// End for loop
+    
+  }//End operator
+};// End of worker to visit neighbors
+
+struct SumExp : public Worker
+{   
+  
+  const RVector<double> X;// source vector
+  double Z; // accumulated value
+  
+  // constructors
+  SumExp(const NumericVector X) : X(X), Z(0) {}
+  SumExp(const SumExp& sum, Split) : X(sum.X), Z(0) {}
+  
+  // accumulate just the element of the range I've been asked to
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t i = begin; i < end; ++i) {
+      Z += std::exp(X[i]);
+    }
+  }// End of operator
+  
+  // join my value with that of another Sum
+  void join(const SumExp& rhs) { 
+    Z += rhs.Z; 
+  }
+};//End of worker to compute the Z factor
+
+struct GetMin : public Worker
+{   
+  
+  const RVector<double> X;// input vector
+  double min_value; // MIN value found
+  std::size_t min_index; // Index of MIN value
+  
+  // constructors
+  GetMin(const NumericVector X) : X(X), min_value(INFINITY),min_index(0) {}
+  GetMin(const GetMin& min_cons, Split) : X(min_cons.X), min_value(INFINITY),min_index(0) {}
+  
+  // accumulate just the element of the range I've been asked to
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t i = begin; i < end; ++i) {
+      if(X[i]<min_value){
+        min_value=X[i];
+        min_index=i;
+      }
+    }
+  }// End of operator
+  
+  // join my value with that of another Sum
+  void join(const GetMin& other) {
+    if(other.min_value<min_value){
+     min_value = other.min_value;
+     min_index = other.min_index;
+    }
+  }
+};//End of worker to compute the Z factor
+
+
+// Full definition of internal functions
+double IIT_visit_neighbors::apply_bal_func_internal(double x,const int chosen){
+  return apply_bal_func(x,chosen);
+}
+
+double IIT_visit_neighbors::loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta){
+  return loglik(X,M,theta);
+}
+
+
+// [[Rcpp::export]]
+List test_1(int p, double temperature, int bal_func, double theta, int base_seed){
+  int T=1;
+  
+  const std::size_t begin = static_cast <size_t> (0);
+  const std::size_t end = static_cast <size_t> (p); 
+  
+  //// Define two modes
+  NumericMatrix Q_matrix(p,2);
+  for(int i=0;i<p;i++){
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
+  }
+
+  double ppp=randu();
+  arma::Mat<double> inter_mat(p,T);
+  inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  arma::Col<double> original_X = inter_mat.col(0);
+  //Convert 
+  NumericVector X=Rcpp::wrap(original_X);
+  NumericVector output (p);
+// Declare constructor to visit all neighbors
+  IIT_visit_neighbors iit_neighbors(X,
+                                    Q_matrix,
+                                    bal_func,
+                                    temperature,
+                                    theta,
+                                    output,
+                                    end);
+  //Apply for to visit all neighbors
+  parallelFor(begin,end,iit_neighbors);
+  
+  //Declare constructor to add log-probabilities
+  SumExp sum_exp(output);
+  //Get the sum of probabilities
+  parallelReduce(0,end,sum_exp);
+  
+  //Substract minimum
+  arma::Col<double> u_random(p,fill::randu);
+  NumericVector u=Rcpp::wrap(u_random);
+  NumericVector choose_min=log(-log(u)) - (output);
+  //Declare constructor to find minimum
+  GetMin get_min(choose_min);
+  parallelReduce(0,end,get_min);
+
+  output.push_back(sum_exp.Z);
+  choose_min.push_back(get_min.min_value);
+  choose_min.push_back(get_min.min_index);
+  
+  List ret;
+  ret["output"] = output;
+  ret["mins"]=choose_min;
+  return ret;
+  // return output;
+
+}
 
 
