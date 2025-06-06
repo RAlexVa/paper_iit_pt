@@ -1,5 +1,9 @@
 //#include <Rcpp.h>
 #include <RcppArmadillo.h>
+#include <thread>
+#include <iostream>
+#include <random>
+#include <execution>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
@@ -11,7 +15,7 @@ vec num_to_vec(int n, int d){
   vec X(d);
   X.zeros();
   int temp;
-  if(n<0 | n>=std::pow(2,d)){
+  if(n<0 || n>=std::pow(2,d)){
     Rcpp::Rcout <<"Error, number bigger than dimension " << std::endl;
     return(X);
   }else{
@@ -123,4 +127,61 @@ void print_log_bound(int iterations, double initial_bound, double prob_to_dec, d
   }
 }
 
+// [[Rcpp::export]]
+void check_threads(){
+  unsigned num_threads = std::thread::hardware_concurrency();
+  Rcpp::Rcout <<"Number of threads in local: " <<num_threads<< std::endl;
+}
+
+// [[Rcpp::export]]
+void check_rng(){
+  std::mt19937 gen(1);
+  
+  // Seed the engine with an unsigned int
+  // gen.seed(1);
+  std::cout << "1. after seed by 1: " << gen() << '\n';
+  std::cout << "2. after seed by 1: " << gen() << '\n';
+  std::cout << "3. after seed by 1: " << gen() << '\n';
+  std::cout << "4. after seed by 1: " << gen() << '\n';
+  
+  // Seed the engine with two unsigned ints
+  std::seed_seq sseq{1, 2};
+  gen.seed(sseq);
+  std::cout << "after seed by {1,2}: " << gen() << '\n';
+}
+
+// [[Rcpp::export]]
+NumericMatrix checking_num(int p){
+  //// Define two modes
+  NumericMatrix Q_matrix(p,2);
+  for(int i=0;i<p;i++){
+    if(i%2==0){Q_matrix(i,1)=1;}
+    if(i%2==1){Q_matrix(i,0)=1;}
+  }
+  return Q_matrix;
+}
+
+arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const double prob) {
+  
+  // Initialize a matrix with random values between 0 and 1
+  arma::mat A(num_rows, num_cols,fill::randu);
+  
+  // Threshold the random values to 0 or 1
+  A = arma::conv_to<arma::Mat<double>>::from(A > prob);
+  
+  return(A);
+}
+
+
+// [[Rcpp::export]]
+NumericMatrix check_x(int p, int T){
+  
+  double ppp=randu();
+  arma::Mat<double> X(p,T);
+  X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+ return Rcpp::wrap(X);
+ 
+ 
+  
+}
 
