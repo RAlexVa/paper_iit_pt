@@ -1150,3 +1150,141 @@ for(i in 1:5){
     write(paste0("Iteration ",i," result: ",runif(1)), file = "results/results.txt", append = TRUE)
   }
 }
+
+##### Checking number of threads #####
+
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
+
+check_threads()
+
+check_rng()
+
+
+#### Comparing Parallelization of IIT_update ###
+Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
+
+library(rbenchmark)
+p <- 2000
+Q_matrix <- matrix(0,nrow=p,ncol=2)
+for(i in 1:p){
+  if(i%%2==0){Q_matrix[i,2]=1}
+  if(i%%2==1){Q_matrix[i,1]=1}
+}
+chosen_bf <- "sq"
+temperature <- 1
+theta <- 3
+seed <- 625
+X <- rbinom(p,1,0.5)
+
+
+IIT_update_w(X,Q_matrix,chosen_bf,temperature,theta,seed)
+
+
+# Then test with parallel
+library(OpenMPController)
+omp_set_num_threads(12)  # Use 4 threads
+asd <- IIT_update_w_parallel(X,Q_matrix,chosen_bf,temperature,theta,seed)
+
+res <- benchmark(IIT_update_w_parallel(X,Q_matrix,chosen_bf,temperature,theta,seed),IIT_update_w(X,Q_matrix,chosen_bf,temperature,theta,seed),replications = 500,order="relative")
+
+
+######### Test for each parallel ############
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+# Sys.setenv("PKG_CXXFLAGS" = "-std=c++17 -DHAS_PARALLEL")
+# Sys.setenv("CXX_STD" = "CXX17")
+
+Rcpp::sourceCpp("functions_other/test_parallel.cpp", verbose = TRUE)
+
+# Rcpp::sourceCpp("functions/find_temp_func.cpp", verbose = TRUE)
+
+
+# run_sim(int p, const int iter,const vec temp,const std::string bal_function,
+#         double theta=3,int seed=5)
+p <- 16
+iter <- 50
+temp <- c(1,0.5)
+theta <- 3
+seeed <- 123
+set.seed(5)
+X <- run_sim(p,iter,temp,"sq",theta,seeed)
+set.seed(6)
+X2 <- run_sim(p,iter,temp,"sq",theta,seeed)
+
+
+######### Test RcppParallel ############
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
+
+p <- 500
+num_iter <- 500
+temperatures <- c(1,0.8,0.2,0.3,0.5)
+bal_func <- "sq"
+theta <- 3
+
+set.seed(123)
+c <- PT_IIT_parallel_sim(p,num_iter,temperatures,bal_func,theta)
+c2 <- PT_IIT_parallel_sim(p,num_iter,temperatures,bal_func,theta)
+identical(c,c2)
+set.seed(123)
+d <- PT_IIT_parallel_sim_wfor(p,num_iter,temperatures,bal_func,theta)
+
+library(rbenchmark)
+
+results <- benchmark(PT_IIT_parallel_sim(p,num_iter,temperatures,bal_func,theta),
+                     PT_IIT_parallel_sim_wfor(p,num_iter,temperatures,bal_func,theta),
+                     replications=200)
+
+
+#### Testing little by little
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
+p <- 1500
+temperature <- 1
+bal_func <- 2;
+theta <- 3;
+set.seed(30)
+X <- test_1(p,temperature,bal_func,theta,5)
+#sum(exp(X[1:(length(X)-1)]))
+################### Checking el código de Marco
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+library(RcppProgress)
+Rcpp::sourceCpp("C:/Users/ralex/Downloads/toy-example-target-mixture-mv.cpp")
+
+
+# pt_cmh_parallel(
+#   int nsim,
+#   NumericVector init, 
+#   NumericVector temp_vector,
+#   NumericVector means,
+#   NumericVector weights,
+#   arma::Col<double> step_size,
+#   NumericVector sd,
+#   bool step_depends_temp,
+#   int within_temp,
+#   bool display_progress=false)
+
+
+
+test <- pt_cmh_parallel(100000,
+                c(1,1),
+                c(1,0.8),
+                c(1,2),
+                c(0.5,0.5),
+                c(0.2,0.2),
+                c(0.5,0.5),
+                TRUE,
+                500100,
+                T)
