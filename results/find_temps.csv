@@ -2,7 +2,7 @@ id,algorithm,interswap,seed,model,p,theta,bf,t1,num_temp,comments,Servers commen
 1,PT_IIT_Z,200,1,bimodal,800,3,sq,1,5,repeated below to check convergence,Run in Probability s1
 2,PT_IIT_Z,200,2,bimodal,800,3,sq,1,5,,Run in Probability s2
 3,PT_A_IIT,100,33,bimodal,800,3,sq,1,5,repeated below to check convergence,Run in Probability s3
-4,PT_A_IIT,100,4,bimodal,800,3,sq,1,5,,Run in Probability s4
+4,PT_A_IIT,100,4,bimodal,800,3,sq,1,5,,Run in Probability s4 (DONE)
 5,PT_IIT_Z,200,5,bimodal,1000,3,sq,1,5,repeated below to check convergence,OK
 6,PT_IIT_Z,200,6,bimodal,1000,3,sq,1,5,,OK
 7,PT_A_IIT,100,7,bimodal,1000,3,sq,1,5,repeated below to check convergence,Run in Probability s5
@@ -11,3 +11,7 @@ id,algorithm,interswap,seed,model,p,theta,bf,t1,num_temp,comments,Servers commen
 10,PT_IIT_Z,200,10,bimodal,2000,3,sq,1,5,,Run in Mercury s3
 11,PT_A_IIT,100,11,bimodal,2000,3,sq,1,5,repeated below to check convergence,Run in Mercury s4
 12,PT_A_IIT,100,12,bimodal,2000,3,sq,1,5,,Run in Mercury s5
+13,PT_IIT_Z,200,13,bimodal,3000,3,sq,1,5,repeated below to check convergence,Run in Mercury s6
+14,PT_IIT_Z,200,14,bimodal,3000,3,sq,1,5,,Run in Mercury s7
+15,PT_A_IIT,100,15,bimodal,3000,3,sq,1,5,repeated below to check convergence,Run in Mercury s8
+16,PT_A_IIT,100,16,bimodal,3000,3,sq,1,5,,Run in Mercury s9
