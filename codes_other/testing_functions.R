@@ -1248,13 +1248,35 @@ library(Rcpp)
 library(RcppArmadillo)
 library(RcppParallel)
 Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
-p <- 1500
+p <- 20
 temperature <- 1
 bal_func <- 2;
 theta <- 3;
 set.seed(30)
-X <- test_1(p,temperature,bal_func,theta,5)
+X <- test_1(p,temperature,bal_func,theta)
+Y <- test_1(p,temperature,bal_func,theta)
+set.seed(30)
+Y <- test_1(p,temperature,bal_func,theta)
+identical(X,Y)
 #sum(exp(X[1:(length(X)-1)]))
+
+############## Testing find_temps function
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
+
+#temperature_PT_IIT(int p,int interswap, double temp_ini, int bal_func, const double& theta)
+p <- 5000
+interswap <- 100
+temp_ini <- 1
+bal_func <- 2
+theta <- 3
+set.seed(45)
+result1 <- temperature_PT_IIT(p,interswap,temp_ini,bal_func,theta)
+
+
 ################### Checking el código de Marco
 rm(list=ls())
 library(Rcpp)
