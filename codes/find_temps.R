@@ -18,10 +18,17 @@ find_temps <- function(list_ids){
     if(!is.character(list_ids)){ list_ids <- as.character(list_ids)}
     list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
     
-    Rcpp::sourceCpp("functions/find_temp_func.cpp")# Source CPP functions
+    
 ##### Read file for parameters #####
     parameters <- as.data.frame(read_csv("results/find_temps.csv", col_types = cols()))    
-
+list_of_algs <- unique(parameters |> filter(id %in% list_ids) |> pull(algorithm))
+if(length(list_of_algs)>1){
+  stop("You cannot run more than 1 algorithm at a time");
+}else{
+  if(list_of_algs=="PT_IIT_Z"){Rcpp::sourceCpp("functions/find_temp_parallel.cpp");}
+  if(list_of_algs=="PT_A_IIT"){Rcpp::sourceCpp("functions/find_temp_func.cpp")}
+}
+# Source CPP functions
 ##### Start process for algorithms        
     for(id_chosen in list_ids){
       sim_chosen <- parameters |> filter(id==id_chosen)
@@ -54,6 +61,8 @@ find_temps <- function(list_ids){
       
   for(t_counter in 1:number_temperatures){
     if(alg=="PT_IIT_Z"){
+      ##Transform balancing function to integer
+      if(bal_f=="min"){bal_f=1;}else{bal_f=2;}
       # Using Z factor bias correction
       #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
       output_list <- temperature_PT_IIT(p,interswap,temp_ini,bal_f, theta)
