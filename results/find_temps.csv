@@ -15,3 +15,43 @@ id,algorithm,interswap,seed,model,p,theta,bf,t1,num_temp,comments,Servers commen
 14,PT_IIT_Z,200,14,bimodal,3000,3,sq,1,5,,Run in Mercury s7
 15,PT_A_IIT,100,15,bimodal,3000,3,sq,1,5,repeated below to check convergence,Run in Mercury s8
 16,PT_A_IIT,100,16,bimodal,3000,3,sq,1,5,,Run in Mercury s9
+18,PT_IIT_Z,50,18,bimodal,1000,3,sq,1,5,,Run in DRAC
+19,PT_IIT_Z,50,19,bimodal,1000,3,sq,1,5,,Run in DRAC
+20,PT_IIT_Z,50,20,bimodal,2000,3,sq,1,5,,Run in DRAC
+21,PT_IIT_Z,50,21,bimodal,2000,3,sq,1,5,,Run in DRAC
+22,PT_IIT_Z,50,22,bimodal,3000,3,sq,1,5,,Run in DRAC
+23,PT_IIT_Z,50,23,bimodal,3000,3,sq,1,5,,Run in DRAC
+24,PT_IIT_Z,50,24,bimodal,4000,3,sq,1,5,,Run in DRAC
+25,PT_IIT_Z,50,25,bimodal,4000,3,sq,1,5,,Run in DRAC
+26,PT_IIT_Z,75,26,bimodal,5000,3,sq,1,5,,Run in DRAC
+27,PT_IIT_Z,75,27,bimodal,5000,3,sq,1,5,,Run in DRAC
+28,PT_IIT_Z,75,28,bimodal,6000,3,sq,1,5,,Run in DRAC
+29,PT_IIT_Z,75,29,bimodal,6000,3,sq,1,5,,Run in DRAC
+30,PT_IIT_Z,80,30,bimodal,7000,3,sq,1,5,,Run in DRAC
+31,PT_IIT_Z,80,31,bimodal,7000,3,sq,1,5,,Run in DRAC
+32,PT_IIT_Z,90,32,bimodal,8000,3,sq,1,5,,Run in DRAC
+33,PT_IIT_Z,90,33,bimodal,8000,3,sq,1,5,,Run in DRAC
+34,PT_IIT_Z,95,34,bimodal,9000,3,sq,1,5,,Run in DRAC
+35,PT_IIT_Z,95,35,bimodal,9000,3,sq,1,5,,Run in DRAC
+36,PT_IIT_Z,100,36,bimodal,10000,3,sq,1,5,,Run in DRAC
+37,PT_IIT_Z,100,37,bimodal,10000,3,sq,1,5,,Run in DRAC
+38,PT_A_IIT,100,38,bimodal,1000,3,sq,1,5,,
+39,PT_A_IIT,100,39,bimodal,1000,3,sq,1,5,,
+40,PT_A_IIT,100,40,bimodal,2000,3,sq,1,5,,
+41,PT_A_IIT,100,41,bimodal,2000,3,sq,1,5,,
+42,PT_A_IIT,100,42,bimodal,3000,3,sq,1,5,,
+43,PT_A_IIT,100,43,bimodal,3000,3,sq,1,5,,
+44,PT_A_IIT,100,44,bimodal,4000,3,sq,1,5,,
+45,PT_A_IIT,100,45,bimodal,4000,3,sq,1,5,,
+46,PT_A_IIT,200,46,bimodal,5000,3,sq,1,5,,
+47,PT_A_IIT,200,47,bimodal,5000,3,sq,1,5,,
+48,PT_A_IIT,200,48,bimodal,6000,3,sq,1,5,,
+49,PT_A_IIT,200,49,bimodal,6000,3,sq,1,5,,
+50,PT_A_IIT,200,50,bimodal,7000,3,sq,1,5,,
+51,PT_A_IIT,200,51,bimodal,7000,3,sq,1,5,,
+52,PT_A_IIT,200,52,bimodal,8000,3,sq,1,5,,
+53,PT_A_IIT,200,53,bimodal,8000,3,sq,1,5,,
+54,PT_A_IIT,400,54,bimodal,9000,3,sq,1,5,,
+55,PT_A_IIT,400,55,bimodal,9000,3,sq,1,5,,
+56,PT_A_IIT,400,56,bimodal,10000,3,sq,1,5,,
+57,PT_A_IIT,400,57,bimodal,10000,3,sq,1,5,,
