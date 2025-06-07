@@ -397,9 +397,9 @@ double temp_coord=X(get_min.min_index,replica);
     }
     
     
-    // if(swap_count % 100 == 0){
+    if(swap_count % 100 == 0){
       Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-    // }
+    }
     
     if(swap_count == 500000){// Force finishing of algorithm
       stay_in_loop=false;
