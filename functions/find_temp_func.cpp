@@ -448,7 +448,7 @@ List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::strin
   
   //// Parameters for the temperature finding   
   double rho=-3;//1.3;//-2.6; // To define initial second temperature
-  double threshold=.5;//.0003;//.01;////0.001;//Stop when the updates differ less than this much
+  double threshold=0.001;//.0003;//.01;////0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   int count_convergence=0;
   int precision=3;//To round values
