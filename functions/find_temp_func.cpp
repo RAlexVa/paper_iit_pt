@@ -279,155 +279,6 @@ List a_IIT_update(vec X,const arma::mat& M, String chosen_bf, const double& temp
 
 ////////// Code to find temperatures for Parallel Tempering //////////
 
-// [[Rcpp::export]]
-List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta){
-  // Inputs are:
-  // p:dimension
-  //interswap: number of iterations to try between replica swaps
-  // t1: initial temperature 1 (not changes)
-  // t2: initial temperature 2 (changes) t1/(1+exp(rho_n)) = t1/exp1m(rho_n)
-  //threshold: Para detener la busqueda 
-  // Numero de temperaturas (o temperatura mínima a alcanzar)
-  //Theta: parametro a usar para la log-likelihood
-  
-  //// Initialize variables to use in the code
-  int T=2; //The total number of temperatures will be 2
-  mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
-  List output; //To store output of the update function
-  
-//// Parameters for the temperature finding   
-  double rho=-3;//1.3;//-2.6; // To define initial second temperature
-  double threshold=0.001;//.1;//0.001;//Stop when the updates differ less than this much
-  double target_swap_rate=0.2345;//Target swap rate
-  
-  int precision=3;//To round values
-
-  bool stay_in_loop=true;
-  double swap_prob;
-  vec Xtemp_from(p);
-  vec Xtemp_to(p);
-//// Initialize temperatures
-  vec temp={temp_ini,round_to(temp_ini/(1+exp(rho)),precision)};
-  double avg_swap_prob=0;
-  int count_convergence=0;
-  
-  double current_temp;
-  int swap_count=0; //To count how many swaps were performed
-  // int n_iter=0;
-  //// Define two modes
-  mat Q_matrix(p,2);
-  for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
-  }
-
-
-    vec ppp=Rcpp::runif(1);
-    X=initializeRandom(p,2,ppp(0));//Randomly initialize the state of each replica.
-    std::clock_t start = std::clock(); /// Start timer
-    while(stay_in_loop){
-    //// Start the loop for all iterations
-    for(int i=0;i<interswap;i++){
-      
-        for(int replica=0;replica<T;replica++){//For loop for replicas
-        current_temp=temp(replica);// Extract temperature of the replica
-        
-        //// Update each replica independently
-// IIT_update_w(vec X,const arma::mat& M,String chosen_bf, double temperature, double theta)
-        output=IIT_update_w(X.col(replica),Q_matrix,bal_function,current_temp, theta);
-
-        X.col(replica)=vec(output(0)); //Update current state of the chain
-      }//End loop to update replicas
-    }// End loop of interswap
-    
-      //// Start replica swap process
-      
-        swap_count+=1;//Increase the count of swaps
-        // n_iter+=1; //Increase denominator
-        Xtemp_from=X.col(0);
-        Xtemp_to=X.col(1);
-          
-          
-//// Computation of Z factors to correct bias
-            double Z_fact_correc;//to temporarily store Z_factor correction
-            double Z_temp11;
-            double Z_temp12;
-            double Z_temp21;
-            double Z_temp22;
-            
-            output=IIT_update_w(Xtemp_from,Q_matrix,bal_function,temp(0),theta);
-            Z_temp11=output(1);
-            output=IIT_update_w(Xtemp_to,Q_matrix,bal_function,temp(1),theta);
-            Z_temp22=output(1);
-            output=IIT_update_w(Xtemp_from,Q_matrix,bal_function,temp(1),theta);
-            Z_temp12=output(1);
-            output=IIT_update_w(Xtemp_to,Q_matrix,bal_function,temp(0),theta);
-            Z_temp21=output(1);
-            
-            Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
-           
-          //// Computing swap probability
-          swap_prob=(temp(0)-temp(1))*(loglik(Xtemp_to,Q_matrix,theta) - loglik(Xtemp_from,Q_matrix,theta)); 
-          swap_prob=ret_min(Z_fact_correc*exp(swap_prob),1,1);
- 
- 
- if(swap_count==1){
-   avg_swap_prob=swap_prob;
- }else{
-   avg_swap_prob=(avg_swap_prob*(swap_count-1)+swap_prob)/swap_count;
- }
-
- //// Update temperature
- rho=rho + (swap_prob-target_swap_rate)/swap_count;
- 
- // if(rho<1e-5){
- //   temp(1)=round_to(temp_ini/(2+expm1(rho)),precision);
- // }else{
- //   temp(1)=round_to(temp_ini/(1+exp(rho)),precision);
- // }
- 
- if(rho<1e-5){
-   temp(1)=temp_ini/(2+expm1(rho));
- }else{
-   temp(1)=temp_ini/(1+exp(rho));
- }
-
- //Check current threshold
- // Rcpp::Rcout <<"Avg. swap_rate: "<<avg_swap_prob << std::endl; 
- if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
-   count_convergence+=1;
-   if(count_convergence>=3){
-     stay_in_loop=false;
-   }
-     
- }else{
-   count_convergence=0;
- }
- 
-
-  if(swap_count % 100 == 0){
-    Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-  }
-  
-  if(swap_count == 500000){// Force finishing of algorithm
-    stay_in_loop=false;
-  } 
-
-    }
-    std::clock_t end = std::clock(); // Stop timer
-    // Calculate the time taken in seconds
-    double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
-    Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-
-  // return round_to(temp(1),3);
-  List ret;
-  ret["temp"]=round_to(temp(1),precision);
-  ret["swap"]=swap_count;
-  ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
-  ret["seconds"]=duration;
-  return ret;
-}
-
 
 // [[Rcpp::export]]
 List temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta){
@@ -576,7 +427,7 @@ std::clock_t start = std::clock(); /// Start timer
           Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
         }
         
-        if(swap_count == 500000){// Force finishing of algorithm
+        if(swap_count == 700000){// Force finishing of algorithm
           stay_in_loop=false;
         } 
 
@@ -596,5 +447,154 @@ std::clock_t start = std::clock(); /// Start timer
   return ret;
 }
 
+// // [[Rcpp::export]]
+// List temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta){
+//   // Inputs are:
+//   // p:dimension
+//   //interswap: number of iterations to try between replica swaps
+//   // t1: initial temperature 1 (not changes)
+//   // t2: initial temperature 2 (changes) t1/(1+exp(rho_n)) = t1/exp1m(rho_n)
+//   //threshold: Para detener la busqueda 
+//   // Numero de temperaturas (o temperatura mínima a alcanzar)
+//   //Theta: parametro a usar para la log-likelihood
+//   
+//   //// Initialize variables to use in the code
+//   int T=2; //The total number of temperatures will be 2
+//   mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
+//   List output; //To store output of the update function
+//   
+//   //// Parameters for the temperature finding   
+//   double rho=-3;//1.3;//-2.6; // To define initial second temperature
+//   double threshold=0.001;//.1;//0.001;//Stop when the updates differ less than this much
+//   double target_swap_rate=0.2345;//Target swap rate
+//   
+//   int precision=3;//To round values
+//   
+//   bool stay_in_loop=true;
+//   double swap_prob;
+//   vec Xtemp_from(p);
+//   vec Xtemp_to(p);
+//   //// Initialize temperatures
+//   vec temp={temp_ini,round_to(temp_ini/(1+exp(rho)),precision)};
+//   double avg_swap_prob=0;
+//   int count_convergence=0;
+//   
+//   double current_temp;
+//   int swap_count=0; //To count how many swaps were performed
+//   // int n_iter=0;
+//   //// Define two modes
+//   mat Q_matrix(p,2);
+//   for(int i=0;i<p;i++){
+//     if(i%2==0){Q_matrix(i,1)=1;}
+//     if(i%2==1){Q_matrix(i,0)=1;}
+//   }
+//   
+//   
+//   vec ppp=Rcpp::runif(1);
+//   X=initializeRandom(p,2,ppp(0));//Randomly initialize the state of each replica.
+//   std::clock_t start = std::clock(); /// Start timer
+//   while(stay_in_loop){
+//     //// Start the loop for all iterations
+//     for(int i=0;i<interswap;i++){
+//       
+//       for(int replica=0;replica<T;replica++){//For loop for replicas
+//         current_temp=temp(replica);// Extract temperature of the replica
+//         
+//         //// Update each replica independently
+//         // IIT_update_w(vec X,const arma::mat& M,String chosen_bf, double temperature, double theta)
+//         output=IIT_update_w(X.col(replica),Q_matrix,bal_function,current_temp, theta);
+//         
+//         X.col(replica)=vec(output(0)); //Update current state of the chain
+//       }//End loop to update replicas
+//     }// End loop of interswap
+//     
+//     //// Start replica swap process
+//     
+//     swap_count+=1;//Increase the count of swaps
+//     // n_iter+=1; //Increase denominator
+//     Xtemp_from=X.col(0);
+//     Xtemp_to=X.col(1);
+//     
+//     
+//     //// Computation of Z factors to correct bias
+//     double Z_fact_correc;//to temporarily store Z_factor correction
+//     double Z_temp11;
+//     double Z_temp12;
+//     double Z_temp21;
+//     double Z_temp22;
+//     
+//     output=IIT_update_w(Xtemp_from,Q_matrix,bal_function,temp(0),theta);
+//     Z_temp11=output(1);
+//     output=IIT_update_w(Xtemp_to,Q_matrix,bal_function,temp(1),theta);
+//     Z_temp22=output(1);
+//     output=IIT_update_w(Xtemp_from,Q_matrix,bal_function,temp(1),theta);
+//     Z_temp12=output(1);
+//     output=IIT_update_w(Xtemp_to,Q_matrix,bal_function,temp(0),theta);
+//     Z_temp21=output(1);
+//     
+//     Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
+//     
+//     //// Computing swap probability
+//     swap_prob=(temp(0)-temp(1))*(loglik(Xtemp_to,Q_matrix,theta) - loglik(Xtemp_from,Q_matrix,theta)); 
+//     swap_prob=ret_min(Z_fact_correc*exp(swap_prob),1,1);
+//     
+//     
+//     if(swap_count==1){
+//       avg_swap_prob=swap_prob;
+//     }else{
+//       avg_swap_prob=(avg_swap_prob*(swap_count-1)+swap_prob)/swap_count;
+//     }
+//     
+//     //// Update temperature
+//     rho=rho + (swap_prob-target_swap_rate)/swap_count;
+//     
+//     // if(rho<1e-5){
+//     //   temp(1)=round_to(temp_ini/(2+expm1(rho)),precision);
+//     // }else{
+//     //   temp(1)=round_to(temp_ini/(1+exp(rho)),precision);
+//     // }
+//     
+//     if(rho<1e-5){
+//       temp(1)=temp_ini/(2+expm1(rho));
+//     }else{
+//       temp(1)=temp_ini/(1+exp(rho));
+//     }
+//     
+//     //Check current threshold
+//     // Rcpp::Rcout <<"Avg. swap_rate: "<<avg_swap_prob << std::endl; 
+//     if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
+//       count_convergence+=1;
+//       if(count_convergence>=3){
+//         stay_in_loop=false;
+//       }
+//       
+//     }else{
+//       count_convergence=0;
+//     }
+//     
+//     
+//     if(swap_count % 100 == 0){
+//       Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
+//     }
+//     
+//     if(swap_count == 500000){// Force finishing of algorithm
+//       stay_in_loop=false;
+//     } 
+//     
+//   }
+//   std::clock_t end = std::clock(); // Stop timer
+//   // Calculate the time taken in seconds
+//   double duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
+//   Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
+//   
+//   // return round_to(temp(1),3);
+//   List ret;
+//   ret["temp"]=round_to(temp(1),precision);
+//   ret["swap"]=swap_count;
+//   ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
+//   ret["seconds"]=duration;
+//   return ret;
+// }
+// 
 
 
