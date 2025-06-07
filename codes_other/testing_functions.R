@@ -1268,8 +1268,8 @@ library(RcppParallel)
 Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
 
 #temperature_PT_IIT(int p,int interswap, double temp_ini, int bal_func, const double& theta)
-p <- 5000
-interswap <- 100
+p <- 100
+interswap <- 10
 temp_ini <- 1
 bal_func <- 2
 theta <- 3
