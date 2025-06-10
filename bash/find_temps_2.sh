@@ -4,7 +4,7 @@
 #SBATCH --error=error_%a_%A.log
 #SBATCH --time=40:00:00
 #SBATCH --mem=16GB
-#SBATCH --cpus-per-task=48
+#SBATCH --cpus-per-task=32
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
