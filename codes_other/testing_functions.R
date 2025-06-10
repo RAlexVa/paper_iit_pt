@@ -167,7 +167,7 @@ colSums(est)
 library(Rcpp)
 library(RcppArmadillo)
 # setwd('..')
-Rcpp::sourceCpp("functions/testing_cpp_functions.cpp")
+Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
 
 a <- num_to_vec(16,16)
 a <- num_to_vec(2^16 -1,16)
