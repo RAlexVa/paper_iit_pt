@@ -499,7 +499,7 @@ NumericMatrix PT_IIT_parallel_sim_wfor(int p, int num_iter, arma::Col<double> or
 
 
 /////////////////////////////////////////////////////////////////////////////////
-///// Here include the for in the parallelization AND try to make it replicable /////
+///// Here include the for in the parallelization AND make it reproducible /////
 //// Definition of worker
 struct Parallel_replica_update_rep : public Worker
 {
