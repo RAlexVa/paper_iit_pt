@@ -79,6 +79,61 @@ struct IIT_visit_neighbors : public Worker
   }//End operator
 };// End of worker to visit neighbors
 
+struct GibbsSampler : public Worker
+{
+  //// Data
+  RVector<double> X_n;//State matrix
+  RVector<double> X_mode;//State matrix
+  const double temperature;//Chosen temperature
+  const double theta; //Parameter for likelihood
+  RVector<double> output;
+  const std::size_t dim_p; // dimension of the problem (and length of X columns)
+  std::vector<std::mt19937_64>& rngs;//Vector of RNGs
+  
+  //// Functions to use from outside
+  std::size_t flip_coord(std::size_t coord,bool approaching,double theta,std::mt19937_64& rng);
+  
+  // arma::Col<double> convert_X(){
+  //   RVector<double> tmp_X = X_n;
+  //   arma::Col<double> VEC(tmp_X.begin(), dim_p, false,true);
+  //   return VEC;
+  // }
+  
+  
+  //// Main constructor
+  GibbsSampler(
+    NumericVector X_n_in,
+    NumericVector X_mode_in,
+    const double temperature_in,
+    const double theta_in,
+    NumericVector output_in,
+    const std::size_t dim_p_in,
+    std::vector<std::mt19937_64>& rngs_in)://Vector of RNGs
+    X_n(X_n_in),
+    X_mode(X_mode_in),
+    temperature(temperature_in),
+    theta(theta_in),
+    output(output_in),
+    dim_p(dim_p_in),
+    rngs(rngs_in)
+  {}
+  
+  
+  
+  //// Operator
+  void operator()(std::size_t begin, std::size_t end){
+    
+    for(std::size_t n = begin ; n < end ; n++){ // For for each neighbor
+      bool check_coord=X_n[n]!=X_mode[n];//Different coordinate means the swap will approach the mode
+      output[n]=flip_coord(X_n[n],check_coord,theta*temperature,rngs[n]);
+    }// End for loop
+    
+  }//End operator
+};// End of worker to visit neighbors
+
+
+
+
 struct SumExp : public Worker
 {   
   
