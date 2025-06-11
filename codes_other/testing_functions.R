@@ -1265,7 +1265,7 @@ rm(list=ls())
 library(Rcpp)
 library(RcppArmadillo)
 library(RcppParallel)
-Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp")
 
 #temperature_PT_IIT(int p,int interswap, double temp_ini, int bal_func, const double& theta)
 p <- 100
@@ -1310,3 +1310,74 @@ test <- pt_cmh_parallel(100000,
                 TRUE,
                 500100,
                 T)
+
+########### Testing Gibbs Sampler
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/gibbs_sampler_temp.cpp")
+
+
+
+
+
+# run_gibbs(int p, int num_iter, int burn_in, double temp_ini,double theta, int base_seed, bool adapting_factors)
+p <- 10
+num_iter <- 1
+burn_in <- 100
+temp_ini <- 1
+bal_func <- 2
+theta <- 3
+base_seed <- 123
+adapting_factors <- TRUE
+set.seed(base_seed)
+results <- find_temp_gibbs(p,num_iter,burn_in,temp_ini,bal_func,theta,base_seed,adapting_factors)
+
+find_temp_gibbs(p,num_iter,burn_in,temp_ini,bal_func,theta,base_seed,F)
+
+
+test_flip_coord(1,F,3)
+
+
+########### Testing NEW Gibbs Sampler
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose=T)
+
+
+
+
+p <- 1000
+interswap <- 1
+burn_in <- 5000
+temp_ini <- 1
+bal_func <- 2
+theta <- 3
+base_seed <- 123
+adapting_factors <- TRUE
+set.seed(base_seed)
+# (int p,int interswap, double temp_ini, int bal_func, const double& theta, int base_seed)
+results <- find_temp_gibbs(p,interswap,burn_in,temp_ini,bal_func,theta,base_seed,adapting_factors)
+set.seed(base_seed)
+results2 <- find_temp_gibbs(p,interswap,burn_in,temp_ini,bal_func,theta,base_seed,adapting_factors)
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose=T)
+# find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps)
+p <- 10
+burn_in <- 50
+temp_ini <- 1
+bal_func <- 2
+theta <- 3
+base_seed <- 123
+gibbs_steps <- 50
+set.seed(86)
+results <- find_temp_gibbs_PT_IIT(p,burn_in,temp_ini,bal_func,theta,gibbs_steps)
+
+
