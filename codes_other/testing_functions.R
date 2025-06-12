@@ -1371,16 +1371,21 @@ library(RcppParallel)
 Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose=T)
 # find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps)
 p <- 16
-burn_in <- 50
+burn_in <- 100
 temp_ini <- 1
 bal_func <- 2
 theta <- 3
 base_seed <- 123
-gibbs_steps <- 50
-set.seed(86)
+gibbs_steps <- p
+set.seed(45)# iF rho=0 converges fast,p=16
 results <- find_temp_gibbs_PT_IIT(p,burn_in,temp_ini,bal_func,theta,gibbs_steps)
 
+interswap <- 1
+p <- 1000
+set.seed(45)# iF rho=0 converges fast, p=16
+results_a_iit <- find_temp_gibbs_A_IIT(p,interswap,burn_in,temp_ini,bal_func,theta,base_seed)
 
+results_a_iit_v2 <- find_temp_gibbs_A_IIT_v2(p,burn_in,temp_ini,bal_func,theta,gibbs_steps)
 
 Rcpp::sourceCpp("functions/find_temp_parallel_v2.cpp", verbose=T)
 
