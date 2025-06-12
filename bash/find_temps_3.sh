@@ -2,9 +2,9 @@
 #SBATCH --job-name=find_temp_A-IIT
 #SBATCH --output=output_%a_%A.log
 #SBATCH --error=error_%a_%A.log
-#SBATCH --time=36:00:00
+#SBATCH --time=20:00:00
 #SBATCH --mem=16GB
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=20
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
