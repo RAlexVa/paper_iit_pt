@@ -1370,7 +1370,7 @@ library(RcppArmadillo)
 library(RcppParallel)
 Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose=T)
 # find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps)
-p <- 10
+p <- 16
 burn_in <- 50
 temp_ini <- 1
 bal_func <- 2
@@ -1380,4 +1380,7 @@ gibbs_steps <- 50
 set.seed(86)
 results <- find_temp_gibbs_PT_IIT(p,burn_in,temp_ini,bal_func,theta,gibbs_steps)
 
+
+
+Rcpp::sourceCpp("functions/find_temp_parallel_v2.cpp", verbose=T)
 
