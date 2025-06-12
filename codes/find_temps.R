@@ -25,10 +25,11 @@ list_of_algs <- unique(parameters |> filter(id %in% list_ids) |> pull(algorithm)
 if(length(list_of_algs)>1){
   stop("You cannot run more than 1 algorithm at a time");
 }else{
-  if(list_of_algs=="PT_IIT_Z"){Rcpp::sourceCpp("functions/find_temp_parallel.cpp");}
-  if(list_of_algs=="PT_A_IIT"){Rcpp::sourceCpp("functions/find_temp_func.cpp")}
+  # if(list_of_algs=="PT_IIT_Z"){Rcpp::sourceCpp("functions/find_temp_parallel.cpp");}
+  # if(list_of_algs=="PT_A_IIT"){Rcpp::sourceCpp("functions/find_temp_func.cpp")}
 }
 # Source CPP functions
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
 ##### Start process for algorithms        
     for(id_chosen in list_ids){
       sim_chosen <- parameters |> filter(id==id_chosen)
@@ -45,6 +46,7 @@ if(length(list_of_algs)>1){
       model <- as.character(sim_chosen$model)
       temp_ini <- as.numeric(sim_chosen$t1)
       number_temperatures <- as.numeric(sim_chosen$num_temp)
+      gibbs_step <- as.numeric(sim_chosen$gibbs_step)
       #### Function depending on algorithm to use
 #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)      
       writeLines(c("Parameters:",
@@ -53,25 +55,26 @@ if(length(list_of_algs)>1){
                    paste0("Problem: ",model),
                    paste0("Dimension: ",p),
                    paste0("Theta: ",theta),
-                   paste0("Samples in-between swaps: ",interswap),
+                   # paste0("Samples in-between swaps: ",interswap),
+                   paste0("Gibbs Steps: ",gibbs_step),
                    paste0("Initial temperature: ",temp_ini),
                    paste0("#Temperatures to find: ",number_temperatures),
                    paste0("Balancing function: ",bal_f)))
       
+      ##Transform balancing function to integer
+      if(bal_f=="min"){bal_f=1;}else{bal_f=2;}
       
   for(t_counter in 1:number_temperatures){
     if(alg=="PT_IIT_Z"){
-      ##Transform balancing function to integer
-      if(bal_f=="min"){bal_f=1;}else{bal_f=2;}
       # Using Z factor bias correction
-      #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
-      output_list <- temperature_PT_IIT(p,interswap,temp_ini,bal_f, theta)
+      #find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps)
+      output_list <- find_temp_gibbs_PT_IIT(p,burn_in=10,temp_ini,bal_f, theta,gibbs_step)
       output <- output_list[["temp"]];
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT with multiplicity list in each replica
-      #temperature_PT_a_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)
-      output_list <- temperature_PT_a_IIT(p,interswap,temp_ini,bal_f,theta)
+      #find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed)
+      output_list <- find_temp_gibbs_A_IIT(p,1,burn_in=10,temp_ini,bal_f,theta,defined_seed)
       output <- output_list[["temp"]];
     }
     
@@ -92,10 +95,10 @@ if(length(list_of_algs)>1){
             append = TRUE)
     }
 ## Output de number of iterations
-    if(alg=="PT_A_IIT"){
-      write(paste0("Iterations: ",paste0(round(t(output_list[["iter"]]),3),collapse = ", ")),
-            file = paste0("results/temperatures_id_",id_chosen,".txt"), 
-            append = TRUE)}
+    # if(alg=="PT_A_IIT"){
+    #   write(paste0("Iterations: ",paste0(round(t(output_list[["iter"]]),3),collapse = ", ")),
+    #         file = paste0("results/temperatures_id_",id_chosen,".txt"), 
+    #         append = TRUE)}
 
     
     temp_ini <- output;
