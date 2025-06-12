@@ -166,284 +166,6 @@ std::size_t GibbsSampler::flip_coord(std::size_t coord,bool approaching,double t
 // Function to run simulation
 
 // [[Rcpp::export]]
-List test_1(int p, double temperature, int bal_func, double theta){
-  int T=1;
-  
-  const std::size_t begin = static_cast <size_t> (0);
-  const std::size_t end = static_cast <size_t> (p); 
-  
-  //// Define two modes
-  NumericMatrix Q_matrix(p,2);
-  for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
-  }
-  
-  double ppp=randu();
-  arma::Mat<double> inter_mat(p,T);
-  inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
-  arma::Col<double> original_X = inter_mat.col(0);
-  //Convert 
-  NumericVector X=Rcpp::wrap(original_X);
-  NumericVector output (p);
-  // Declare constructor to visit all neighbors
-  IIT_visit_neighbors iit_neighbors(X,
-                                    Q_matrix,
-                                    bal_func,
-                                    temperature,
-                                    theta,
-                                    output,
-                                    end);
-  //Apply for to visit all neighbors
-  parallelFor(begin,end,iit_neighbors);
-  
-  //Declare constructor to add log-probabilities
-  SumExp sum_exp(output);
-  //Get the sum of probabilities
-  parallelReduce(0,end,sum_exp);
-  
-  //Substract minimum
-  arma::Col<double> u_random(p,fill::randu);
-  NumericVector u=Rcpp::wrap(u_random);
-  NumericVector choose_min=log(-log(u)) - (output);
-  //Declare constructor to find minimum
-  GetMin get_min(choose_min);
-  parallelReduce(0,end,get_min);
-  
-  output.push_back(sum_exp.Z);
-  choose_min.push_back(get_min.min_value);
-  choose_min.push_back(get_min.min_index);
-  
-  List ret;
-  ret["output"] = output;
-  ret["mins"]=choose_min;
-  return ret;
-  // return output;
-  
-}
-
-// [[Rcpp::export]]
-List temperature_PT_IIT(int p,int interswap, double temp_ini, int bal_func, const double& theta){
-  // Inputs are:
-  // p:dimension
-  //interswap: number of iterations to try between replica swaps
-  // t1: initial temperature 1 (not changes)
-  // t2: initial temperature 2 (changes) t1/(1+exp(rho_n)) = t1/exp1m(rho_n)
-  //threshold: Para detener la busqueda 
-  // Numero de temperaturas (o temperatura mínima a alcanzar)
-  //Theta: parametro a usar para la log-likelihood
-  
-  //// Initialize variables to use in the code
-  int T=2; //The total number of temperatures will be 2
-  NumericMatrix X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
-  // List output; //To store output of the update function
-  
-  //// Parameters for the temperature finding   
-  double rho=-3.5;//1.3;//-2.6; // To define initial second temperature
-  double threshold=0.001;//0.001;//.1;//0.001;//Stop when the updates differ less than this much
-  double target_swap_rate=0.2345;//Target swap rate
-  
-  int precision=3;//To round values
-  
-  bool stay_in_loop=true;
-  double swap_prob;
-  NumericVector Xtemp_from(p);
-  NumericVector Xtemp_to(p);
-  //// Initialize temperatures
-  vec temp={temp_ini,round_to(temp_ini/(1+exp(rho)),precision)};
-  double avg_swap_prob=0;
-  int count_convergence=0;
-  
-  double current_temp;
-  int swap_count=0; //To count how many swaps were performed
-  
-  //// Define two modes
-  NumericMatrix Q_matrix(p,2);
-  for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
-  }
-  
-  //// Initialize states X_0
-  double ppp=randu();
-  arma::Mat<double> inter_mat(p,T);
-  inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
-  X=Rcpp::wrap(inter_mat);
-  
-  //// Paramemters for parallelization
-  // const std::size_t begin = static_cast <size_t> (0);
-  const std::size_t end = static_cast <size_t> (p); 
-  
-  std::clock_t start_time = std::clock(); /// Start timer
-
-  while(stay_in_loop){
-    //// Start the loop for all iterations
-    for(int i=0;i<interswap;i++){
-      for(int replica=0;replica<T;replica++){//For loop for replicas
-        current_temp=temp(replica);// Extract temperature of the replica
-//// Visit all neighbors
-        NumericVector output_bf(p); //Declare vector to store info of visiting neighbors
-//// Declare constructor to visit all neighbors
-        IIT_visit_neighbors iit_neighbors(X(_,replica),
-                                          Q_matrix,
-                                          bal_func,
-                                          current_temp,
-                                          theta,
-                                          output_bf,
-                                          end);
-
-        parallelFor(0,end,iit_neighbors);//Apply ParallelFor
-        
-        //Declare constructor to add log-probabilities
-        // SumExp sum_exp(output_bf);
-        //Get the sum of probabilities
-        // parallelReduce(0,end,sum_exp);
-        
-//// Choose the next neighbor state
-
-        arma::Col<double> u_random(p,fill::randu);
-        NumericVector u=Rcpp::wrap(u_random);
-        NumericVector choose_min=log(-log(u)) - (output_bf);
-        //Declare constructor to find minimum
-        GetMin get_min(choose_min);
-        parallelReduce(0,end,get_min);//Find the Minimum
-//// Update the state of the replica
-double temp_coord=X(get_min.min_index,replica);
-        X(get_min.min_index,replica)=1-temp_coord;
-      }//End loop to update replicas
-    }// End loop of interswap
-    
-    //// Start replica swap process
-    
-    swap_count+=1;//Increase the count of swaps
-    // n_iter+=1; //Increase denominator
-    Xtemp_from=X(_,0);
-    Xtemp_to=X(_,1);
-    
-    
-    //// Computation of Z factors to correct bias
-    double Z_fact_correc;//to temporarily store Z_factor correction
-    // double Z_temp11;
-    // double Z_temp12;
-    // double Z_temp21;
-    // double Z_temp22;
-    
-    //Declare vector to store info of visiting neighbors
-    NumericVector output_Z_v11(p); 
-    NumericVector output_Z_v22(p); 
-    NumericVector output_Z_v12(p); 
-    NumericVector output_Z_v21(p); 
-//// Declare constructor to visit all neighbors
-    IIT_visit_neighbors Z_v11(Xtemp_from,
-                              Q_matrix,
-                              bal_func,
-                              temp(0),
-                              theta,
-                              output_Z_v11,
-                              end);
-    IIT_visit_neighbors Z_v22(Xtemp_to,
-                              Q_matrix,
-                              bal_func,
-                              temp(1),
-                              theta,
-                              output_Z_v22,
-                              end);
-    IIT_visit_neighbors Z_v12(Xtemp_from,
-                              Q_matrix,
-                              bal_func,
-                              temp(1),
-                              theta,
-                              output_Z_v12,
-                              end);
-    IIT_visit_neighbors Z_v21(Xtemp_to,
-                              Q_matrix,
-                              bal_func,
-                              temp(0),
-                              theta,
-                              output_Z_v21,
-                              end);
-//// Apply ParallelFor
-    parallelFor(0,end,Z_v11);
-    parallelFor(0,end,Z_v22);
-    parallelFor(0,end,Z_v12);
-    parallelFor(0,end,Z_v21);
-    
-//// Declare constructor to add log-probabilities
-    SumExp sum_Z11(output_Z_v11);
-    SumExp sum_Z22(output_Z_v22);
-    SumExp sum_Z12(output_Z_v12);
-    SumExp sum_Z21(output_Z_v21);
-//// Get the sum of probabilities
-    parallelReduce(0,end,sum_Z11);
-    parallelReduce(0,end,sum_Z22);
-    parallelReduce(0,end,sum_Z12);
-    parallelReduce(0,end,sum_Z21);
-    
-    Z_fact_correc=(sum_Z12.Z*sum_Z21.Z)/(sum_Z11.Z*sum_Z22.Z);
-    // Z_fact_correc=Z_temp12*Z_temp21/(Z_temp11*Z_temp22);
-    
-    //// Computing swap probability
-    swap_prob=(temp(0)-temp(1))*(loglik_R(Xtemp_to,Q_matrix,theta) - loglik_R(Xtemp_from,Q_matrix,theta)); 
-    swap_prob=ret_min(Z_fact_correc*exp(swap_prob),1,1);
-    
-    
-    if(swap_count==1){
-      avg_swap_prob=swap_prob;
-    }else{
-      avg_swap_prob=(avg_swap_prob*(swap_count-1)+swap_prob)/swap_count;
-    }
-    
-    //// Update temperature
-    rho=rho + (swap_prob-target_swap_rate)/swap_count;
-    
-    // if(rho<1e-5){
-    //   temp(1)=round_to(temp_ini/(2+expm1(rho)),precision);
-    // }else{
-    //   temp(1)=round_to(temp_ini/(1+exp(rho)),precision);
-    // }
-    if(rho<1e-5){
-      temp(1)=temp_ini/(2+expm1(rho));
-    }else{
-      temp(1)=temp_ini/(1+exp(rho));
-    }
-    
-    //Check current threshold
-    // Rcpp::Rcout <<"Avg. swap_rate: "<<avg_swap_prob << std::endl; 
-    if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
-      count_convergence+=1;
-      if(count_convergence>=3){
-        stay_in_loop=false;
-      }
-      
-    }else{
-      count_convergence=0;
-    }
-    
-    
-    if(swap_count % 100 == 0){
-      Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-    }
-    
-    if(swap_count == 700000){// Force finishing of algorithm
-      stay_in_loop=false;
-    } 
-    
-  }
-  std::clock_t end_time = std::clock(); // Stop timer
-  // Calculate the time taken in seconds
-  double duration = static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC;
-  Rcpp::Rcout <<"FINAL RESULTS:\nSwap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-  
-  // return round_to(temp(1),3);
-  List ret;
-  ret["temp"]=round_to(temp(1),precision);
-  ret["swap"]=swap_count;
-  ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
-  ret["seconds"]=duration;
-  return ret;
-}
-
-// [[Rcpp::export]]
 List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed){
   // Inputs are:
   // p:dimension
@@ -590,67 +312,9 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
     Xtemp_to=X(_,1);
     
     
-    //// Computation of Z factors to correct bias
-    double Z_fact_correc=1;//to temporarily store Z_factor correction
-    // if(adapting_factors){
-    //   //Declare vector to store info of visiting neighbors
-    //   NumericVector output_Z_v11(p); 
-    //   NumericVector output_Z_v22(p); 
-    //   NumericVector output_Z_v12(p); 
-    //   NumericVector output_Z_v21(p); 
-    //   //// Declare constructor to visit all neighbors
-    //   IIT_visit_neighbors Z_v11(Xtemp_from,
-    //                             Q_matrix,
-    //                             bal_func,
-    //                             temp(0),
-    //                             theta,
-    //                             output_Z_v11,
-    //                             end);
-    //   IIT_visit_neighbors Z_v22(Xtemp_to,
-    //                             Q_matrix,
-    //                             bal_func,
-    //                             temp(1),
-    //                             theta,
-    //                             output_Z_v22,
-    //                             end);
-    //   IIT_visit_neighbors Z_v12(Xtemp_from,
-    //                             Q_matrix,
-    //                             bal_func,
-    //                             temp(1),
-    //                             theta,
-    //                             output_Z_v12,
-    //                             end);
-    //   IIT_visit_neighbors Z_v21(Xtemp_to,
-    //                             Q_matrix,
-    //                             bal_func,
-    //                             temp(0),
-    //                             theta,
-    //                             output_Z_v21,
-    //                             end);
-    //   //// Apply ParallelFor
-    //   parallelFor(0,end,Z_v11);
-    //   parallelFor(0,end,Z_v22);
-    //   parallelFor(0,end,Z_v12);
-    //   parallelFor(0,end,Z_v21);
-    //   
-    //   //// Declare constructor to add log-probabilities
-    //   SumExp sum_Z11(output_Z_v11);
-    //   SumExp sum_Z22(output_Z_v22);
-    //   SumExp sum_Z12(output_Z_v12);
-    //   SumExp sum_Z21(output_Z_v21);
-    //   //// Get the sum of probabilities
-    //   parallelReduce(0,end,sum_Z11);
-    //   parallelReduce(0,end,sum_Z22);
-    //   parallelReduce(0,end,sum_Z12);
-    //   parallelReduce(0,end,sum_Z21);
-    //   
-    //   Z_fact_correc=(sum_Z12.Z*sum_Z21.Z)/(sum_Z11.Z*sum_Z22.Z);
-    // }
-    
-    
     //// Computing swap probability
     swap_prob=(temp(0)-temp(1))*(loglik_R(Xtemp_to,Q_matrix,theta) - loglik_R(Xtemp_from,Q_matrix,theta)); 
-    swap_prob=ret_min(Z_fact_correc*exp(swap_prob),1,1);
+    swap_prob=ret_min(exp(swap_prob),1,1);
     
     
     if(swap_count==1){
@@ -681,11 +345,11 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
     }
     
     
-    if(swap_count % 100 == 0){
+    if(swap_count % 200 == 0){
       Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
     }
     
-    if(swap_count == 700000){// Force finishing of algorithm
+    if(swap_count == 1000000){// Force finishing of algorithm
       stay_in_loop=false;
     } 
     
@@ -739,329 +403,241 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   double current_temp;
   int swap_count=0; //To count how many swaps were performed
   
-  //// Define two modes
+  //// Define two modes and Initialize states X_0
+  //We initialize X_0 at the modes
   NumericMatrix Q_matrix(p,2);
   for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
+    if(i%2==0){Q_matrix(i,1)=1;
+      // X(i,1)=1;
+      }
+    if(i%2==1){Q_matrix(i,0)=1;
+      // X(i,0)=1;
+      }
   }
-  
   //// Initialize states X_0
   double ppp=randu();
   arma::Mat<double> inter_mat(p,T);
   inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
   X=Rcpp::wrap(inter_mat);
   
-  //// Paramemters for parallelization
-  // const std::size_t begin = static_cast <size_t> (0);
-  const std::size_t end = static_cast <size_t> (p); 
-  NumericMatrix chain_m1=clone(X); // To keep track of how the chain for mode 1 evolves
-  NumericMatrix chain_m2=clone(X);// To keep track of how the chain for mode 2 evolves
+
   
+  //// Paramemters for parallelization
+  const std::size_t end = static_cast <size_t> (p); 
   NumericVector X_mode1=Q_matrix(_,0);
   NumericVector X_mode2=Q_matrix(_,1);
   
-  // int gibbs_steps=50;//NUmber of steps to wait before checking a swap
-  if(gibbs_steps>p){gibbs_steps=p/2;}//In case the Gibbs step size is too big
+   if(gibbs_steps>p){gibbs_steps=p/2;}//In case the Gibbs step size is too big
   //Burn-in period
+  // Rcpp::Rcout <<"Starting state: \n"<<X<< std::endl; 
+   
   for(int i=0;i<burn_in;i++){
-    if(i % 100 == 0){
       Rcpp::Rcout <<"Burn_in, iteration: "<<i<< std::endl; 
-    }
     for(int replica=0;replica<T;replica++){//For loop for replicas
       current_temp=temp(replica);// Extract temperature of the replica
       // First gather information of current states of both chains
-      NumericVector current_X_m1=chain_m1(_,replica);//Copy of current state of chain 1
-      NumericVector current_X_m2=chain_m2(_,replica);//Copy of current state of chain 1
+      NumericVector current_X=X(_,replica);//Copy of current state of chain 1
       
-      NumericVector output_X_m1(p);//Vector to store output
-      IIT_visit_neighbors visit_current_X_m1(current_X_m1,
+      NumericVector output_X(p);//Vector to store output
+      IIT_visit_neighbors visit_current_X(current_X,
                                              Q_matrix,
                                              bal_func,
                                              current_temp,
                                              theta,
-                                             output_X_m1,
+                                             output_X,
                                              end);
       
-      parallelFor(0,end,visit_current_X_m1);//Apply parallelFor
-      SumExp X_m1(output_X_m1);// Declare constructor to add log-probabilities
-      parallelReduce(0,end,X_m1);// Get the sum of probabilities
+      parallelFor(0,end,visit_current_X);//Apply parallelFor
+      SumExp info_X(output_X);// Declare constructor to add log-probabilities
+      parallelReduce(0,end,info_X);// Get the sum of probabilities
       
-      NumericVector output_X_m2(p);//Vector to store output
-      IIT_visit_neighbors visit_current_X_m2(current_X_m2,
-                                             Q_matrix,
-                                             bal_func,
-                                             current_temp,
-                                             theta,
-                                             output_X_m2,
-                                             end);
-      
-      parallelFor(0,end,visit_current_X_m2);//Apply parallelFor
-      SumExp X_m2(output_X_m2);//// Declare constructor to add log-probabilities
-      parallelReduce(0,end,X_m2);//// Get the sum of probabilities
+      double dist_m1=sum(abs(current_X - X_mode1));
+      double dist_m2=sum(abs(current_X - X_mode2));
+      double density_current_X = (info_X.Z*exp(current_temp*loglik_R(current_X,Q_matrix,theta)));
       
       // Start for loop for coordinates        
       for(int coord=0;coord<p;coord++){
-        /// Updating chain 1
-        NumericVector output_X_neighbor_m1(p); 
-        NumericVector X_neighbor_m1=clone(current_X_m1);//Copy the current state of chain 1
-        X_neighbor_m1[coord]=1-X_neighbor_m1[coord];//Flip coordinate
+        /// Updating chain
+        NumericVector output_X_neighbor(p); 
+        NumericVector X_neighbor=clone(current_X);//Copy the current state of chain 1
+        X_neighbor[coord]=1-X_neighbor[coord];//Flip coordinate
         //// Declare constructor to visit all neighbors
-        IIT_visit_neighbors visit_X_n1_neighbors_m1(X_neighbor_m1,
+        IIT_visit_neighbors visit_X_neighbors(X_neighbor,
                                                     Q_matrix,
                                                     bal_func,
                                                     current_temp,
                                                     theta,
-                                                    output_X_neighbor_m1,
+                                                    output_X_neighbor,
                                                     end);
         
-        parallelFor(0,end,visit_X_n1_neighbors_m1);//Apply parallelFor
-        SumExp sum_probs_m1(output_X_neighbor_m1);/// Declare constructor to add log-probabilities
-        parallelReduce(0,end,sum_probs_m1);//// Get the sum of probabilities
-        ////Flip coordinate of chain 1 with some probability
-        bool check_coord_m1 = (chain_m1(coord,replica)!=X_mode1[coord]);
-        double approach=1;
-        if(check_coord_m1){//If it's approaching
-          approach=-1;
-        }else{//If it's moving away
-          approach=1;
-        }
-        double prob_flip_m1=sum_probs_m1.Z/(sum_probs_m1.Z + (exp(current_temp*theta*approach)*X_m1.Z));
+        parallelFor(0,end,visit_X_neighbors);//Apply parallelFor
+        SumExp info_X_neighbor(output_X_neighbor);/// Declare constructor to add log-probabilities
+        parallelReduce(0,end,info_X_neighbor);//// Get the sum of probabilities
         
+        double prob_flip;
+        
+// Check if we flip coordinate
+//We check if the coordinate is different from mode 1
+// bool check_coord_m1 = (current_X[coord]!=X_mode1[coord]);
+// Compute the density of the proposed swap (proposed state)
+//With this probability we flip the coordinate
+          double density_X_neighbor = (info_X_neighbor.Z*exp(current_temp*loglik_R(X_neighbor,Q_matrix,theta)));
+          prob_flip=(density_X_neighbor)/(density_X_neighbor + density_current_X);
         double ppm1=randu();
-        if(ppm1<prob_flip_m1){chain_m1(coord,replica) = 1-chain_m1(coord,replica);}
-        
-        /// Updating chain 2
-        NumericVector output_X_neighbor_m2(p); 
-        NumericVector X_neighbor_m2=clone(current_X_m2);//Copy the current state of chain 1
-        X_neighbor_m2[coord]=1-X_neighbor_m2[coord];//Flip coordinate
-        //// Declare constructor to visit all neighbors
-        IIT_visit_neighbors visit_X_n1_neighbors_m2(X_neighbor_m2,
-                                                    Q_matrix,
-                                                    bal_func,
-                                                    current_temp,
-                                                    theta,
-                                                    output_X_neighbor_m2,
-                                                    end);
-        
-        parallelFor(0,end,visit_X_n1_neighbors_m2);//Apply parallelFor
-        SumExp sum_probs_m2(output_X_neighbor_m2);//// Declare constructor to add log-probabilities
-        parallelReduce(0,end,sum_probs_m2);          //// Get the sum of probabilities
-        ////Flip coordinate of chain 1 with some probability
-        bool check_coord_m2 = (chain_m2(coord,replica)!=X_mode2[coord]);
-        // double approach=1;
-        if(check_coord_m2){//If it's approaching
-          approach=-1;
-        }else{//If it's moving away
-          approach=1;
-        }
-        double prob_flip_m2=sum_probs_m2.Z/(sum_probs_m2.Z + (exp(current_temp*theta*approach)*X_m2.Z));
-        
-        double ppm2=randu();
-        if(ppm2<prob_flip_m2){chain_m2(coord,replica) = 1-chain_m2(coord,replica);}
+        if(ppm1<prob_flip){X(coord,replica) = 1-X(coord,replica);}
         
       }//End loop for coordinate 
     }//End loop to update replicas
   }// End loop of interswap
   Rcpp::Rcout <<"Finish Burn_in: "<< std::endl;   
-  double ppp1=randu();
-  if(ppp1<0.5){X=clone(chain_m1);}else{X=clone(chain_m2);}  
-  
+  // Rcpp::Rcout <<"State after burn-in: \n"<<X<< std::endl;
   std::clock_t start_time = std::clock(); /// Start timer  
   //Start finding temperatures
   while(stay_in_loop){
-      for(int replica=0;replica<T;replica++){//For loop for replicas
-        current_temp=temp(replica);// Extract temperature of the replica
-// First gather information of current states of both chains
-        NumericVector current_X_m1=chain_m1(_,replica);//Copy of current state of chain 1
-        NumericVector current_X_m2=chain_m2(_,replica);//Copy of current state of chain 1
+    for(int replica=0;replica<T;replica++){//For loop for replicas
+      current_temp=temp(replica);// Extract temperature of the replica
+      // First gather information of current states of both chains
+      NumericVector current_X=X(_,replica);//Copy of current state of chain 1
+      
+      NumericVector output_X(p);//Vector to store output
+      IIT_visit_neighbors visit_current_X(current_X,
+                                          Q_matrix,
+                                          bal_func,
+                                          current_temp,
+                                          theta,
+                                          output_X,
+                                          end);
+      
+      parallelFor(0,end,visit_current_X);//Apply parallelFor
+      SumExp info_X(output_X);// Declare constructor to add log-probabilities
+      parallelReduce(0,end,info_X);// Get the sum of probabilities
+      
+      double dist_m1=sum(abs(current_X - X_mode1));
+      double dist_m2=sum(abs(current_X - X_mode2));
+      double density_current_X = (info_X.Z*exp(current_temp*loglik_R(current_X,Q_matrix,theta)));// Start for loop for coordinates        
+      for(int coord=0;coord<p;coord++){
+        /// Updating chain 1
+        NumericVector output_X_neighbor(p); 
+        NumericVector X_neighbor=clone(current_X);//Copy the current state of chain 1
+        X_neighbor[coord]=1-X_neighbor[coord];//Flip coordinate
+        //// Declare constructor to visit all neighbors
+        IIT_visit_neighbors visit_X_neighbors(X_neighbor,
+                                              Q_matrix,
+                                              bal_func,
+                                              current_temp,
+                                              theta,
+                                              output_X_neighbor,
+                                              end);
         
-        NumericVector output_X_m1(p);//Vector to store output
-        IIT_visit_neighbors visit_current_X_m1(current_X_m1,
-                                                    Q_matrix,
-                                                    bal_func,
-                                                    current_temp,
-                                                    theta,
-                                                    output_X_m1,
-                                                    end);
+        parallelFor(0,end,visit_X_neighbors);//Apply parallelFor
+        SumExp info_X_neighbor(output_X_neighbor);/// Declare constructor to add log-probabilities
+        parallelReduce(0,end,info_X_neighbor);//// Get the sum of probabilities
         
-        parallelFor(0,end,visit_current_X_m1);//Apply parallelFor
-        SumExp X_m1(output_X_m1);// Declare constructor to add log-probabilities
-        parallelReduce(0,end,X_m1);// Get the sum of probabilities
-        
-        NumericVector output_X_m2(p);//Vector to store output
-        IIT_visit_neighbors visit_current_X_m2(current_X_m2,
-                                               Q_matrix,
-                                               bal_func,
-                                               current_temp,
-                                               theta,
-                                               output_X_m2,
-                                               end);
-        
-        parallelFor(0,end,visit_current_X_m2);//Apply parallelFor
-        SumExp X_m2(output_X_m2);//// Declare constructor to add log-probabilities
-        parallelReduce(0,end,X_m2);//// Get the sum of probabilities
-        
-// Start for loop for coordinates        
-for(int coord=0;coord<p;coord++){
-/// Updating chain 1
-// Rcpp::Rcout <<"Updating coord: "<<coord<< std::endl; 
-          NumericVector output_X_neighbor_m1(p); 
-          NumericVector X_neighbor_m1=clone(current_X_m1);//Copy the current state of chain 1
-          X_neighbor_m1[coord]=1-X_neighbor_m1[coord];//Flip coordinate
+        double prob_flip;
+          // Check if we flip coordinate
+          //We check if the coordinate is different from mode 1
+          // bool check_coord_m1 = (current_X[coord]!=X_mode1[coord]);
+
+            double density_X_neighbor = (info_X_neighbor.Z*exp(current_temp*loglik_R(X_neighbor,Q_matrix,theta)));
+            prob_flip=(density_X_neighbor)/(density_X_neighbor + density_current_X);
+
+          double ppm1=randu();
+          if(ppm1<prob_flip){X(coord,replica) = 1-X(coord,replica);}
+
+//// Try a swap after specific number of steps
+        if((swap_count+coord) % gibbs_steps == 0){
+
+          //// Start replica swap process
+          swap_count+=1;//Increase the count of swaps
+          // n_iter+=1; //Increase denominator
+          Xtemp_from=X(_,0);
+          Xtemp_to=X(_,1);
+          
+          // Rcpp::Rcout <<"Trying swap: "<<swap_count<< std::endl;   
+          //// Computation of Z factors to correct bias
+          double Z_fact_correc=1;//to temporarily store Z_factor correction
+          
+          //Declare vector to store info of visiting neighbors
+          NumericVector output_Z_v11(p); 
+          NumericVector output_Z_v22(p); 
+          NumericVector output_Z_v12(p); 
+          NumericVector output_Z_v21(p); 
           //// Declare constructor to visit all neighbors
-          IIT_visit_neighbors visit_X_n1_neighbors_m1(X_neighbor_m1,
+          IIT_visit_neighbors Z_v11(Xtemp_from,
                                     Q_matrix,
                                     bal_func,
-                                    current_temp,
+                                    temp(0),
                                     theta,
-                                    output_X_neighbor_m1,
+                                    output_Z_v11,
                                     end);
+          IIT_visit_neighbors Z_v22(Xtemp_to,
+                                    Q_matrix,
+                                    bal_func,
+                                    temp(1),
+                                    theta,
+                                    output_Z_v22,
+                                    end);
+          IIT_visit_neighbors Z_v12(Xtemp_from,
+                                    Q_matrix,
+                                    bal_func,
+                                    temp(1),
+                                    theta,
+                                    output_Z_v12,
+                                    end);
+          IIT_visit_neighbors Z_v21(Xtemp_to,
+                                    Q_matrix,
+                                    bal_func,
+                                    temp(0),
+                                    theta,
+                                    output_Z_v21,
+                                    end);
+          //// Apply ParallelFor
+          parallelFor(0,end,Z_v11);
+          parallelFor(0,end,Z_v22);
+          parallelFor(0,end,Z_v12);
+          parallelFor(0,end,Z_v21);
           
-          parallelFor(0,end,visit_X_n1_neighbors_m1);//Apply parallelFor
-          SumExp sum_probs_m1(output_X_neighbor_m1);/// Declare constructor to add log-probabilities
-          parallelReduce(0,end,sum_probs_m1);//// Get the sum of probabilities
-////Flip coordinate of chain 1 with some probability
-          bool check_coord_m1 = (chain_m1(coord,replica)!=X_mode1[coord]);
-          double approach=1;
-          if(check_coord_m1){//If it's approaching
-            approach=-1;
-          }else{//If it's moving away
-            approach=1;
+          //// Declare constructor to add log-probabilities
+          SumExp sum_Z11(output_Z_v11);
+          SumExp sum_Z22(output_Z_v22);
+          SumExp sum_Z12(output_Z_v12);
+          SumExp sum_Z21(output_Z_v21);
+          //// Get the sum of probabilities
+          parallelReduce(0,end,sum_Z11);
+          parallelReduce(0,end,sum_Z22);
+          parallelReduce(0,end,sum_Z12);
+          parallelReduce(0,end,sum_Z21);
+          // Rcpp::Rcout <<"Finish parallel steps swap: "<<swap_count<< std::endl; 
+          Z_fact_correc=(sum_Z12.Z*sum_Z21.Z)/(sum_Z11.Z*sum_Z22.Z);
+          //// Computing swap probability
+          swap_prob=(temp(0)-temp(1))*(loglik_R(Xtemp_to,Q_matrix,theta) - loglik_R(Xtemp_from,Q_matrix,theta)); 
+          swap_prob=ret_min(Z_fact_correc*exp(swap_prob),1,1);
+          
+          if(swap_count==1){avg_swap_prob=swap_prob;
+          }else{avg_swap_prob=(avg_swap_prob*(swap_count-1)+swap_prob)/swap_count;}    
+          //// Update temperature
+          rho=rho + (swap_prob-target_swap_rate)/swap_count;
+          if(rho<1e-5){temp(1)=temp_ini/(2+expm1(rho));
+          }else{temp(1)=temp_ini/(1+exp(rho));}
+          //Check current threshold 
+          if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
+            count_convergence+=1;
+            if(count_convergence>=3){
+              stay_in_loop=false;}
+          }else{count_convergence=0;}
+          if(swap_count % 200 == 0){
+            Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
+            // Rcpp::Rcout <<"Current state: \n"<<X<< std::endl; 
           }
-          double prob_flip_m1=sum_probs_m1.Z/(sum_probs_m1.Z + (exp(current_temp*theta*approach)*X_m1.Z));
+          if(swap_count == 1000000){// Force finishing of algorithm
+            stay_in_loop=false;} 
+          /// Finish replica swap process   
           
-          double ppm1=randu();
-          if(ppm1<prob_flip_m1){chain_m1(coord,replica) = 1-chain_m1(coord,replica);}
-          
-/// Updating chain 2
-          NumericVector output_X_neighbor_m2(p); 
-          NumericVector X_neighbor_m2=clone(current_X_m2);//Copy the current state of chain 1
-          X_neighbor_m2[coord]=1-X_neighbor_m2[coord];//Flip coordinate
-          //// Declare constructor to visit all neighbors
-          IIT_visit_neighbors visit_X_n1_neighbors_m2(X_neighbor_m2,
-                                                      Q_matrix,
-                                                      bal_func,
-                                                      current_temp,
-                                                      theta,
-                                                      output_X_neighbor_m2,
-                                                      end);
-          
-          parallelFor(0,end,visit_X_n1_neighbors_m2);//Apply parallelFor
-          SumExp sum_probs_m2(output_X_neighbor_m2);//// Declare constructor to add log-probabilities
-          parallelReduce(0,end,sum_probs_m2);          //// Get the sum of probabilities
-          ////Flip coordinate of chain 1 with some probability
-          bool check_coord_m2 = (chain_m2(coord,replica)!=X_mode2[coord]);
-          // double approach=1;
-          if(check_coord_m2){//If it's approaching
-            approach=-1;
-          }else{//If it's moving away
-            approach=1;
-          }
-          double prob_flip_m2=sum_probs_m2.Z/(sum_probs_m2.Z + (exp(current_temp*theta*approach)*X_m2.Z));
-          
-          double ppm2=randu();
-          if(ppm2<prob_flip_m2){chain_m2(coord,replica) = 1-chain_m2(coord,replica);}
-          
-          
-
-          
-//// Try a swap after specific number of steps
-if((swap_count+coord) % gibbs_steps == 0){
-  ////Update state of the chain based on the mixture with the same weight
-  double ppX=randu();
-  if(ppX<0.5){X(_,replica)=chain_m1(_,replica);}else{X(_,replica)=chain_m2(_,replica);}
-  
-  //// Start replica swap process
-  swap_count+=1;//Increase the count of swaps
-  // n_iter+=1; //Increase denominator
-  Xtemp_from=X(_,0);
-  Xtemp_to=X(_,1);
-  
-  // Rcpp::Rcout <<"Trying swap: "<<swap_count<< std::endl;   
-  //// Computation of Z factors to correct bias
-  double Z_fact_correc=1;//to temporarily store Z_factor correction
-  
-  //Declare vector to store info of visiting neighbors
-  NumericVector output_Z_v11(p); 
-  NumericVector output_Z_v22(p); 
-  NumericVector output_Z_v12(p); 
-  NumericVector output_Z_v21(p); 
-  //// Declare constructor to visit all neighbors
-  IIT_visit_neighbors Z_v11(Xtemp_from,
-                            Q_matrix,
-                            bal_func,
-                            temp(0),
-                            theta,
-                            output_Z_v11,
-                            end);
-  IIT_visit_neighbors Z_v22(Xtemp_to,
-                            Q_matrix,
-                            bal_func,
-                            temp(1),
-                            theta,
-                            output_Z_v22,
-                            end);
-  IIT_visit_neighbors Z_v12(Xtemp_from,
-                            Q_matrix,
-                            bal_func,
-                            temp(1),
-                            theta,
-                            output_Z_v12,
-                            end);
-  IIT_visit_neighbors Z_v21(Xtemp_to,
-                            Q_matrix,
-                            bal_func,
-                            temp(0),
-                            theta,
-                            output_Z_v21,
-                            end);
-  //// Apply ParallelFor
-  parallelFor(0,end,Z_v11);
-  parallelFor(0,end,Z_v22);
-  parallelFor(0,end,Z_v12);
-  parallelFor(0,end,Z_v21);
-  
-  //// Declare constructor to add log-probabilities
-  SumExp sum_Z11(output_Z_v11);
-  SumExp sum_Z22(output_Z_v22);
-  SumExp sum_Z12(output_Z_v12);
-  SumExp sum_Z21(output_Z_v21);
-  //// Get the sum of probabilities
-  parallelReduce(0,end,sum_Z11);
-  parallelReduce(0,end,sum_Z22);
-  parallelReduce(0,end,sum_Z12);
-  parallelReduce(0,end,sum_Z21);
-  // Rcpp::Rcout <<"Finish parallel steps swap: "<<swap_count<< std::endl; 
-  Z_fact_correc=(sum_Z12.Z*sum_Z21.Z)/(sum_Z11.Z*sum_Z22.Z);
-  //// Computing swap probability
-  swap_prob=(temp(0)-temp(1))*(loglik_R(Xtemp_to,Q_matrix,theta) - loglik_R(Xtemp_from,Q_matrix,theta)); 
-  swap_prob=ret_min(Z_fact_correc*exp(swap_prob),1,1);
-  
-  if(swap_count==1){avg_swap_prob=swap_prob;
-  }else{avg_swap_prob=(avg_swap_prob*(swap_count-1)+swap_prob)/swap_count;}    
-  //// Update temperature
-  rho=rho + (swap_prob-target_swap_rate)/swap_count;
-  if(rho<1e-5){temp(1)=temp_ini/(2+expm1(rho));
-  }else{temp(1)=temp_ini/(1+exp(rho));}
-  //Check current threshold 
-  if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
-    count_convergence+=1;
-    if(count_convergence>=3){
-      stay_in_loop=false;}
-  }else{count_convergence=0;}
-  if(swap_count % 100 == 0){
-    Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
-  }
-  if(swap_count == 700000){// Force finishing of algorithm
-    stay_in_loop=false;} 
-  /// Finish replica swap process   
-  
-}//End IF for swap prob checking
-        }//End loop for coordinates
-// Rcpp::Rcout <<"Finish 1 replica, swap: "<<swap_count<< std::endl; 
-      }//End loop to update replicas
-// Rcpp::Rcout <<"Finish both replicas, swap: "<<swap_count<< std::endl;       
+        }//End IF for swap prob checking
+      }//End loop for coordinates
+      // Rcpp::Rcout <<"Finish 1 replica, swap: "<<swap_count<< std::endl; 
+    }//End loop to update replicas
+    // Rcpp::Rcout <<"Finish both replicas, swap: "<<swap_count<< std::endl;       
   }// End while loop
   std::clock_t end_time = std::clock(); // Stop timer
   // Calculate the time taken in seconds
@@ -1076,7 +652,6 @@ if((swap_count+coord) % gibbs_steps == 0){
   ret["seconds"]=duration;
   return ret;
 }
-
 
 
 
