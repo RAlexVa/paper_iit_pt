@@ -258,7 +258,7 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
       chain_m2(_,replica)=output_m2;
       //Update state of the chain based on the mixture with the same weight
     }//End loop to update replicas
-  }// End loop of interswap
+  }// End loop of burn-in
 
   double ppp1=randu();
   if(ppp1<0.5){X=clone(chain_m1);}else{X=clone(chain_m2);}  
@@ -427,7 +427,7 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   NumericVector X_mode1=Q_matrix(_,0);
   NumericVector X_mode2=Q_matrix(_,1);
   
-   if(gibbs_steps>p){gibbs_steps=p/2;}//In case the Gibbs step size is too big
+   if(gibbs_steps>p|gibbs_steps<=0){gibbs_steps=p/2;}//In case the Gibbs step size is too big
   //Burn-in period
   // Rcpp::Rcout <<"Starting state: \n"<<X<< std::endl; 
    
