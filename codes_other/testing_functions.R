@@ -1385,7 +1385,6 @@ p <- 1000
 set.seed(45)# iF rho=0 converges fast, p=16
 results_a_iit <- find_temp_gibbs_A_IIT(p,interswap,burn_in,temp_ini,bal_func,theta,base_seed)
 
-results_a_iit_v2 <- find_temp_gibbs_A_IIT_v2(p,burn_in,temp_ini,bal_func,theta,gibbs_steps)
 
 Rcpp::sourceCpp("functions/find_temp_parallel_v2.cpp", verbose=T)
 
