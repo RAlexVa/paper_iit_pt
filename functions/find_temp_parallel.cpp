@@ -183,7 +183,7 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
   
   //// Parameters for the temperature finding   
   double rho=-3.5;//1.3;//-2.6; // To define initial second temperature
-  double threshold=0.001;//.1;//0.001;//Stop when the updates differ less than this much
+  double threshold=0.0005;//.1;//0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   
   int precision=3;//To round values
@@ -386,7 +386,7 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   
   //// Parameters for the temperature finding   
   double rho=-3.5;//1.3;//-2.6; // To define initial second temperature
-  double threshold=0.001;//0.001;//.1;//0.001;//Stop when the updates differ less than this much
+  double threshold=0.0005;//0.001;//.1;//0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   
   int precision=3;//To round values
@@ -408,17 +408,17 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   NumericMatrix Q_matrix(p,2);
   for(int i=0;i<p;i++){
     if(i%2==0){Q_matrix(i,1)=1;
-      // X(i,1)=1;
+      X(i,1)=1;
       }
     if(i%2==1){Q_matrix(i,0)=1;
-      // X(i,0)=1;
+      X(i,0)=1;
       }
   }
   //// Initialize states X_0
-  double ppp=randu();
-  arma::Mat<double> inter_mat(p,T);
-  inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
-  X=Rcpp::wrap(inter_mat);
+  // double ppp=randu();
+  // arma::Mat<double> inter_mat(p,T);
+  // inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  // X=Rcpp::wrap(inter_mat);
   
 
   
@@ -512,8 +512,8 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
       SumExp info_X(output_X);// Declare constructor to add log-probabilities
       parallelReduce(0,end,info_X);// Get the sum of probabilities
       
-      double dist_m1=sum(abs(current_X - X_mode1));
-      double dist_m2=sum(abs(current_X - X_mode2));
+      // double dist_m1=sum(abs(current_X - X_mode1));
+      // double dist_m2=sum(abs(current_X - X_mode2));
       double density_current_X = (info_X.Z*exp(current_temp*loglik_R(current_X,Q_matrix,theta)));// Start for loop for coordinates        
       for(int coord=0;coord<p;coord++){
         /// Updating chain 1
