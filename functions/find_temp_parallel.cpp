@@ -203,15 +203,19 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
   //// Define two modes
   NumericMatrix Q_matrix(p,2);
   for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
+    if(i%2==0){Q_matrix(i,1)=1;
+      X(i,1)=1;
+    }
+    if(i%2==1){Q_matrix(i,0)=1;
+      X(i,0)=1;
+    }
   }
   
   //// Initialize states X_0
-  double ppp=randu();
-  arma::Mat<double> inter_mat(p,T);
-  inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
-  X=Rcpp::wrap(inter_mat);
+  // double ppp=randu();
+  // arma::Mat<double> inter_mat(p,T);
+  // inter_mat=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
+  // X=Rcpp::wrap(inter_mat);
   
   //// Paramemters for parallelization
   // const std::size_t begin = static_cast <size_t> (0);
