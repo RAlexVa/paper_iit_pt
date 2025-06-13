@@ -402,67 +402,15 @@ arma::Col<double> Parallel_replica_update_rep::IIT_update_p(arma::Col<double> X,
 
 
 
-// Function to initialize the rng according to the seed
-std::vector<std::mt19937_64> initialize_rngs(int n, int base_seed) {
-  std::vector<std::mt19937_64> rngs(n);
-  for(int i = 0; i < n; i++) {
-    rngs[i].seed(base_seed + i);  // Unique seed for each RNG
-  }
-  return rngs;
-}
-//Function to run simulations
+
 // [[Rcpp::export]]
-NumericMatrix PT_IIT_parallel_sim_rep(int p, int num_iter, arma::Col<double> original_temperatures, const int chosen_bal_func, double theta, int base_seed){
-  int T=original_temperatures.n_rows;
-  const std::size_t dim_p = static_cast<size_t>(p);
-  const std::size_t num_temps = static_cast<size_t>(T);
-  const std::size_t begin = static_cast <size_t> (0);
-  const std::size_t end = static_cast <size_t> (T); 
-  // Change String of balancing function into int
-  int chosen_bal_func;
-  if(bal_func=="sq"){
-    chosen_bal_func=2;
-  }else if(bal_func=="min"){
-    chosen_bal_func=1;
-  }else{
-    Rcpp::Rcout << "Incorrect definition of Balancing function.\n Defaulting to sq " << std::endl;
-    chosen_bal_func=2;
-  }
-  //// Define two modes
-  NumericMatrix Q_matrix(p,2);
-  for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
-  }
-  double ppp=randu();
-  arma::Mat<double> original_X(p,T);
-  original_X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
-  std::vector<std::mt19937_64> defined_rngs=initialize_rngs(T,base_seed); // Initialize RNGs
-  //After initialization of vectors and matrices we transform them to Nuneric variables
-  NumericMatrix X=Rcpp::wrap(original_X);
-  NumericVector temperatures=Rcpp::wrap(original_temperatures);
-  // Now we apply the parallelized loop
-  
-  NumericMatrix output(p,T);//Declare output
-  Parallel_replica_update_rep par_rep_update_rep(//Declare Worker
-      X,Q_matrix,
-      chosen_bal_func,
-      temperatures,
-      theta,
-      output,
-      dim_p,
-      num_temps,
-      num_iter,
-      defined_rngs);// Initialize the worker
-  
-  parallelFor(begin,end,par_rep_update_rep);//Perform the for loop
-  
-  return output;
+void check_min_find(vec X, int value){
+  auto find_value = std::find(X.begin(), X.end(), value);
+  Rcpp::Rcout << "Find value " <<find_value<< std::endl;
+  size_t index_value=std::distance(X.begin(), find_value);
+  Rcpp::Rcout << "Index: " <<index_value<< std::endl;
+  Rcpp::Rcout << "Value: " <<X[index_value]<< std::endl;
 }
-
-
-
-
 
 
 
