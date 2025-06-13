@@ -132,8 +132,6 @@ struct GibbsSampler : public Worker
 };// End of worker to visit neighbors
 
 
-
-
 struct SumExp : public Worker
 {   
   
