@@ -365,7 +365,7 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
   
   // return round_to(temp(1),3);
   List ret;
-  ret["temp"]=round_to(temp(1),precision);
+  ret["temp"]=round_to(temp(1),precision*2);
   ret["swap"]=swap_count;
   ret["swap_rate"]=round_to(avg_swap_prob,precision*2);
   ret["seconds"]=duration;
