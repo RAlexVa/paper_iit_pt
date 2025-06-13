@@ -349,8 +349,9 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
     }
     
     
-    if(swap_count % 200 == 0){
-      Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
+    if(swap_count % 500 == 0){
+      Rcpp::Rcout <<"A-IIT ("<<base_seed<<") p: "<<p<<" Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
+      
     }
     
     if(swap_count == 1000000){// Force finishing of algorithm
@@ -630,7 +631,7 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
               stay_in_loop=false;}
           }else{count_convergence=0;}
           if(swap_count % 200 == 0){
-            Rcpp::Rcout <<"Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
+            Rcpp::Rcout <<"PT-IIT p: "<<p<<" Swap: "<<swap_count<<" avg. swap prob: "<<avg_swap_prob <<" new temperature: "<< temp(1) << std::endl; 
             // Rcpp::Rcout <<"Current state: \n"<<X<< std::endl; 
           }
           if(swap_count == 1000000){// Force finishing of algorithm
