@@ -22,12 +22,12 @@ find_temps <- function(list_ids){
 ##### Read file for parameters #####
     parameters <- as.data.frame(read_csv("results/find_temps.csv", col_types = cols()))    
 list_of_algs <- unique(parameters |> filter(id %in% list_ids) |> pull(algorithm))
-if(length(list_of_algs)>1){
-  stop("You cannot run more than 1 algorithm at a time");
-}else{
-  # if(list_of_algs=="PT_IIT_Z"){Rcpp::sourceCpp("functions/find_temp_parallel.cpp");}
-  # if(list_of_algs=="PT_A_IIT"){Rcpp::sourceCpp("functions/find_temp_func.cpp")}
-}
+# if(length(list_of_algs)>1){
+#   stop("You cannot run more than 1 algorithm at a time");
+# }else{
+#   # if(list_of_algs=="PT_IIT_Z"){Rcpp::sourceCpp("functions/find_temp_parallel.cpp");}
+#   # if(list_of_algs=="PT_A_IIT"){Rcpp::sourceCpp("functions/find_temp_func.cpp")}
+# }
 # Source CPP functions
 Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
 ##### Start process for algorithms        
@@ -47,6 +47,7 @@ Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
       temp_ini <- as.numeric(sim_chosen$t1)
       number_temperatures <- as.numeric(sim_chosen$num_temp)
       gibbs_step <- as.numeric(sim_chosen$gibbs_step)
+      search_direction <- as.numeric(sim_chosen$direction)
       #### Function depending on algorithm to use
 #temperature_PT_IIT(int p,int interswap, double temp_ini, const std::string bal_function, const double& theta)      
       writeLines(c("Parameters:",
@@ -59,6 +60,7 @@ Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
                    paste0("Gibbs Steps: ",gibbs_step),
                    paste0("Initial temperature: ",temp_ini),
                    paste0("#Temperatures to find: ",number_temperatures),
+                   paste0("Direction: ",search_direction),
                    paste0("Balancing function: ",bal_f)))
       
       ##Transform balancing function to integer
@@ -68,13 +70,13 @@ Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
     if(alg=="PT_IIT_Z"){
       # Using Z factor bias correction
       #find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps)
-      output_list <- find_temp_gibbs_PT_IIT(p,burn_in=10,temp_ini,bal_f, theta,gibbs_step)
+      output_list <- find_temp_gibbs_PT_IIT(p,burn_in=10,temp_ini,bal_f, theta,gibbs_step,search_direction)
       output <- output_list[["temp"]];
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT with multiplicity list in each replica
       #find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed)
-      output_list <- find_temp_gibbs_A_IIT(p,1,burn_in=10,temp_ini,bal_f,theta,defined_seed)
+      output_list <- find_temp_gibbs_A_IIT(p,1,burn_in=10,temp_ini,bal_f,theta,defined_seed,search_direction)
       output <- output_list[["temp"]];
     }
     
