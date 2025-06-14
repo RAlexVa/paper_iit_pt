@@ -166,7 +166,7 @@ std::size_t GibbsSampler::flip_coord(std::size_t coord,bool approaching,double t
 // Function to run simulation
 
 // [[Rcpp::export]]
-List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed){
+List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed, int direction){
   // Inputs are:
   // p:dimension
   //interswap: number of iterations to try between replica swaps
@@ -193,7 +193,13 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
   NumericVector Xtemp_from(p);
   NumericVector Xtemp_to(p);
   //// Initialize temperatures
-  vec temp={temp_ini,round_to(temp_ini/(1+exp(rho)),precision)};
+  double temp_ini_2;
+  if(direction>0){
+    temp_ini_2=round_to(temp_ini*(1+exp(rho)),precision)
+  }else{
+    temp_ini_2=round_to(temp_ini/(1+exp(rho)),precision)
+  }
+  vec temp={temp_ini,temp_ini_2};
   double avg_swap_prob=0;
   int count_convergence=0;
   
@@ -330,11 +336,23 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
     //// Update temperature
     rho=rho + (swap_prob-target_swap_rate)/swap_count;
     
-    if(rho<1e-5){
-      temp(1)=temp_ini/(2+expm1(rho));
+    double temp_update;
+    if(direction>0){
+      if(rho<1e-5){
+        temp_update=temp_ini*(2+expm1(rho));
+      }else{
+        temp_update=temp_ini*(1+exp(rho));
+      }
     }else{
-      temp(1)=temp_ini/(1+exp(rho));
+      if(rho<1e-5){
+        temp_update=temp_ini/(2+expm1(rho));
+      }else{
+        temp_update=temp_ini/(1+exp(rho));
+      }
     }
+    
+    temp(1)=temp_update;
+    
     
     //Check current threshold
     // Rcpp::Rcout <<"Avg. swap_rate: "<<avg_swap_prob << std::endl; 
@@ -374,7 +392,7 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
 }
 
 // [[Rcpp::export]]
-List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps){
+List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, const double& theta, int gibbs_steps, int direction){
   // Inputs are:
   // p:dimension
   //interswap: number of iterations to try between replica swaps
@@ -401,7 +419,13 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   NumericVector Xtemp_from(p);
   NumericVector Xtemp_to(p);
   //// Initialize temperatures
-  vec temp={temp_ini,round_to(temp_ini/(1+exp(rho)),precision)};
+  double temp_ini_2;
+  if(direction>0){
+    temp_ini_2=round_to(temp_ini*(1+exp(rho)),precision)
+  }else{
+    temp_ini_2=round_to(temp_ini/(1+exp(rho)),precision)
+  }
+  vec temp={temp_ini,temp_ini_2};
   double avg_swap_prob=0;
   int count_convergence=0;
   
@@ -622,8 +646,21 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
           }else{avg_swap_prob=(avg_swap_prob*(swap_count-1)+swap_prob)/swap_count;}    
           //// Update temperature
           rho=rho + (swap_prob-target_swap_rate)/swap_count;
-          if(rho<1e-5){temp(1)=temp_ini/(2+expm1(rho));
-          }else{temp(1)=temp_ini/(1+exp(rho));}
+          double temp_update;
+          if(direction>0){
+            if(rho<1e-5){
+              temp_update=temp_ini*(2+expm1(rho));
+            }else{
+              temp_update=temp_ini*(1+exp(rho));
+            }
+          }else{
+            if(rho<1e-5){
+              temp_update=temp_ini/(2+expm1(rho));
+            }else{
+              temp_update=temp_ini/(1+exp(rho));
+            }
+          }
+          temp(1)=temp_update;
           //Check current threshold 
           if((target_swap_rate-avg_swap_prob)<threshold && (target_swap_rate-avg_swap_prob)>-threshold){
             count_convergence+=1;
