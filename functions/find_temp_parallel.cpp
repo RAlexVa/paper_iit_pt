@@ -195,9 +195,9 @@ List find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int
   //// Initialize temperatures
   double temp_ini_2;
   if(direction>0){
-    temp_ini_2=round_to(temp_ini*(1+exp(rho)),precision)
+    temp_ini_2=round_to(temp_ini*(1+exp(rho)),precision);
   }else{
-    temp_ini_2=round_to(temp_ini/(1+exp(rho)),precision)
+    temp_ini_2=round_to(temp_ini/(1+exp(rho)),precision);
   }
   vec temp={temp_ini,temp_ini_2};
   double avg_swap_prob=0;
@@ -421,9 +421,9 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   //// Initialize temperatures
   double temp_ini_2;
   if(direction>0){
-    temp_ini_2=round_to(temp_ini*(1+exp(rho)),precision)
+    temp_ini_2=round_to(temp_ini*(1+exp(rho)),precision);
   }else{
-    temp_ini_2=round_to(temp_ini/(1+exp(rho)),precision)
+    temp_ini_2=round_to(temp_ini/(1+exp(rho)),precision);
   }
   vec temp={temp_ini,temp_ini_2};
   double avg_swap_prob=0;
