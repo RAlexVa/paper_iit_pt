@@ -1387,4 +1387,88 @@ set.seed(45)# iF rho=0 converges fast, p=16
 results_a_iit <- find_temp_gibbs_A_IIT(p,interswap,burn_in,temp_ini,bal_func,theta,base_seed)
 
 
+### Testing parallelized algorithm
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
 
+# PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
+p <- 1000
+startsim <- 1
+endsim <- 5
+numiter <- 40000
+interswap <- 100
+burn_in <- 10000
+temp <- c(1,0.917675,0.846553,0.78432,0.725)
+# temp <- c(1,0.918)
+bal_func <- 2
+bias_fix <- T
+file_name <- ""
+states_visit <- 2
+starting_coord <- c(0.0)
+theta <- 3
+set.seed(90)
+results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+           bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
+
+Q_matrix <- matrix(0,nrow=p,ncol=2)
+for(i in 1:p){
+  if(i%%2==1){Q_matrix[i,2]=1}
+  if(i%%2==0){Q_matrix[i,1]=1}
+}
+
+loglik(Q_matrix[,1],Q_matrix,3)
+loglik(c(1,Q_matrix[2:p,1]),Q_matrix,3)
+loglik(c(rep(0,p-1),1),Q_matrix,theta)
+
+
+p <- 1000
+startsim <- 1
+endsim <- 3
+numiter <- 200000
+interswap <- 50
+burn_in <- 2000
+temp <- c(1.639838,1.472027,1.327346,1.202306,1.194742,1.092,1)
+# temp <- c(1,0.918)
+bal_func <- 2
+bias_fix <- T
+file_name <- ""
+states_visit <- 2
+starting_coord <- c(0.0)
+theta <- 3
+set.seed(runif(1))
+results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+                      bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
+
+results$distance_mode1
+results$distance_mode2
+results$time_mode1
+results$time_mode2
+results$time_taken
+results$swap_rate
+
+
+
+set.seed(123)
+results_123 <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+                      bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
+results_bk <- results_123;
+set.seed(123)
+results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+                          bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
+#compare results with results_123
+results$swap_rate;results_123$swap_rate;
+results$distance_mode1; results_123$distance_mode1;
+results$distance_mode2; results_123$distance_mode2;
+
+
+set.seed(123123)
+results_123123 <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+                      bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
+
+Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
+set.seed(43)
+(vv <- sample(1:10,replace=F))
+check_min_find(vv,4)
