@@ -686,7 +686,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     prob_to_dec=0;}//If we don't define a reduc_model
 
 
-  Rcpp::Rcout <<"Before starting simulations"<< std::endl;
+  // Rcpp::Rcout <<"Before starting simulations"<< std::endl;
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -703,8 +703,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
-    distance_mode1.fill(-1);
-    distance_mode2.fill(-1);
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
@@ -720,7 +718,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           current_X=X(_,replica);
           NumericVector output_current_X(p);
           //Visit neighbors of current state
-          Rcpp::Rcout <<"Declaring vising IIT neighbors"<< std::endl;
+          // Rcpp::Rcout <<"Declaring vising IIT neighbors"<< std::endl;
           IIT_visit_neighbors visit_current_X(current_X,
                                               Q_mat_R,
                                               bal_func,
@@ -728,28 +726,28 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
                                               theta,
                                               output_current_X,
                                               dim_size);
-          Rcpp::Rcout <<"Before parallelFor IIT neighbors"<< std::endl;
+          // Rcpp::Rcout <<"Before parallelFor IIT neighbors"<< std::endl;
 
           parallelFor(0,dim_size,visit_current_X);//Apply ParallelFor
-          Rcpp::Rcout <<"After parallelFor IIT neighbors"<< std::endl;
+          // Rcpp::Rcout <<"After parallelFor IIT neighbors"<< std::endl;
 
 // Update the bounding constant
-          Rcpp::Rcout <<"Declaring getmax"<< std::endl;
+          // Rcpp::Rcout <<"Declaring getmax"<< std::endl;
           GetMax get_max(output_current_X);
-          Rcpp::Rcout <<"Before parallelReduce GetMax"<< std::endl;
+          // Rcpp::Rcout <<"Before parallelReduce GetMax"<< std::endl;
           parallelReduce(0,dim_size,get_max);
-          Rcpp::Rcout <<"After parallelReduce GetMax"<< std::endl;
+          // Rcpp::Rcout <<"After parallelReduce GetMax"<< std::endl;
           //Always increase the bounding constant
           log_bound_vector(replica)=ret_max(get_max.max_value,log_bound_vector(replica),0);
 
           current_log_bound=log_bound_vector(replica);
 
           NumericVector bounded_vector=output_current_X - current_log_bound;
-          Rcpp::Rcout <<"Declaring getmax"<< std::endl;
+          // Rcpp::Rcout <<"Declaring getmax"<< std::endl;
           SumExp get_sum(bounded_vector);
-          Rcpp::Rcout <<"Before parallelReduce SumExp"<< std::endl;
+          // Rcpp::Rcout <<"Before parallelReduce SumExp"<< std::endl;
           parallelReduce(0,dim_size,get_sum);
-          Rcpp::Rcout <<"After parallelReduce SumExp"<< std::endl;
+          // Rcpp::Rcout <<"After parallelReduce SumExp"<< std::endl;
           Z=get_sum.Z/p;//Divide over the number of neighbors
           new_samples=1+R::rgeom(Z);//Get multiplicity list
           if(new_samples<1){
