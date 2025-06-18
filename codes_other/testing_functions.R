@@ -1379,7 +1379,7 @@ base_seed <- 123
 gibbs_steps <- 100
 set.seed(45)# iF rho=0 converges fast,p=16
 set.seed(554)
-results <- find_temp_gibbs_PT_IIT(p,burn_in,temp_ini,bal_func,theta,gibbs_steps)
+results <- find_temp_gibbs_PT_IIT(p,burn_in,temp_ini,bal_func,theta,gibbs_steps,1)
 
 interswap <- 1
 p <- 1000
