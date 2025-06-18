@@ -667,20 +667,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   const std::size_t dim_size = static_cast <size_t> (p);
 
 
-
-  // vec mode1=Q_matrix.col(0);
-  // vec mode2=Q_matrix.col(1);
-  // int numiter=total_swaps*sample_inter_swap;//Compute the total number of iterations to perform
-  // mat distance_mode1(numiter,T);//Matrix to store distance to mode 1 for each replica
-  // mat distance_mode2(numiter,T);//Matrix to store distance to mode 1 for each replica
-  // mat distance_origin(numiter,T);//Matrix to store distance to origin for each replica
-  // mat temporal_mat1(sample_inter_swap,T);//Matrix to store the distances computed between each replica swap
-  // mat temporal_mat2(sample_inter_swap,T);//Matrix to store the distances computed between each replica swap
-  // mat temporal_origin(sample_inter_swap,T);//Matrix to store the distances computed between each replica swap
-  // cube full_distance_mode1(numiter,T,total_sim);//Cube to store distance to mode 1 for each replica and simulation
-  // cube full_distance_mode2(numiter,T,total_sim);//Cube to store distance to mode 2 for each replica and simulation
-  // cube full_distance_origin(numiter,T,total_sim);//Cube to store distance to origin for each replica and simulation
-
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   // Probability to update
   bool update_prob=false; //To define if the probability to decrease the constant should decrease or not
@@ -700,7 +686,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     prob_to_dec=0;}//If we don't define a reduc_model
 
 
-
+  Rcpp::Rcout <<"Before starting simulations"<< std::endl;
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -729,13 +715,12 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
         int samples_replica=0;
         while(samples_replica<sample_inter_swap && samples_replica<burn_in){//Loop to create samples for each replica until we reach the defined threshold
-          current_temp=temp(replica);// Extract temperature of the replica
-          // current_log_bound=log_bound_vector(replica);// Extract log-bound of the corresponding temperature
           update_state=true;
+          current_temp=temp(replica);// Extract temperature of the replica
           current_X=X(_,replica);
-          NumericVector output_current_X;
+          NumericVector output_current_X(p);
           //Visit neighbors of current state
-
+          Rcpp::Rcout <<"Declaring vising IIT neighbors"<< std::endl;
           IIT_visit_neighbors visit_current_X(current_X,
                                               Q_mat_R,
                                               bal_func,
@@ -743,30 +728,29 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
                                               theta,
                                               output_current_X,
                                               dim_size);
+          Rcpp::Rcout <<"Before parallelFor IIT neighbors"<< std::endl;
 
           parallelFor(0,dim_size,visit_current_X);//Apply ParallelFor
+          Rcpp::Rcout <<"After parallelFor IIT neighbors"<< std::endl;
 
 // Update the bounding constant
+          Rcpp::Rcout <<"Declaring getmax"<< std::endl;
           GetMax get_max(output_current_X);
+          Rcpp::Rcout <<"Before parallelReduce GetMax"<< std::endl;
           parallelReduce(0,dim_size,get_max);
+          Rcpp::Rcout <<"After parallelReduce GetMax"<< std::endl;
           //Always increase the bounding constant
           log_bound_vector(replica)=ret_max(get_max.max_value,log_bound_vector(replica),0);
 
           current_log_bound=log_bound_vector(replica);
-//Apply the bounded balancing function
-          // NumericVector output_current_X_bounded;
-          // IIT_visit_bounded visit_current_X_b(current_X,
-          //                                   Q_mat_R,
-          //                                   current_temp,
-          //                                   theta,
-          //                                   output_current_X_bounded,
-          //                                   dim_size,
-          //                                   current_log_bound);
-          //Always apply the highest bound found during burn-in
+
           NumericVector bounded_vector=output_current_X - current_log_bound;
+          Rcpp::Rcout <<"Declaring getmax"<< std::endl;
           SumExp get_sum(bounded_vector);
+          Rcpp::Rcout <<"Before parallelReduce SumExp"<< std::endl;
           parallelReduce(0,dim_size,get_sum);
-          Z=get_sum.Z;
+          Rcpp::Rcout <<"After parallelReduce SumExp"<< std::endl;
+          Z=get_sum.Z/p;//Divide over the number of neighbors
           new_samples=1+R::rgeom(Z);//Get multiplicity list
           if(new_samples<1){
             Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
@@ -836,7 +820,7 @@ max_log_bound_vector=log_bound_vector;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
-          // if(total_swaps<10){Rcpp::Rcout << "Replica: " << index_process(replica) << " Sampled: " << (static_cast<double>(samples_replica) / sample_inter_swap)<< std::endl;}
+         
           int temperature_index=index_process(replica);
           total_iterations(i,temperature_index,s)+=1;//increase the number of iterations
           current_temp=temp(temperature_index);// Extract temperature of the replica
@@ -844,18 +828,20 @@ max_log_bound_vector=log_bound_vector;
           current_X=X(_,replica);
           bool update_state=true;
 
-          NumericVector output_current_X_bounded;
-          IIT_visit_bounded visit_current_X_b(current_X,
+          NumericVector output_current_X_bounded(p);
+          IIT_visit_bounded visit_current_X_bounded(current_X,
                                             Q_mat_R,
                                             current_temp,
                                             theta,
                                             output_current_X_bounded,
                                             dim_size,
                                             current_log_bound);
+          
+          parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
 
           SumExp get_sum(output_current_X_bounded);
           parallelReduce(0,dim_size,get_sum);
-          Z=get_sum.Z;
+          Z=get_sum.Z/p;//Divide over number of neihgbors
           //// Compute weight
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
@@ -884,8 +870,6 @@ max_log_bound_vector=log_bound_vector;
             double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
             time_find_m2(s,temperature_index)=time_m2;
           }
-
-
 
 
           ///// Updating before the next iteration of the loop
