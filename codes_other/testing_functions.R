@@ -1472,3 +1472,52 @@ Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
 set.seed(43)
 (vv <- sample(1:10,replace=F))
 check_min_find(vv,4)
+
+### Testing parallel A-IIT
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+# Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp",verbose=TRUE,showOutput=TRUE)
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp",verbose=TRUE)
+
+p <- 1000
+total_swaps <- 10000
+interswap <- 100
+burn_in <- 1000
+temperatures <- c(1.189,1.089,1)
+bal_func <- 2
+filename <- ""
+states_visited <- 0
+starting_coord <- c(0)
+decreasing_constant <- 0
+reduc_model <- "never"
+theta <- 3
+# PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
+
+results <- PT_a_IIT_sim(p,1,1,total_swaps,interswap,burn_in,temperatures,bal_func,filename,states_visited,starting_coord,decreasing_constant,reduc_model,theta)
+
+
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+
+# PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
+p <- 1000
+startsim <- 1
+endsim <- 5
+numiter <- 40000
+interswap <- 100
+burn_in <- 10000
+temp <- c(1,0.917675,0.846553,0.78432,0.725)
+# temp <- c(1,0.918)
+bal_func <- 2
+bias_fix <- T
+file_name <- ""
+states_visit <- 2
+starting_coord <- c(0.0)
+theta <- 3
+set.seed(90)
+results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+                      bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
+
+
