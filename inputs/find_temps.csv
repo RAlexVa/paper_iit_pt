@@ -66,3 +66,7 @@ id,algorithm,interswap,seed,model,p,theta,bf,t1,num_temp,gibbs_step,direction,co
 66,PT_IIT_Z,50,66,bimodal,1000,3,sq,1,7,100,1,,,,,
 67,PT_IIT_Z,50,67,bimodal,2000,3,sq,1,7,200,1,,Run in Beluga,,,
 68,PT_IIT_Z,50,68,bimodal,2000,3,sq,1,7,200,1,,Run in Beluga,,,
+69,PT_A_IIT,300,69,bimodal,1000,3,sq,1,5,,1,,,,,
+70,PT_A_IIT,300,70,bimodal,1000,3,sq,1,5,,1,,,,,
+71,PT_A_IIT,500,71,bimodal,2000,3,sq,1,5,,1,,,,,
+72,PT_A_IIT,500,72,bimodal,2000,3,sq,1,5,,1,,,,,
