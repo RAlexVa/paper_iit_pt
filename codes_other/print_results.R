@@ -19,7 +19,7 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 # chosen_ids <-c(205,206,207,237,239,319,328,294)#c(318:333)#c(265:287)#c(205,206,207,237,239)#c(190,191,193,194,196:199)#223:227#c(900,902,903,905)#c(126:129)
-chosen_ids <-292:301#c(129,131,133,135,137,139,140,141)>
+chosen_ids <-367:371#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
@@ -329,96 +329,35 @@ if(chosen_dim=="highdim"){
       p <- readParameters(file_matrix)
     }
 ##### Extract distance to modes
-if(check_number_sim==1){
-  for (s in 1:tot_sim){
-    for(t in 1:length(temperatures)){
-      # Distance mode has rows=iterations, columns=replicas, slices=simulations
-      temp_tibble1 <- tibble(dist=data[["distance_mode1"]][,t,s],
-                             alg=algorithm,
-                             sim=s,
-                             temperature=temperatures[t],
-                             iteration=1:length(dist),
-                             mode="m1")
-      temp_tibble2 <- tibble(dist=data[["distance_mode2"]][,t,s],
-                             alg=algorithm,
-                             sim=s,
-                             temperature=temperatures[t],
-                             iteration=1:length(dist),
-                             mode="m2")
-      temp_tibble0 <- tibble(dist=data[["distance_origin"]][,t,s],
-                             alg=algorithm,
-                             sim=s,
-                             temperature=temperatures[t],
-                             iteration=1:length(dist),
-                             mode="m0")
-      
-      
-      distances <- rbind(distances,temp_tibble1,temp_tibble2,temp_tibble0)
-      rm(list=c("temp","temp_tibble1","temp_tibble2","temp_tibble0"))
-    }
-  }
-}else{
   for(mm in 1:2){###for(mm in 0:2) for report considering distance to 0
     output_name <- paste0("distance_mode",mm)
+    output_time <- paste0("time_mode",mm)
     chosen_mode <- paste0("m",mm)
-    if(mm==0){output_name <- "distance_origin"}
     
     ### Extract minimum distances  
-    temp_m <- as.data.frame(t(apply(data[[output_name]],c(2,3),min)))
-    colnames(temp_m) <- temperatures
+    # temp_m <- as.data.frame(t(apply(data[[output_name]],c(2,3),min)))
+    temp_m <- as.data.frame(data[[output_name]])
+    colnames(temp_m) <- round(temperatures,3)
     temp_m$alg <- algorithm
     temp_m$mode <- chosen_mode
     temp_m$sim <- (1:tot_sim)
     
+    temp_time_m <- as.data.frame(data[[output_name]])
+    
     temp_m <- temp_m |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "min_dist")
-    # head(temp_m)
-    ### Extract maximum distances  
-    temp_M <- as.data.frame(t(apply(data[[output_name]],c(2,3),max)))
-    colnames(temp_M) <- temperatures
-    temp_M$alg <- algorithm
-    temp_M$mode <- chosen_mode
-    temp_M$sim <- (1:tot_sim)
     
-    temp_M <- temp_M |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "max_dist")
-    # head(temp_M)
+    temporal_time <- as.data.frame(data[[output_time]])
+    colnames(temporal_time) <- round(temperatures,3)
+    temporal_time$alg <- algorithm
+    temporal_time$mode <- chosen_mode
+    temporal_time$sim <- (1:tot_sim)
+
+    temporal_time <- temporal_time |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "time_find")
     
-    temp_join <- left_join(temp_m,temp_M,by=c("alg","sim","mode","temperature"))
-    
-    #### Extract iterations to find those distances  
-    num_temp <- length(temperatures)
-    iters <- as.data.frame(matrix(,ncol=num_temp+2,nrow=tot_sim*2))
-    for(s in 1:tot_sim){
-      index_min <- 2*s - 1 #on odd entries
-      index_max <- 2*s #On even entries
-      
-      iters[index_min:index_max,1] <- s#Identify simulation
-      iters[index_min,2] <- "min_iter"#Identify simulation
-      iters[index_max,2] <- "max_iter"#Identify simulation
-      
-      iters[index_min,-(1:2)] <- apply(data[[output_name]][,,s],2,which.min)
-      iters[index_max,-(1:2)] <- apply(data[[output_name]][,,s],2,which.max)
-    }
-    colnames(iters) <- c("sim","measure",temperatures)
-    iters$alg <- algorithm
-    iters$mode <- chosen_mode
-    iters <- iters |> 
-      select(alg,measure,mode,sim,everything()) |> 
-      pivot_longer(-(alg:sim),names_to="temperature",values_to = "iter")
-    
-    iters <- iters |> 
-      pivot_wider(id_cols = c(alg,sim,temperature,mode),names_from = measure,values_from = iter)
-    
-    
-    temp_join <- left_join(temp_join,iters,by=c("alg","sim","temperature","mode")) |> 
-      select(alg,sim, temperature,mode,min_dist,max_dist,min_iter,max_iter)
-    
+    temp_join <- left_join(temp_m,temporal_time,by=c("alg","mode","sim","temperature"))
     
     distances <- rbind(distances,temp_join)
   }
-}  
-
-  #Find the row index of the first minimum value for each column (temperature)
-  
 
   
   }
@@ -461,6 +400,7 @@ if(check_number_sim==1){
 # iterations <- iterations |> filter(!is.na(alg))
 # time_taken <- time_taken |> filter(!is.na(alg))
 
+colSums(swap_rate[,-(1:2)])/nrow(swap_rate)
 
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen_dim,"_ex")
