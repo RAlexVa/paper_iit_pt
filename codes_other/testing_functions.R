@@ -1520,4 +1520,28 @@ set.seed(90)
 results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
                       bal_func,bias_fix,file_name,states_visit,starting_coord,theta)
 
+######### Test New find_temp A-IIT ############
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/find_temp_parallel.cpp", verbose = TRUE)
 
+p <- 1000
+total_swaps <- 10000
+interswap <- 300
+burn_in <- 10000
+temp_ini <- 1
+bal_func <- 2
+filename <- ""
+states_visited <- 0
+starting_coord <- c(0)
+decreasing_constant <- 0
+reduc_model <- "never"
+theta <- 3
+base_seed <- 123
+direction <- 1
+set.seed(base_seed)
+# find_temp_A_IIT_parallel(int p,int sample_inter_swap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed, int direction)
+
+results <- find_temp_A_IIT_parallel(p,interswap, burn_in,temp_ini,bal_func,theta,base_seed,direction)
