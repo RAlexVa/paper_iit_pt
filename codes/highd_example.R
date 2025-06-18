@@ -148,7 +148,7 @@ run_highd <- function(list_ids){
         }
       }
       #First export everything
-      saveRDS(output,file=file.path("results",paste0("raw_sim_highdim_id_",id_chosen,".Rds")))
+      # saveRDS(output,file=file.path("results",paste0("raw_sim_highdim_id_",id_chosen,".Rds")))
 
         export <- output
       
