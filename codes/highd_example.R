@@ -24,7 +24,7 @@ run_highd <- function(list_ids){
     if(!is.character(list_ids)){ list_ids <- as.character(list_ids)}
     list_ids <- as.numeric(unlist(strsplit(list_ids,",")))
   ##### Read file for parameters #####
-  parameters <- as.data.frame(read_csv("results/simulation_details_highd.csv", col_types = cols()))
+  parameters <- as.data.frame(read_csv("inputs/simulation_details_highd.csv", col_types = cols()))
   
 #Check how many models we're doing
     tot_models <- unique(parameters|> filter(id %in% list_ids) |> pull(model))
@@ -134,10 +134,10 @@ run_highd <- function(list_ids){
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
-          #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model)
-          # output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
+          # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
+          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,iterswap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",3)
           #round trip rate (NA for IIT)
-          # swaps_for_rt_rate <- total_swap
+          swaps_for_rt_rate <- total_swap
         }
         if(alg=="PT_A_IIT_RF"){
           # Using A-IIT with weights in each replica
