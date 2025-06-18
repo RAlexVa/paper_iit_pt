@@ -36,7 +36,10 @@ run_highd <- function(list_ids){
       if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
       file_matrix <- paste0("gset/",unique(parameters|> filter(id %in% list_ids) |> pull(file)),".txt");
       p <- readParameters(file_matrix);}
-      if(tot_models=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
+      if(tot_models=="bimodal"){
+        # Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
+        Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
+        
         p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
         file_matrix <- "NA";
         if(length(p)>1){stop("You're trying to run multiple values for p")}}
@@ -100,20 +103,24 @@ run_highd <- function(list_ids){
     
     #re-create the balancing function vector
     #All replicas use the same balancing function
-    bal_f <- rep(bal_f,length(temperatures))
+    # bal_f <- rep(bal_f,length(temperatures))
+    if(bal_f=="min"){bal_f=1;}else{bal_f=2;}
     # check <- as.numeric(readline('ok? 1 Yes/ 0 No'))
     check <- 1;
     if(check!=1){print("modify parameters")}else{
       if(alg=="IIT"){
         # Only IIT
         # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited)
-        output <- PT_IIT_sim(p,1,total_simulations,total_iter,total_iter+1,burnin_iter,temperatures[1],bal_f[1], TRUE, file_matrix,states_visited,start_state)
+        # output <- PT_IIT_sim(p,1,total_simulations,total_iter,total_iter+1,burnin_iter,temperatures[1],bal_f[1], TRUE, file_matrix,states_visited,start_state)
       }else{
         
         if(alg=="PT_IIT_Z"){
           # Using Z factor bias correction
           #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
-          output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE, file_matrix,states_visited,start_state)
+          # output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE, file_matrix,states_visited,start_state)
+          
+          # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
+          output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state,3)
           #round trip rate (NA for IIT)
           swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
@@ -121,30 +128,30 @@ run_highd <- function(list_ids){
           # output_name <- paste0("PT_IIT_no_Z_","sim_",total_simulations,"_iter_",total_iter,"_iterswap_",iterswap,"_s_",defined_seed,".Rds");
           # Without Z factor bias correction
           #PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord)
-          output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,FALSE, file_matrix,states_visited,start_state)
+          # output <- PT_IIT_sim(p,1, total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,FALSE, file_matrix,states_visited,start_state)
           #round trip rate (NA for IIT)
-          swaps_for_rt_rate <- floor(total_iter/iterswap)
+          # swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
           #PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const std::vector<std::string>& bal_function,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model)
-          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
+          # output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
           #round trip rate (NA for IIT)
-          swaps_for_rt_rate <- total_swap
+          # swaps_for_rt_rate <- total_swap
         }
         if(alg=="PT_A_IIT_RF"){
           # Using A-IIT with weights in each replica
           #PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, const std::vector<std::string>& bal_function, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model)
-          output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
+          # output <- PT_a_IIT_sim_RF(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state,reduc_constant,reduc_model)
           #round trip rate (NA for IIT)
-          swaps_for_rt_rate <- floor(total_iter/iterswap)
+          # swaps_for_rt_rate <- floor(total_iter/iterswap)
         }
       }
       #First export everything
       saveRDS(output,file=file.path("results",paste0("raw_sim_highdim_id_",id_chosen,".Rds")))
-      for(e in names(output)){
-        export[[e]] <- output[[e]]
-      }
+
+        export <- output
+      
       #Then the exports that depend on the algorithm
       if(!is.null(output[["ip"]])){
         export[["round_trips"]] <- PT_RT(output[["ip"]], swaps_for_rt_rate,total_simulations)
