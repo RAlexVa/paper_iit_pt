@@ -42,7 +42,7 @@ chosen_ids <-367:371#c(129,131,133,135,137,139,140,141)>
 
 
 #List of files
-parameters <- read_csv(paste0("results/simulation_details_",file_dim,".csv"), col_types = cols())
+parameters <- read_csv(paste0("inputs/simulation_details_",file_dim,".csv"), col_types = cols())
 #Create table with available files
 data_sum <- tibble(file_names=list.files(path = "results", pattern = "^sim_.*\\.Rds")) |> 
   mutate(id=as.numeric(str_extract(file_names, "(?<=id_)[0-9]+(?=\\.Rds)")),

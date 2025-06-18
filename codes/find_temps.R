@@ -20,7 +20,7 @@ find_temps <- function(list_ids){
     
     
 ##### Read file for parameters #####
-    parameters <- as.data.frame(read_csv("results/find_temps.csv", col_types = cols()))    
+    parameters <- as.data.frame(read_csv("inputs/find_temps.csv", col_types = cols()))    
 list_of_algs <- unique(parameters |> filter(id %in% list_ids) |> pull(algorithm))
 # if(length(list_of_algs)>1){
 #   stop("You cannot run more than 1 algorithm at a time");
