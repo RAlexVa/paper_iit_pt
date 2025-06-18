@@ -1,11 +1,12 @@
-#include <RcppArmadillo.h>
-#include <RcppParallel.h>
-#include <ctime> 
 // [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppParallel)]]
+#include <RcppParallel.h>
 using namespace Rcpp;
+using namespace RcppParallel;
 using namespace arma;
 
+#include <ctime> 
 #include "workers.h"
 
 
@@ -199,151 +200,13 @@ double IIT_visit_neighbors::loglik_internal(const arma::Col<double>& X,const arm
   return loglik(X,M,theta);
 }
 
+double IIT_visit_bounded::apply_bal_func_bounded_internal(double x,double log_bound){
+  return bound_sq(x,log_bound);
+}
 
-////////// Updating functions //////////
-// // [[Rcpp::export]]
-// List IIT_update_w(vec X,const arma::mat& M,String chosen_bf, double temperature){
-//   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
-//   vec probs(total_neighbors, fill::zeros); //probabilities
-//   
-//   ////// Compute likelihood of current state
-//   double logpi_current=0;
-//   // uvec current_coord = find(X==1);
-//   logpi_current = loglik(X,M);
-//   ////// Finish computing likelihood of current state
-//   
-//   // Rcpp::Rcout << "current loglik: "<< logpi_current << std::endl;
-//   ////// Compute weight for all neighbors
-//   double temporal=0;
-//   vec newX;
-//   for(int j=0; j<total_neighbors;j++){
-//     // Rcpp::Rcout << "Starts checking neighbors  "<< j<<std::endl; 
-//     newX = X;
-//     newX.row(j) = 1-X.row(j);
-//     //Rcpp::Rcout << newX << std::endl;
-//     // uvec coord = find(newX==1);
-//     //Rcpp::Rcout << coord << std::endl;
-//     temporal=loglik(newX,M)-logpi_current;
-//     //Apply balancing function to log probability times temperature ////
-//     probs(j)=bal_func(temporal*temperature, chosen_bf);
-//   }
-//   //////Choose the next neighbor
-//   vec u = Rcpp::runif(total_neighbors);
-//   vec probs_choose = log(-log(u)) - probs;
-//   
-//   //Find the index of the minimum element. 
-//   //This corresponds to choosing that neighbor
-//   int neigh_pos = (std::min_element(probs_choose.begin(), probs_choose.end()))-probs_choose.begin();
-//   // Rcpp::Rcout <<"probs vector: "<< probs << std::endl;
-//   // Rcpp::Rcout <<"chosen neighbor: "<< neigh_pos << std::endl;
-//   
-//   X.row(neigh_pos) = 1-X.row(neigh_pos); //modify the coordinate of the chosen neighbor
-//   List result;
-//   result["X"]=X; // Return new state
-//   result["Z"]=sum(exp(probs))/total_neighbors; //Compute Z factor
-//   return result;
-// }
-// // [[Rcpp::export]]
-// List a_IIT_update(vec X,const arma::mat& M, String chosen_bf, const double& temperature, double log_bound, const bool& update, double prob_to_dec, const double& decreasing_constant, double max_logbound_found){
-//   int total_neighbors = X.n_rows; // total number of neighbors is p spacial
-//   double logpi_current= loglik(X,M);// likelihood of current state
-//   
-//   const double threshold = 1e-5;//Threshold for updating maximum bound. It has to change at least this
-//   vec logprobs(total_neighbors, fill::zeros); //probabilities
-//   vec max_logprobs(total_neighbors,fill::zeros);//vector to store max-log-probabilities
-//   double temporal=0;
-//   vec newX;
-//   
-//   
-//   
-//   
-//   
-//   if(update){//If it's defined to keep updating the bounding constant
-//     ////// Compute weight for all neighbors
-//     for(int j=0; j<total_neighbors;j++){
-//       newX = X;
-//       newX.row(j) = 1-X.row(j);//Change coordinate of the state to define new neighbor
-//       temporal= temperature*(loglik(newX,M)-logpi_current);
-//       logprobs(j)=temporal;//Store raw log_probability
-//       max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
-//     }// End of loop to compute raw log-probability of neighbors
-//     
-//     double checking_max_logprob=bal_func(max(max_logprobs),"sq");
-//     if(max_logbound_found<checking_max_logprob && (checking_max_logprob-max_logbound_found)>=threshold){
-//       // Rcpp::Rcout <<"Diff en log bound: "<< checking_max_logprob-max_logbound_found<<std::endl;
-//       // Rcpp::Rcout <<"Previous max log bound: "<< max_logbound_found*1000000<<std::endl;
-//       max_logbound_found=checking_max_logprob;
-//       // Rcpp::Rcout <<"New max log bound: "<< max_logbound_found*1000000<<std::endl;
-//       log_bound=max_logbound_found;//First update according to the maximum 
-//     }
-//     //Then try Arithmetic reduction of the bounding constant
-//     if(prob_to_dec>0){//If we consider a probability to decrease the constant
-//       double test_prob=0;
-//       if(prob_to_dec<1){
-//         vec ppp=Rcpp::runif(1);//Get a random number
-//         test_prob=ppp(0);
-//       }
-//       if(test_prob<prob_to_dec){//In case the update is accepted
-//         double temporal_log_b=log_bound/temperature;
-//         double delta_bound = decreasing_constant/exp(temporal_log_b);
-//         //log(a-b)=log(a)+log(1-b/a) ≈ log(a) - b/a if b/a is very small
-//         //a=exp(temporal_log_b), b=decreasing_constant
-//         if(delta_bound>=1){//If the decreasing constant is too big
-//           //log(1-b/a) would be undefined
-//           log_bound=0;//Go the minimum 
-//         }else{
-//           log_bound = temperature*(temporal_log_b + log1p(-delta_bound));
-//         }
-//         
-//         // Rcpp::Rcout <<"New log_b: "<< log_bound<<std::endl;
-//         // if(temperature==0.05){
-//         //   Rcpp::Rcout <<"Decreasing delta: "<< delta_bound<<" Current bound: "<<exp(log_bound)<<" new bound: "<<log_bound<<std::endl;
-//         //   Rcpp::Rcout <<"Decreasing log-bound to "<< log_bound<<std::endl;
-//         // }
-//         if(log_bound<0){log_bound=0;} //Minimum bound is 1, minimum log_bound is 0
-//         
-//       }else{
-//         // Rcpp::Rcout <<"Rejected a bounding constant decrease"<< std::endl;
-//       }
-//     }
-//     //// Apply bounding B.F. with updated constant    
-//     for(int j=0;j<total_neighbors;j++){
-//       logprobs(j)=bound_sq(logprobs(j),log_bound);
-//     }
-//   }else{//In case we don't update the bouding constant
-//     
-//     //// Apply bounded B.F. without modifying the constant
-//     for(int j=0;j<total_neighbors;j++){
-//       newX = X;
-//       newX.row(j) = 1-X.row(j); //Change coordinate of the state to define new neighbor
-//       temporal = temperature*(loglik(newX,M)-logpi_current);
-//       logprobs(j)=bound_sq(temporal,log_bound);
-//     }
-//   }
-//   
-//   /////////////
-//   ////IMPORTANT: we're only using bound sqrt root for the adaptive IIT
-//   /////////////
-//   
-//   //////Choose the next neighbor
-//   vec u = Rcpp::runif(total_neighbors);
-//   vec probs_choose = log(-log(u)) - logprobs;
-//   
-//   //Find the index of the minimum element. 
-//   //This corresponds to choosing that neighbor
-//   int neigh_pos = (std::min_element(probs_choose.begin(), probs_choose.end()))-probs_choose.begin();
-//   // Rcpp::Rcout <<"probs vector: "<< probs << std::endl;
-//   // Rcpp::Rcout <<"chosen neighbor: "<< neigh_pos << std::endl;
-//   
-//   X.row(neigh_pos) = 1-X.row(neigh_pos); //modify the coordinate of the chosen neighbor
-//   List ret;
-//   ret["X"]=X;
-//   ret["Z"]=sum(exp(logprobs))/total_neighbors; // Compute Z factor with uniform proposal distribution
-//   ret["logbound"]=log_bound;
-//   ret["max_logbound"]=max_logbound_found;
-//   return ret;
-// }
-
+double IIT_visit_bounded::loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta){
+  return loglik(X,M,theta);
+}
 
 
 ////////// Code for Parallel Tempering simulations //////////
