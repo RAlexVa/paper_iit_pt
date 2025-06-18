@@ -15,7 +15,7 @@ using namespace RcppParallel;
 
 
 
-////////// Other functions //////////
+//////// Other functions //////////
 
 // [[Rcpp::export]]
 vec num_to_vec(int n, int d){
@@ -41,7 +41,7 @@ vec num_to_vec(int n, int d){
 // [[Rcpp::export]]
 cube sum_cube(){
   cube test_cube(2,3,4,fill::randu);
-  // cube test_cube(2,3,4,fill::ones);  
+  // cube test_cube(2,3,4,fill::ones);
   mat slice3=test_cube.slice(2);
   Rcpp::Rcout <<"Sum: "<< sum(slice3.col(1)) << std::endl;
   // Rcpp::Rcout <<"Slice 3: "<< slice3 << std::endl;
@@ -63,7 +63,7 @@ void entries_vec(uword& replica, vec& vector){
     }else{
       replica_left=replica-1;
       replica_right=replica+1;
-    } 
+    }
   }
   Rcpp::Rcout <<"Replica left: \n"<< vector(replica_left) << std::endl;
   Rcpp::Rcout <<"Replica right: \n"<< vector(replica_right) << std::endl;
@@ -186,9 +186,9 @@ NumericMatrix check_x(int p, int T){
   double ppp=randu();
   arma::Mat<double> X(p,T);
   X=initializeRandom(p,T,ppp);//Randomly initialize the state of each replica.
- return Rcpp::wrap(X);
- 
- 
+  return Rcpp::wrap(X);
+  
+  
   
 }
 
@@ -248,7 +248,7 @@ double loglik(const arma::Col<double>& X,const arma::Mat<double>& M, const doubl
     //Define vectors to represent each mode
     arma::Col<double> mod1=M.col(0);
     arma::Col<double> mod2=M.col(1);
-    // Compute distances to each mode  
+    // Compute distances to each mode
     double dif1=L1_distance(X,mod1);
     double dif2=L1_distance(X,mod2);
     
@@ -281,7 +281,7 @@ struct Parallel_replica_update_rep : public Worker
   const RMatrix<double> Q_matrix; //Matrix with modes
   const int bal_func; //Specified balancing function
   const RVector<double> temperatures;//Vector of temperatures
-  const double theta; //Parameter for 
+  const double theta; //Parameter for
   RMatrix<double> output;
   const std::size_t dim_p; // dimension of the problem (and length of X columns)
   const std::size_t num_temp; // dimension of the problem (and length of X columns)
@@ -361,7 +361,7 @@ struct Parallel_replica_update_rep : public Worker
       // After num_iter updates, export the resulting file
       for(int i=0;i<dim_p_int;i++){
         output(i,r)=temporal_X[i];
-      }//End loop for the export 
+      }//End loop for the export
     }// End loop for each replica
     
   }//End operator
