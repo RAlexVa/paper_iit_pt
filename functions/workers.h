@@ -84,7 +84,6 @@ struct IIT_visit_bounded : public Worker
   //// Data
   RVector<double> X_n;//State matrix
   const RMatrix<double> Q_matrix; //Matrix with modes
-  // const int bal_func; //Specified balancing function
   const double temperature;//Chosen temperature
   const double theta; //Parameter for likelihood
   RVector<double> output;
