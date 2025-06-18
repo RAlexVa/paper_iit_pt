@@ -76,7 +76,10 @@ Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
     if(alg=="PT_A_IIT"){
       # Using A-IIT with multiplicity list in each replica
       #find_temp_gibbs_A_IIT(int p,int interswap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed)
-      output_list <- find_temp_gibbs_A_IIT(p,1,burn_in=10,temp_ini,bal_f,theta,defined_seed,search_direction)
+      # output_list <- find_temp_gibbs_A_IIT(p,1,burn_in=10,temp_ini,bal_f,theta,defined_seed,search_direction)
+      # find_temp_A_IIT_parallel(p,interswap, burn_in,temp_ini,bal_func,theta,base_seed,direction)
+      output_list <-find_temp_A_IIT_parallel(p,interswap,burn_in=interswap*100,temp_ini,bal_f,theta,defined_seed,search_direction)
+      
       output <- output_list[["temp"]];
     }
     
@@ -97,12 +100,17 @@ Rcpp::sourceCpp("functions/find_temp_parallel.cpp");
             append = TRUE)
     }
 ## Output de number of iterations
-    # if(alg=="PT_A_IIT"){
-    #   write(paste0("Iterations: ",paste0(round(t(output_list[["iter"]]),3),collapse = ", ")),
-    #         file = paste0("results/temperatures_id_",id_chosen,".txt"), 
-    #         append = TRUE)}
+    if(alg=="PT_A_IIT"){
+      write(paste0("Iterations: ",paste0(round(t(output_list[["iter"]]),3),collapse = ", ")),
+            file = paste0("results/temperatures_id_",id_chosen,".txt"),
+            append = TRUE)
+      write(paste0("Log-bounds: ",paste0(round(t(output_list[["final_bound"]]),3),collapse = ", ")),
+            file = paste0("results/temperatures_id_",id_chosen,".txt"),
+            append = TRUE)
+      
+      }
 
-    
+     
     temp_ini <- output;
   } ## End for loop for the temperatures        
    
