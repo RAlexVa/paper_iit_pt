@@ -2,13 +2,13 @@
 #SBATCH --job-name=hdim_A-IIT_p1k
 #SBATCH --output=output_%a_%A.log
 #SBATCH --error=error_%a_%A.log
-#SBATCH --time=05:30:00
-#SBATCH --mem=4GB
+#SBATCH --time=08:30:00
+#SBATCH --mem=3GB
 #SBATCH --cpus-per-task=10
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-#SBATCH --array=387-391
+#SBATCH --array=525-544
 
 ####cd scratch/paper_iit_pt
 module load r/4.4.0
