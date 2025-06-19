@@ -43,7 +43,7 @@ find_temp_highd <- function(list_ids){
       #In case there are more than 1 model, I need to re-read functions depending on model
  
       # Parameters for all algorithms
-      total_simulations <- 5
+      total_simulations <- sim_chosen$tot_sim
       p <- sim_chosen$p
       num_temps <- sim_chosen$num_temp
       temperatures <- rep(0,num_temps)
