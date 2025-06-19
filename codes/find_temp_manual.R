@@ -46,10 +46,12 @@ find_temp_highd <- function(list_ids){
       total_simulations <- sim_chosen$tot_sim
       p <- sim_chosen$p
       num_temps <- sim_chosen$num_temp
+      temp_ini<- sim_chosen$t1
       temperatures <- rep(0,num_temps)
-      temperatures[1] <- 1.6
+      temperatures[1] <- temp_ini
+      rho_vector <- rep(-5,num_temps-1)
       for(t in 2:num_temps){
-        temperatures[t]=temperatures[t-1]/(1+exp(-5))
+        temperatures[t]=temperatures[t-1]/(1+exp(rho_vector[t-1]))
       }
       original_temperatures <- temperatures;
       bal_f <- as.character(sim_chosen$bf)
@@ -84,110 +86,48 @@ find_temp_highd <- function(list_ids){
       #All replicas use the same balancing function
       # bal_f <- rep(bal_f,length(temperatures))
       if(bal_f=="min"){bal_f=1;}else{bal_f=2;}
- 
-          
-          if(alg=="PT_IIT_Z"){
-            # Using Z factor bias correction
 
-            # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
-            output <- PT_IIT_sim(p,1,total_simulations,total_iter,sample_inter_swap,burnin_iter,temperatures,bal_f,TRUE,"",0,0,3)
-          
-          }
-          if(alg=="PT_A_IIT"){
-            # Using A-IIT in each replica
-            # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
-            output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",3)
-           
-          }
-        
+  check_convergence <- rep(F,length(rho_vector))
 
-  #First Run
-  swap_rate <- as.data.frame(output[["swap_rate"]])
-  # colnames(swap_rate) <- 1:ncol(swap_rate)
-  summary_sr <- colSums(swap_rate)/nrow(swap_rate) #Get avg. swap rate
-  
-  distance_temperatures <- temperatures[-length(temperatures)]-temperatures[-1];
-  distance_sr <- summary_sr-target_sr;
-  new_distance_temperatures <- c()
-  ## Propose new temperatures
-  for(t in 1:ncol(swap_rate)){#We don't move the first temperature
-    if(summary_sr[t]>0.233 && summary_sr[t]<0.27){#This is the threshold to accept a temperature
-      next;}else{
-        #First update is of size .005 in the temperature
-        new_distance_temperatures[t]=distance_temperatures[t]+(.005*sign(distance_sr[t]))
-      }
-  }
-  # update_temperatures
-  temperatures[1] <- 1.6
-  for(t in 1:length(new_distance_temperatures)){
-    temperatures[t+1] <- temperatures[t]-new_distance_temperatures[t];
-  }
-###### Run the algorithm again 
-  check_convergence <- rep(F,length(swap_rate))
-  first_time <- TRUE;
   check_loop <- TRUE;
   while(check_loop){
     if(alg=="PT_IIT_Z"){
       # Using Z factor bias correction
-      
       # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
       output <- PT_IIT_sim(p,1,total_simulations,total_iter,sample_inter_swap,burnin_iter,temperatures,bal_f,TRUE,"",0,0,3)
-      
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT in each replica
       # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
       output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",3)
-      
     }
+
+    
     swap_rate <- as.data.frame(output[["swap_rate"]])
-    new_summary_sr <- colSums(swap_rate)/nrow(swap_rate) #Get avg. swap rate
-    print(new_summary_sr);
-    new_distance_sr <- new_summary_sr-target_sr;
-    if(first_time){
-      weighted_distance_sr <- c();
-      change_in_sr <- new_summary_sr-summary_sr; #This was achieved with a change of 0.005 in temp
-      for(i in 1:length(new_distance_sr)){
-        if(change_in_sr[i]!=0){weighted_distance_sr[i] <- new_distance_sr[i]/(change_in_sr[i])}else{
-          weighted_distance_sr[i] <- 2;
-        }
+    summary_sr <- colSums(swap_rate)/nrow(swap_rate) #Get avg. swap rate
+    distance_sr <- summary_sr-target_sr;
+    new_rho <- rho_vector+3*distance_sr;
+    for(i in 1:length(summary_sr)){
+      if(summary_sr[i]>0.2335 && summary_sr[i]<0.27){
+        #Dont change the rho_factor
+        check_convergence[i] <- TRUE
+      }else{
+        rho_vector[i] <- new_rho[i];
       }
-      first_time <- FALSE;
     }
- print(paste0("Weighted distance_SR ",weighted_distance_sr));
-    
-#Propose change in temperatures    
-    distance_temperatures <- temperatures[-length(temperatures)]-temperatures[-1];#Get new distances
-    ## Propose new temperatures
-    for(t in 1:ncol(swap_rate)){#We don't move the first temperature
-      if(new_summary_sr[t]>0.233 && new_summary_sr[t]<0.27){#This is the threshold to accept a temperature
-        check_convergence[t] <- TRUE;
-        next;}else{
-          #First update is of size .005 in the temperature
-          new_distance_temperatures[t]=distance_temperatures[t]+(.005*abs(weighted_distance_sr[t])*sign(new_distance_sr[t]))
-          new_distance_temperatures[t]=abs(new_distance_temperatures[t]);
-          }
+    #Update temperatures
+    for(t in 2:num_temps){
+      temperatures[t]=temperatures[t-1]/(1+exp(rho_vector[t-1]))
     }
-    # update_temperatures
-    temperatures[1] <- 1.6
-    for(t in 1:length(new_distance_temperatures)){
-      temperatures[t+1] <- temperatures[t]-new_distance_temperatures[t];
-    }      
-    summary_sr <- new_summary_sr
     
+ print(paste0("Rho Vector ",paste0(rho_vector,collapse=",")));
+    
+
     writeLines(c(paste0("ID: ",id_chosen),
                  paste0("Temperatures: ",paste(round(temperatures,4),collapse=',')),
                  paste0("Swap Rate: ",paste(summary_sr,collapse = ',')),
                  paste0("Time: ",mean(output[["time_taken"]]))))
     
-    if(any(temperatures<0)){
-      counter_negative_temp=counter_negative_temp+1;
-      temperatures[1] <- 1.6
-      for(t in 2:num_temps){
-        temperatures[t]=temperatures[t-1]/(1+exp(-5+(counter_negative_temp*.01)))
-      }
-    }
-    print(paste0("re-starting temps for time #",counter_negative_temp));
     if(all(check_convergence)){
       check_loop <- FALSE;
     }else{
