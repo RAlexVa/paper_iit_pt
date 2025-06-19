@@ -723,7 +723,7 @@ List find_temp_gibbs_PT_IIT(int p, int burn_in,double temp_ini, int bal_func, co
   // List output; //To store output of the update function
   
   //// Parameters for the temperature finding   
-  double rho=-3.5;//1.3;//-2.6; // To define initial second temperature
+  double rho=-2.7;//1.3;//-2.6; // To define initial second temperature
   double threshold=0.0005;//0.001;//.1;//0.001;//Stop when the updates differ less than this much
   double target_swap_rate=0.2345;//Target swap rate
   
