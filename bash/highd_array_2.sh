@@ -8,7 +8,7 @@
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-#SBATCH --array=525-544
+#SBATCH --array=600-609
 
 ####cd scratch/paper_iit_pt
 module load r/4.4.0
