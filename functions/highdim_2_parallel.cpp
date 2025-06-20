@@ -270,7 +270,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   // bool first_find_m2=false;
   NumericMatrix time_find_m1(total_sim,T);
   NumericMatrix time_find_m2(total_sim,T);
-
+  time_find_m1.fill(-1);
+  time_find_m2.fill(-1);
   
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
@@ -415,6 +416,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     /////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
     std::clock_t start = std::clock(); // Start timer for simulation s
+    // Sleep(5000);
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       if (i % 1000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
@@ -594,7 +596,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   }//End loop simulations
   
   List ret;
-  
+  // Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
+  // Rcpp::Rcout <<"Dist2\n "<< distance_mode2 << std::endl;
+  // Rcpp::Rcout <<"Time1\n "<< time_find_m1 << std::endl;
+  // Rcpp::Rcout <<"Time2\n "<< time_find_m2 << std::endl;
   ret["ip"]=ind_pro_hist;
   ret["swap_rate"]=swap_rate;
   // ret["states"]=states_visited;
@@ -673,7 +678,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
   NumericMatrix time_find_m1(total_sim,T);
   NumericMatrix time_find_m2(total_sim,T);
-
+  time_find_m1.fill(-1);
+  time_find_m2.fill(-1);
   const std::size_t dim_size = static_cast <size_t> (p);
 
 
@@ -818,9 +824,14 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
     //////////////////////Finish the loop for burn-in period
 max_log_bound_vector=log_bound_vector;
-
+// Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
+// Rcpp::Rcout <<"Dist2\n "<< distance_mode2 << std::endl;
+// Rcpp::Rcout <<"Time1\n "<< time_find_m1 << std::endl;
+// Rcpp::Rcout <<"Time2\n "<< time_find_m2 << std::endl;
     swap_count=0; //Reset swap count
     std::clock_t start = std::clock(); // Start timer for simulation s
+    
+    // Sleep(5000);    
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
     if (i % 100 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
@@ -958,7 +969,10 @@ max_log_bound_vector=log_bound_vector;
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
   }//End loop simulations
   List ret;
-
+  // Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
+  // Rcpp::Rcout <<"Dist2\n "<< distance_mode2 << std::endl;
+  // Rcpp::Rcout <<"Time1\n "<< time_find_m1 << std::endl;
+  // Rcpp::Rcout <<"Time2\n "<< time_find_m2 << std::endl;
   ret["ip"]=ind_pro_hist;
   ret["swap_rate"]=swap_rate;
   // ret["states"]=states_visited;
