@@ -1545,3 +1545,29 @@ set.seed(base_seed)
 # find_temp_A_IIT_parallel(int p,int sample_inter_swap, int burn_in,double temp_ini, int bal_func, const double& theta, int base_seed, int direction)
 
 results <- find_temp_A_IIT_parallel(p,interswap, burn_in,temp_ini,bal_func,theta,base_seed,direction)
+
+
+
+#########Testing highdim multimodal loglik
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+library(RcppParallel)
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp", verbose = TRUE)
+
+p <- 1000
+Q_matrix2 <- create_mode_matrix(p,2)
+Q_matrix5 <- create_mode_matrix(p,5)
+Q_matrix7 <- create_mode_matrix(p,7)
+
+Q_matrix5[c((p/2-10):(p/2+10)),]
+
+Q_matrix5[c((p/4-10):(p/4+10)),]
+Q_matrix5[c((3*p/4-10):(3*p/4+10)),]
+
+
+Q_matrix7[c((p/2-10):(p/2+10)),]
+Q_matrix7[c((p/4-10):(p/4+10)),]
+Q_matrix7[c((3*p/4-10):(3*p/4+10)),]
+
