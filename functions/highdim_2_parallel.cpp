@@ -66,6 +66,44 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
   
   return(A);
 }
+
+// [[Rcpp::export]]
+arma::Mat<double> create_mode_matrix(const int num_rows,const int num_cols) {
+  arma::mat Q(num_rows, num_cols,fill::zeros);
+  if(num_cols==2 ||num_cols==5 ||num_cols==7){
+for(int c=0;c<num_rows;c++){
+      if(c%2==0){Q(c,0)=1;}
+      if(c%2==1){Q(c,1)=1;}
+      
+      if(num_cols>2){
+        if(c<(num_rows/2)){//First half is 1
+          Q(c,2)=1;
+        }
+        if(c>=(num_rows/2)){//Second half is 1
+          Q(c,3)=1;
+        }
+        
+        
+        if((c>=(num_rows/4)) && (c<(num_rows*3/4))){
+          Q(c,4)=1;
+        }//First and last quarter are 0
+        if(num_cols>5){
+          if((c<(num_rows/4)) || (c>=(num_rows*3/4))){
+            Q(c,5)=1;//First and last quarter are 1
+          }
+          Q(c,6)=1;  //All 1s
+        }
+      }
+      
+    }//End for loop for columns
+  }else{//Check number of temperatures
+    Rcpp::Rcout << "Error: number of modes is not 2,5,7" << std::endl;
+    Q.fill(-1);
+  }
+  return(Q);
+}
+
+
 // Compare two vectors
 // [[Rcpp::export]]
 bool CompareVectors(const vec& v1, const vec& v2) {
@@ -142,15 +180,24 @@ double apply_bal_func(double x,const int chosen){
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
+  
   if(M.n_cols!=2){
-    Rcpp::Rcout << "Error matrix has more than 2 columns: " << std::endl;
-    return(-10000);
+    double lik_computed;
+    //Each column in M is a mode
+    for(uword c=0;c<M.n_cols;c++){//For loop for modes
+      double dist_mode=sum(abs(X-M.col(c)))*theta;
+      if(dist_mode<708){//If to avoid underflowing
+        lik_computed+=exp(-dist_mode);//Add exp
+      }
+    }
+    
+    return(log1p(lik_computed));//Return 1+log()
   }else{
+    double loglik_computed;
     vec mod1=M.col(0);
     vec mod2=M.col(1);
     double dif1=sum(abs(X-mod1));
     double dif2=sum(abs(X-mod2));
-    double loglik_computed;
 
     if(dif2<=dif1){
       loglik_computed = -dif2*theta + log1p(exp((dif2-dif1)*theta));
@@ -163,8 +210,9 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   
 }
 double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
-  double loglik_computed;
+  
   if(M.ncol()==2){
+    double loglik_computed;
     //Define vectors to represent each mode
     NumericVector mod1=M(_,0);
     NumericVector mod2=M(_,1);
@@ -179,12 +227,20 @@ double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
       loglik_computed = -dif1*theta + log1p(exp((dif1-dif2)*theta));
     }
     return(loglik_computed);
-    
+    //End part for 2 modes
   }else{
-    Rcpp::Rcout << "Error matrix number of columns isn't 2" << std::endl;
-    Rcpp::Rcout <<"M: " <<M<< std::endl;
-    return(-10000);
-  }
+    //Each column in M is a mode
+    double lik_computed;
+    for(int c=0;c<M.ncol();c++){//For loop for modes
+      double dist_mode=sum(abs(X-M(_,c)))*theta;
+      if(dist_mode<708){//If to avoid underflowing
+        lik_computed+=exp(-dist_mode);//Add exp
+      }
+    }
+    
+    return(log1p(lik_computed));
+
+  }//End part for more than 2 modes
   
   
   
