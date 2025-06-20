@@ -446,19 +446,29 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 //// Check distance to modes        
         double dist1=sum(abs(current_X-mode1));
         double dist2=sum(abs(current_X-mode2));
-        if(distance_mode1(s,temperature_index)>dist1){distance_mode1(s,temperature_index)=dist1;}
-        if(distance_mode2(s,temperature_index)>dist2){distance_mode2(s,temperature_index)=dist2;}
-        
-        if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
+        if(distance_mode1(s,temperature_index)>dist1){
+          distance_mode1(s,temperature_index)=dist1;
           std::clock_t find_m1 = std::clock();
           double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
           time_find_m1(s,temperature_index)=time_m1;
-        }
-        if((dist2==0) & (time_find_m2(s,temperature_index)==0)){
+          }
+        if(distance_mode2(s,temperature_index)>dist2){
+          distance_mode2(s,temperature_index)=dist2;
           std::clock_t find_m2 = std::clock();
           double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
           time_find_m2(s,temperature_index)=time_m2;
-        }
+          }
+        
+        // if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
+        //   std::clock_t find_m1 = std::clock();
+        //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
+        //   time_find_m1(s,temperature_index)=time_m1;
+        // }
+        // if((dist2==0) & (time_find_m2(s,temperature_index)==0)){
+        //   std::clock_t find_m2 = std::clock();
+        //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
+        //   time_find_m2(s,temperature_index)=time_m2;
+        // }
         //Swap that coordinate
         X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
         // X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -855,19 +865,29 @@ max_log_bound_vector=log_bound_vector;
           ///// Measure distance to modes
           double dist1=sum(abs(current_X-mode1));
           double dist2=sum(abs(current_X-mode2));
-          if(distance_mode1(s,temperature_index)>dist1){distance_mode1(s,temperature_index)=dist1;}
-          if(distance_mode2(s,temperature_index)>dist2){distance_mode2(s,temperature_index)=dist2;}
-
-          if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
+          if(distance_mode1(s,temperature_index)>dist1){
+            distance_mode1(s,temperature_index)=dist1;
             std::clock_t find_m1 = std::clock();
             double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
             time_find_m1(s,temperature_index)=time_m1;
-          }
-          if((dist2==0) & (time_find_m2(s,temperature_index)==0)){
+            }
+          if(distance_mode2(s,temperature_index)>dist2){
+            distance_mode2(s,temperature_index)=dist2;
             std::clock_t find_m2 = std::clock();
             double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
             time_find_m2(s,temperature_index)=time_m2;
-          }
+            }
+
+          // if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
+          //   std::clock_t find_m1 = std::clock();
+          //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
+          //   time_find_m1(s,temperature_index)=time_m1;
+          // }
+          // if((dist2==0) & (time_find_m2(s,temperature_index)==0)){
+          //   std::clock_t find_m2 = std::clock();
+          //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
+          //   time_find_m2(s,temperature_index)=time_m2;
+          // }
 
 
           ///// Updating before the next iteration of the loop
