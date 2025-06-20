@@ -72,5 +72,6 @@ id,algorithm,interswap,seed,model,p,theta,bf,t1,num_temp,gibbs_step,tot_sim,burn
 72,PT_A_IIT,500,72,bimodal,2000,3,sq,1,5,,,,,,1,,,,,
 73,PT_A_IIT,300,73,bimodal,1000,3,sq,1,4,,4,10000,,500,,,,,,
 74,PT_IIT_Z,100,74,bimodal,1000,3,sq,1,4,,4,2000,11000,,,,,,,
-75,PT_A_IIT,300,75,bimodal,3000,3,sq,1.6,4,,4,10000,,550,,,Running in Probability,,,
-76,PT_IIT_Z,150,76,bimodal,3000,3,sq,1.6,4,,4,2000,13000,,,,Running in Probability,,,
+75,PT_A_IIT,300,75,bimodal,3000,3,sq,1.6,4,,4,10000,,550,,,Results in pProbability,,,
+76,PT_IIT_Z,150,7676,bimodal,3000,3,sq,1.6,4,,4,5000,11000,,,,Running in Probability,,,
+77,PT_A_IIT,350,77,bimodal,4000,3,sq,1.6,3,,4,10000,,350,,,Running in Probability,,,
