@@ -19,7 +19,7 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 # chosen_ids <-c(205,206,207,237,239,319,328,294)#c(318:333)#c(265:287)#c(205,206,207,237,239)#c(190,191,193,194,196:199)#223:227#c(900,902,903,905)#c(126:129)
-chosen_ids <-367:371#c(129,131,133,135,137,139,140,141)>
+chosen_ids <-620:621#525:534#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
@@ -192,14 +192,14 @@ if(chosen_dim=="highdim"){
     stop("Some of the chosen simulations have different number of replicas")
   }else{
     num_replicas <- ncol(check_number_replicas |> select(-id))
-    round_trip <- as.data.frame(matrix(NA,ncol=(num_replicas+2),nrow=0)); colnames(round_trip) <- c("alg","sim",1:num_replicas)
-    if(num_replicas>1){    swap_rate <- as.data.frame(matrix(NA,ncol=(num_replicas+1),nrow=0)); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))}
-    iterations <- as.data.frame(matrix(NA,ncol=(num_replicas+2),nrow=0)); colnames(iterations) <- c("alg","sim",1:num_replicas)
+    round_trip <- as.data.frame(matrix(ncol=(num_replicas+2),nrow=0)); colnames(round_trip) <- c("alg","sim",1:num_replicas)
+    if(num_replicas>1){    swap_rate <- as.data.frame(matrix(ncol=(num_replicas+1),nrow=0)); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))}
+    iterations <- as.data.frame(matrix(ncol=(num_replicas+2),nrow=0)); colnames(iterations) <- c("alg","sim",1:num_replicas)
     
     list_of_states <- list()
-    iter_visit <- as.data.frame(matrix(NA,ncol=max(data_sum$simulations)+2,nrow=0));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
-    loglik_visited <- as.data.frame(matrix(NA,ncol=4,nrow=0));colnames(loglik_visited) <- c("alg","sim","state","loglik")
-    max_lik <- as.data.frame(matrix(NA,ncol=4,nrow=0));colnames(max_lik) <- c("alg","sim","iteration","lik")
+    iter_visit <- as.data.frame(matrix(ncol=max(data_sum$simulations)+2,nrow=0));colnames(iter_visit) <- c("alg","state",1:max(data_sum$simulations))
+    loglik_visited <- as.data.frame(matrix(nrow=0,ncol=4));colnames(loglik_visited) <- c("alg","sim","state","loglik")
+    max_lik <- as.data.frame(matrix(nrow=0,ncol=4));colnames(max_lik) <- c("alg","sim","iteration","lik")
     
     if(check_number_sim==1){
       distances <- tibble(alg=character(),sim=numeric(),temperature=numeric(),iteration=numeric(),mode=character())
@@ -212,7 +212,7 @@ if(chosen_dim=="highdim"){
   }
 
 }
-time_taken <- as.data.frame(matrix(NA,ncol=2));colnames(time_taken) <- c("alg","time")
+time_taken <- as.data.frame(matrix(nrow=0,ncol=2));colnames(time_taken) <- c("alg","time")
 full_iter_names <- c() #To identify the list of full_iter with the corresponding algorithms
 full_iter <- list()
 k <- 1
@@ -400,6 +400,9 @@ if(chosen_dim=="highdim"){
 # iterations <- iterations |> filter(!is.na(alg))
 # time_taken <- time_taken |> filter(!is.na(alg))
 
+distances |> filter(min_dist==0)
+distances |> filter(min_dist<2)
+swap_rate
 colSums(swap_rate[,-(1:2)])/nrow(swap_rate)
 
 ##### Export plots and tables #####
@@ -762,96 +765,92 @@ dev.off()
 
 #Starts high dim reports
 if(chosen_dim=="highdim"){
-  ##### Delete first row with NA#####
-  # max_lik <- max_lik|> filter(!is.na(alg))
-  # loglik_visited <- loglik_visited |> filter(!is.na(alg))
-  # iter_visit <- iter_visit|> filter(!is.na(alg))
+#Input NAs
+  distances$time_find[distances$time_find==0] <- NA
 
-  if(check_number_sim==1){
-    ### This reports only works when there's only 1 simulation
-    {
-      ### Report on how far each replica was of each mode
-      distance_report <- distances |> group_by(alg, temperature, mode) |>
-        summarise(closer=min(dist),
-                  farther=max(dist),
-                  average=mean(dist),
-                  d1=quantile(dist,0.1),
-                  d2=quantile(dist,0.2),
-                  q1=quantile(dist,.25),
-                  d3=quantile(dist,0.3),
-                  d4=quantile(dist,0.4),
-                  q2=quantile(dist,0.5),
-                  d6=quantile(dist,0.6),
-                  d7=quantile(dist,0.7),
-                  q3=quantile(dist,0.75),
-                  d8=quantile(dist,0.8),
-                  d9=quantile(dist,0.9))
-      if(unique(p)==800){dist_to_modes <- 785}else{dist_to_modes <- unique(p)}
-
-      distance_report <- distance_report|> ungroup() |> add_row(alg=paste0("p=",unique(p)),
-                                                                temperature=NA,
-                                                                mode="M2M",
-                                                                closer=dist_to_modes,
-                                                                farther=dist_to_modes,
-                                                                average=dist_to_modes,
-                                                                d1=0,d2=0,q1=0,
-                                                                d3=0,d4=0,q2=0,
-                                                                d6=0,d7=0,q3=0,
-                                                                d8=0,d9=0)
-
-      jpeg(file.path(export_path,paste0(export_file_name,"_distance_modes",".jpg")),width=44*ncol(distance_report),height=25*nrow(distance_report),pointsize = 30)
-      grid.arrange(tableGrob(distance_report))
-      dev.off()
-      ### Report on how quickly they reached the closer and farther distance to modes
-      speed_to_mode <- distances |>
-        group_by(alg,sim,temperature,mode) |>
-        summarise(min_dist=min(dist),
-                  iteration_at_min_distance = iteration[which.min(dist)][1], # takes first if ties
-                  max_dist=max(dist),
-                  iteration_at_max_distance = iteration[which.max(dist)][1])
-
-      jpeg(file.path(export_path,paste0(export_file_name,"_speed_to_modes",".jpg")),width=100*ncol(speed_to_mode),height=25*nrow(speed_to_mode),pointsize = 30)
-      grid.arrange(tableGrob(speed_to_mode))
-      dev.off()
-      
-    }
-  }else{
-    distance_report <- distances |> 
-      group_by(alg,temperature,mode) |> 
-      summarise(min_d=min(min_dist),
-                min_average=mean(min_dist),
-                fastest_min=min(min_iter),
-                mean_min=mean(min_iter),
-                slowest_min=max(min_iter))
- # ### Report for each algorithm   
- #    for(id in chosen_ids){
- #      id_text <- as.character(id)
- #      cat(paste0("printing report for id:",id_text,"\n"))
- #      temp_report <- distance_report |> filter(str_detect(alg,id_text))
- #      jpeg(file.path(export_path,paste0(id_text,"_",chosen_dim,"_distance_report",".jpg")),width=80*ncol(temp_report),height=23*nrow(temp_report),pointsize = 30)
- #      grid.arrange(tableGrob(temp_report))
- #      dev.off()
- #    }
+## Get out ID
+    distances$id <- str_extract(distances$alg, "\\(\\d+\\)") |> 
+      str_remove_all("[()]")  # Extract numbers between parentheses and remove the parentheses
+    distances$algorithm <- str_replace(distances$alg, "\\s*\\(.*", "")  # Extract text before parenthesis
+### Speed to modes for maximum temperature
+    dist_t1 <- distances |> 
+      group_by(alg) |> 
+      summarise(max_temp=max(temperature)) |> 
+      right_join(distances,by="alg") |> 
+      filter(temperature==max_temp) |> 
+      select(-sim,-max_temp) |> 
+      ungroup()
     
-### Report of temperature 1
-temp_1_report <- distance_report |> filter(temperature==1)
-jpeg(file.path(export_path,paste0(export_file_name,"_dist_to_modes_t1",".jpg")),width=90*ncol(temp_1_report),height=25*nrow(temp_1_report),pointsize = 30)
-grid.arrange(tableGrob(temp_1_report))
-dev.off()   
-
-temp_max_report <- distance_report |> filter(temperature==max(temperatures))
-jpeg(file.path(export_path,paste0(export_file_name,"_dist_to_modes_tmax",".jpg")),width=90*ncol(temp_1_report),height=25*nrow(temp_1_report),pointsize = 30)
-grid.arrange(tableGrob(temp_max_report))
-dev.off()  
+    dist_t1_times <- dist_t1 |>  select(-min_dist) |> 
+      pivot_longer(cols=c(time_find),names_to="variable",values_to="measure") |> 
+      pivot_wider(names_from=mode,values_from=measure) |> 
+      rowwise() |> 
+      mutate(first_time=min(m1,m2),last_time=max(m1,m2))
 
     
-  }
+    forsurv <- dist_t1_times  |>
+    select(algorithm,last_time)
+    
+    fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~algorithm,data=forsurv)
+    
+    (plot_surv_mode <- ggsurvplot(fit,
+                                  data=forsurv,
+                                  fun="event",
+                                  palette = "Set1",    # Color palette
+                                  xlab = "Time (seconds)",
+                                  ylab = "Prop. of simulations visiting all modes",
+                                  legend.title = "Algorithm",
+                                  # break.time.by = time_br,
+                                  font.x = 15,        # X-axis label font size
+                                  font.y = 15,        # Y-axis label font size
+                                  font.tickslab = 12, # Axis tick labels (numbers) font size
+                                  font.legend = 10,
+                                  conf.int = FALSE))   # Legend text font size)
+    
+    # plot_surv_mode
+    
+### Speed to modes for SECOND temperature    
+    dist_t2 <- distances |> 
+      group_by(alg) |> 
+      summarise(max_temp=max(temperature)) |> 
+      ungroup() |> 
+      right_join(distances,by="alg") |> 
+      filter(temperature!=max_temp) |> 
+      select(-sim,-max_temp) |> 
+      group_by(alg) |> 
+      summarise(max_temp=max(temperature)) |> 
+      ungroup() |> 
+      right_join(distances,by="alg") |> 
+      filter(temperature==max_temp)
+    
+    dist_t2_times <- dist_t2 |>  select(-min_dist) |> 
+      pivot_longer(cols=c(time_find),names_to="variable",values_to="measure") |> 
+      pivot_wider(names_from=mode,values_from=measure) |> 
+      rowwise() |> 
+      mutate(first_time=min(m1,m2),last_time=max(m1,m2))
+    
+    
+    forsurv <- dist_t2_times  |>
+      select(algorithm,last_time)
+    
+    fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~algorithm,data=forsurv)
+    
+    (plot_surv_mode <- ggsurvplot(fit,
+                                  data=forsurv,
+                                  fun="event",
+                                  palette = "Set1",    # Color palette
+                                  xlab = "Time (seconds)",
+                                  ylab = "Prop. of simulations visiting all modes",
+                                  legend.title = "Algorithm",
+                                  # break.time.by = time_br,
+                                  font.x = 15,        # X-axis label font size
+                                  font.y = 15,        # Y-axis label font size
+                                  font.tickslab = 12, # Axis tick labels (numbers) font size
+                                  font.legend = 10,
+                                  conf.int = FALSE))   # Legend text font size)
+    
 
-  
 
-  
-  
-  
 }
 
 
