@@ -124,7 +124,7 @@ find_temp_highd <- function(list_ids){
     
 
     writeLines(c(paste0("ID: ",id_chosen),
-                 paste0("Temperatures: ",paste(round(temperatures,4),collapse=',')),
+                 paste0("Temperatures: ",paste(round(temperatures,6),collapse=',')),
                  paste0("Swap Rate: ",paste(summary_sr,collapse = ',')),
                  paste0("Time: ",mean(output[["time_taken"]]))))
     
