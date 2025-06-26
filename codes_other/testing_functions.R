@@ -1571,3 +1571,26 @@ Q_matrix7[c((p/2-10):(p/2+10)),]
 Q_matrix7[c((p/4-10):(p/4+10)),]
 Q_matrix7[c((3*p/4-10):(3*p/4+10)),]
 
+######### testing code with new modes
+
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+
+# PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
+p <- 1000
+startsim <- 1
+endsim <- 2
+numiter <- 4000
+interswap <- 100
+burn_in <- 1000
+temp <- c(1,0.917675,0.846553,0.78432,0.725)
+# temp <- c(1,0.918)
+bal_func <- 2
+bias_fix <- T
+file_name <- ""
+states_visit <- 2
+starting_coord <- c(0.0)
+theta <- 3
+set.seed(90)
+num_modes <- 7;
+results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
+                      bal_func,bias_fix,file_name,states_visit,starting_coord,theta,num_modes)
