@@ -100,6 +100,7 @@ find_temp_highd <- function(list_ids){
 
     
     swap_rate <- as.data.frame(output[["swap_rate"]])
+    writeLines(c("swap rate: ",swap_rate));
     summary_sr <- colSums(swap_rate)/nrow(swap_rate) #Get avg. swap rate
     distance_sr <- summary_sr-target_sr;
     # new_rho <- rho_vector+3*distance_sr;
