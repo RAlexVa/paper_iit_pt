@@ -693,7 +693,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -741,23 +741,30 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   // double temporal_loglik;
   // uword found_min; // to find the minimum
   //// Define modes
-  mat Q_matrix(p,2);
-  for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
-  }
+  mat Q_matrix(p,num_modes);
+  Q_matrix=create_mode_matrix(p,num_modes);
+  // for(int i=0;i<p;i++){
+  //   if(i%2==0){Q_matrix(i,1)=1;}
+  //   if(i%2==1){Q_matrix(i,0)=1;}
+  // }
   NumericMatrix Q_mat_R=Rcpp::wrap(Q_matrix);//Numeric Matrix version of the Q_matrix
-  NumericVector mode1=Q_mat_R(_,0);
-  NumericVector mode2=Q_mat_R(_,1);
-  NumericMatrix distance_mode1(total_sim,T);
-  NumericMatrix distance_mode2(total_sim,T);
-  distance_mode1.fill(100000);
-  distance_mode2.fill(100000);
-
-  NumericMatrix time_find_m1(total_sim,T);
-  NumericMatrix time_find_m2(total_sim,T);
-  time_find_m1.fill(-1);
-  time_find_m2.fill(-1);
+  // NumericVector mode1=Q_mat_R(_,0);
+  // NumericVector mode2=Q_mat_R(_,1);
+  NumericMatrix distance_modes(num_modes,T);
+  // NumericMatrix distance_mode1(total_sim,T);
+  // NumericMatrix distance_mode2(total_sim,T);
+  // distance_mode1.fill(100000);
+  // distance_mode2.fill(100000);
+  distance_modes.fill(100000); //To store distance to modes for each simulation
+  cube distance_modes_full(num_modes,T,total_sim); //Final report of distance to modes
+  
+  // NumericMatrix time_find_m1(total_sim,T);
+  // NumericMatrix time_find_m2(total_sim,T);
+  // time_find_m1.fill(-1);
+  // time_find_m2.fill(-1);
+  NumericMatrix time_find_modes(num_modes,T);
+  time_find_modes.fill(-1);
+  cube time_find_modes_full(num_modes,T,total_sim);
   const std::size_t dim_size = static_cast <size_t> (p);
 
 
@@ -951,21 +958,31 @@ max_log_bound_vector=log_bound_vector;
             update_state=false;
           }
 
-          ///// Measure distance to modes
-          double dist1=sum(abs(current_X-mode1));
-          double dist2=sum(abs(current_X-mode2));
-          if(distance_mode1(s,temperature_index)>dist1){
-            distance_mode1(s,temperature_index)=dist1;
-            std::clock_t find_m1 = std::clock();
-            double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
-            time_find_m1(s,temperature_index)=time_m1;
+          ///// Check distance to modes
+          for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+            double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+            if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+              distance_modes(mode_counter,temperature_index)=dist_mode;
+              std::clock_t time_find_mode = std::clock();
+              double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+              time_find_modes(mode_counter,temperature_index)=secs_find_mode;
             }
-          if(distance_mode2(s,temperature_index)>dist2){
-            distance_mode2(s,temperature_index)=dist2;
-            std::clock_t find_m2 = std::clock();
-            double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
-            time_find_m2(s,temperature_index)=time_m2;
-            }
+          }
+          
+          // double dist1=sum(abs(current_X-mode1));
+          // double dist2=sum(abs(current_X-mode2));
+          // if(distance_mode1(s,temperature_index)>dist1){
+          //   distance_mode1(s,temperature_index)=dist1;
+          //   std::clock_t find_m1 = std::clock();
+          //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
+          //   time_find_m1(s,temperature_index)=time_m1;
+          //   }
+          // if(distance_mode2(s,temperature_index)>dist2){
+          //   distance_mode2(s,temperature_index)=dist2;
+          //   std::clock_t find_m2 = std::clock();
+          //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
+          //   time_find_m2(s,temperature_index)=time_m2;
+          //   }
 
           // if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
           //   std::clock_t find_m1 = std::clock();
@@ -1045,6 +1062,8 @@ max_log_bound_vector=log_bound_vector;
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
+    distance_modes_full.slice(s)=Rcpp::as<arma::mat>(distance_modes);
+    time_find_modes_full.slice(s)=Rcpp::as<arma::mat>(time_find_modes);
   }//End loop simulations
   List ret;
   // Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
@@ -1059,12 +1078,14 @@ max_log_bound_vector=log_bound_vector;
   ret["total_iter"]=total_iterations;
   ret["time_taken"]=time_taken;
   // ret["modes_visit"]=full_iter_visit_modes;
-  ret["distance_mode1"]=distance_mode1;
-  ret["distance_mode2"]=distance_mode2;
+  // ret["distance_mode1"]=distance_mode1;
+  // ret["distance_mode2"]=distance_mode2;
+  ret["distance_modes"]=distance_modes_full;
   // ret["distance_origin"]=full_distance_origin;
   ret["max_bounds"]=max_log_bound_vector;
   ret["final_bounds"]=log_bound_vector;
-  ret["time_mode1"]=time_find_m1;
-  ret["time_mode2"]=time_find_m2;
+  // ret["time_mode1"]=time_find_m1;
+  // ret["time_mode2"]=time_find_m2;
+  ret["time_modes"]=time_find_modes_full;
   return ret;
 }
