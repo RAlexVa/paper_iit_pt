@@ -207,7 +207,7 @@ double apply_bal_func(double x,const int chosen){
   }
 }
 // [[Rcpp::export]]
-double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
+double loglik_exptail(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
   
   if(M.n_cols!=2){
@@ -238,7 +238,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   }
   
 }
-double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
+double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& theta){
   
   if(M.ncol()==2){
     double loglik_computed;
@@ -274,6 +274,45 @@ double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
   
   
 }
+
+double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
+  // double theta=3;
+  int dimension=X.n_rows;//Dimension of the problem
+  int max_dist=dimension;//How long do we allow the tail to go
+    double lik_computed=0;
+    //Each column in M is a mode
+    for(uword c=0;c<M.n_cols;c++){//For loop for modes
+      double dist_mode=sum(abs(X-M.col(c)));
+      if(dist_mode<=max_dist){
+        lik_computed+=(max_dist-dist_mode)*theta;//Add exp
+      }
+    }
+    //Theta is the slope
+    //We trace a straight line from the mode to the points where 
+    //It reaches the max allowed distance and create a polytope there
+    
+    return(log1p(lik_computed));
+}
+double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
+  int dimension=X.n_rows;//Dimension of the problem
+  int max_dist=dimension;//How long do we allow the tail to go
+  
+    //Each column in M is a mode
+    double lik_computed=0;
+    for(int c=0;c<M.ncol();c++){//For loop for modes
+      double dist_mode=sum(abs(X-M(_,c)));
+      if(dist_mode<=max_dist){//If to avoid underflowing
+        lik_computed+=(max_dist-dist_mode)*theta;//Add exp
+      }
+    }
+    
+    return(log1p(lik_computed));
+
+  
+  
+  
+}
+
 
 
 ///// Full definition of internal functions of workers 
