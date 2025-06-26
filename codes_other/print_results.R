@@ -19,7 +19,7 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 # chosen_ids <-c(205,206,207,237,239,319,328,294)#c(318:333)#c(265:287)#c(205,206,207,237,239)#c(190,191,193,194,196:199)#223:227#c(900,902,903,905)#c(126:129)
-chosen_ids <-620:621#525:534#c(129,131,133,135,137,139,140,141)>
+chosen_ids <-c(545:554,600:602)#525:534#c(129,131,133,135,137,139,140,141)>
 
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
