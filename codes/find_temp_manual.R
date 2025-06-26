@@ -165,6 +165,6 @@ find_temp_highd <- function(list_ids){
 
 if (!interactive()) {
   args <- commandArgs(trailingOnly = TRUE)
-  find_temps(args[1])
+  find_temp_highd(args[1])
 }
 
