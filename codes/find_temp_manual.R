@@ -7,6 +7,7 @@ library(readr)
 ##### import functions #####
 
 source("functions/r_functions.R")
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
 find_temp_highd <- function(list_ids){
   target_sr <- 0.234
   
@@ -24,7 +25,7 @@ find_temp_highd <- function(list_ids){
     ##### Read file for parameters #####
     parameters <- as.data.frame(read_csv("inputs/find_temps.csv", col_types = cols()))
     
-    Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
+    
 
     #Start process for algorithms
     for(id_chosen in list_ids){
@@ -162,5 +163,8 @@ find_temp_highd <- function(list_ids){
   }## End else if there's no results folder
 }### End of function
 
-
+if (!interactive()) {
+  args <- commandArgs(trailingOnly = TRUE)
+  find_temps(args[1])
+}
 
