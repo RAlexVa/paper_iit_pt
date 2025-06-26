@@ -182,7 +182,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
   
   if(M.n_cols!=2){
-    double lik_computed;
+    double lik_computed=0;
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
       double dist_mode=sum(abs(X-M.col(c)))*theta;
@@ -267,7 +267,7 @@ double IIT_visit_bounded::loglik_internal(const arma::Col<double>& X,const arma:
 
 ////////// Code for Parallel Tempering simulations //////////
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta, int num_modes){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
@@ -307,27 +307,35 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   Rcpp::Rcout <<"p= "<<p<<" num_states_visited= "<<num_states_visited<<" total_sim= "<<total_sim<< std::endl;
   // mat modes_visited(numiter * total_sim,T);//Matrix to store the modes visited and temperature
   const std::size_t dim_size = static_cast <size_t> (p); 
-  //// Define two modes
-  mat Q_matrix(p,2);
-  for(int i=0;i<p;i++){
-    if(i%2==0){Q_matrix(i,1)=1;}
-    if(i%2==1){Q_matrix(i,0)=1;}
-  }
+  //// Define matrix with modes
+  mat Q_matrix(p,num_modes);
+  Q_matrix=create_mode_matrix(p,num_modes);
+  // for(int i=0;i<p;i++){
+  //   if(i%2==0){Q_matrix(i,1)=1;}
+  //   if(i%2==1){Q_matrix(i,0)=1;}
+  // }
   NumericMatrix Q_mat_R=Rcpp::wrap(Q_matrix);//Numeric Matrix version of the Q_matrix
   NumericVector mode1=Q_mat_R(_,0);
   NumericVector mode2=Q_mat_R(_,1);
-  NumericMatrix distance_mode1(total_sim,T);
-  NumericMatrix distance_mode2(total_sim,T);
-  distance_mode1.fill(100000);
-  distance_mode2.fill(100000);
+  NumericMatrix distance_modes(num_modes,T);
+  // NumericMatrix distance_mode1(total_sim,T);
+  // NumericMatrix distance_mode2(total_sim,T);
+  // distance_mode1.fill(100000);
+  // distance_mode2.fill(100000);
+  distance_modes.fill(100000); //To store distance to modes for each simulation
+  
+  cube distance_modes_full(num_modes,T,total_sim); //Final report of distance to modes
   // NumericMatrix full_distance_mode1(total_sim,T,NA);
   // NumericMatrix full_distance_mode2(total_sim,T,NA);
   // bool first_find_m1=false;
   // bool first_find_m2=false;
-  NumericMatrix time_find_m1(total_sim,T);
-  NumericMatrix time_find_m2(total_sim,T);
-  time_find_m1.fill(-1);
-  time_find_m2.fill(-1);
+  // NumericMatrix time_find_m1(total_sim,T);
+  // NumericMatrix time_find_m2(total_sim,T);
+  NumericMatrix time_find_modes(num_modes,T);
+  // time_find_m1.fill(-1);
+  // time_find_m2.fill(-1);
+  time_find_modes.fill(-1);
+  cube time_find_modes_full(num_modes,T,total_sim);
   
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
@@ -387,10 +395,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         swap_count+=1;
         int starting=swap_count%2;
         for(int t=starting;t<J;t+=2){// For loop that runs over temperature indexes to swap
-          
-          epsilon_indic.elem(find(index_process==t)).ones();
-          prop_swap.elem(find(index_process==t)).ones(); //we swap temperature t
-          prop_swap.elem(find(index_process==t+1)).ones(); //With t+1
+          // 
+          // epsilon_indic.elem(find(index_process==t)).ones();
+          // prop_swap.elem(find(index_process==t)).ones(); //we swap temperature t
+          // prop_swap.elem(find(index_process==t+1)).ones(); //With t+1
           ////Compute swap probability
           // Xtemp_from=Rcpp::wrap(X.col(t));
           // Xtemp_to=Rcpp::wrap(X.col(t+1));
@@ -501,21 +509,30 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         GetMin min_coord(choose_min);
         parallelReduce(0,dim_size,min_coord);
         
-//// Check distance to modes        
-        double dist1=sum(abs(current_X-mode1));
-        double dist2=sum(abs(current_X-mode2));
-        if(distance_mode1(s,temperature_index)>dist1){
-          distance_mode1(s,temperature_index)=dist1;
-          std::clock_t find_m1 = std::clock();
-          double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
-          time_find_m1(s,temperature_index)=time_m1;
+//// Check distance to modes
+        for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+          double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+          if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+            distance_modes(mode_counter,temperature_index)=dist_mode;
+            std::clock_t time_find_mode = std::clock();
+            double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+            time_find_modes(mode_counter,temperature_index)=secs_find_mode;
           }
-        if(distance_mode2(s,temperature_index)>dist2){
-          distance_mode2(s,temperature_index)=dist2;
-          std::clock_t find_m2 = std::clock();
-          double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
-          time_find_m2(s,temperature_index)=time_m2;
-          }
+        }
+        // double dist1=sum(abs(current_X-mode1));
+        // double dist2=sum(abs(current_X-mode2));
+        // if(distance_mode1(s,temperature_index)>dist1){
+        //   distance_mode1(s,temperature_index)=dist1;
+        //   std::clock_t find_m1 = std::clock();
+        //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
+        //   time_find_m1(s,temperature_index)=time_m1;
+        //   }
+        // if(distance_mode2(s,temperature_index)>dist2){
+        //   distance_mode2(s,temperature_index)=dist2;
+        //   std::clock_t find_m2 = std::clock();
+        //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
+        //   time_find_m2(s,temperature_index)=time_m2;
+        //   }
         
         // if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
         //   std::clock_t find_m1 = std::clock();
@@ -649,6 +666,9 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // Rcpp::Rcout << "Index Process:\n " <<index_process << std::endl;
     // Rcpp::Rcout << "State X:\n " <<X << std::endl;
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
+    //Store the distance and time of visiting modes in the FULL cube
+    distance_modes_full.slice(s)=Rcpp::as<arma::mat>(distance_modes);
+    time_find_modes_full.slice(s)=Rcpp::as<arma::mat>(time_find_modes);
   }//End loop simulations
   
   List ret;
@@ -662,10 +682,12 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   // ret["loglik_visited"]=loglikelihood_visited;
   // ret["iter_visit"]=iter_to_visit;
   ret["time_taken"]=time_taken;
-  ret["distance_mode1"]=distance_mode1;
-  ret["distance_mode2"]=distance_mode2;
-  ret["time_mode1"]=time_find_m1;
-  ret["time_mode2"]=time_find_m2;
+  ret["distance_modes"]=distance_modes_full;
+  // ret["distance_mode1"]=distance_mode1;
+  // ret["distance_mode2"]=distance_mode2;
+  // ret["time_mode1"]=time_find_m1;
+  // ret["time_mode2"]=time_find_m2;
+  ret["time_modes"]=time_find_modes_full;
   // ret["distance_origin"]=full_distance_origin;
   return ret;
 }
