@@ -66,6 +66,35 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
   
   return(A);
 }
+// [[Rcpp::export]]
+arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols, const mat mode_matrix) {
+  arma::mat A(num_rows, num_cols,fill::zeros);
+  int check_nrows=mode_matrix.n_rows;
+  if((num_rows!=check_nrows)){
+    Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
+    return(A);}
+  
+  int number_modes=mode_matrix.n_cols;
+  
+  for(int r=0;r<num_cols;r++){
+    // double rand_mode=number_modes*randu();
+    // int choose_mode=rand_mode*1;
+    int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
+    
+    A.col(r)=mode_matrix.col(choose_mode);//State close to that mode
+    int N = arma::randi<int>(arma::distr_param(1, 100));//Number of coords to flip
+    // Rcpp::Rcout << "N:" <<N<< std::endl;
+    Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
+    uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
+    
+    
+    for (arma::uword i = 0; i < indices.n_elem; ++i) {
+      A(indices(i),r) = 1 - A(indices(i),r);
+    }
+  }
+  return(A);
+}
+
 
 // [[Rcpp::export]]
 arma::Mat<double> create_mode_matrix(const int num_rows,const int num_cols) {
@@ -315,8 +344,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //   if(i%2==1){Q_matrix(i,0)=1;}
   // }
   NumericMatrix Q_mat_R=Rcpp::wrap(Q_matrix);//Numeric Matrix version of the Q_matrix
-  NumericVector mode1=Q_mat_R(_,0);
-  NumericVector mode2=Q_mat_R(_,1);
+  // NumericVector mode1=Q_mat_R(_,0);
+  // NumericVector mode2=Q_mat_R(_,1);
   NumericMatrix distance_modes(num_modes,T);
   // NumericMatrix distance_mode1(total_sim,T);
   // NumericMatrix distance_mode2(total_sim,T);
@@ -346,9 +375,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
     // X=initializeMatrix(starting_coord,p,T);//Reset the starting point of all chains
-    double ppm=randu();
+    // double ppm=randu();
     arma::Mat<double> inter_mat(p,T);
-    inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
+    // inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
+    inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
     X=Rcpp::wrap(inter_mat);
     
     swap_total.zeros();
@@ -796,9 +826,10 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
 
-    double ppm=randu();
+    // double ppm=randu();
     arma::Mat<double> inter_mat(p,T);
-    inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
+    // inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
+    inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
     X=Rcpp::wrap(inter_mat);
 
 
