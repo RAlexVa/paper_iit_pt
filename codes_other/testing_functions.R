@@ -1594,3 +1594,24 @@ set.seed(90)
 num_modes <- 7;
 results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
                       bal_func,bias_fix,file_name,states_visit,starting_coord,theta,num_modes)
+
+
+p <- 1000
+total_swaps <- 1000
+interswap <- 100
+burn_in <- 1000
+temperatures <- c(1.189,1.089,1)
+bal_func <- 2
+filename <- ""
+states_visited <- 0
+starting_coord <- c(0)
+decreasing_constant <- 0
+reduc_model <- "never"
+theta <- 3
+num_modes <- 5
+# PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
+
+results <- PT_a_IIT_sim(p,1,1,total_swaps,interswap,burn_in,temperatures,bal_func,filename,states_visited,starting_coord,decreasing_constant,reduc_model,theta,num_modes)
+
+
+
