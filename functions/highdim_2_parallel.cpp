@@ -274,11 +274,10 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
   
   
 }
-
+// [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
-  int dimension=X.n_rows;//Dimension of the problem
-  int max_dist=dimension;//How long do we allow the tail to go
+  int max_dist=X.n_rows;//How long do we allow the tail to go
     double lik_computed=0;
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
@@ -294,8 +293,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
     return(log1p(lik_computed));
 }
 double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
-  int dimension=X.n_rows;//Dimension of the problem
-  int max_dist=dimension;//How long do we allow the tail to go
+  int max_dist=X.length();//How long do we allow the tail to go
   
     //Each column in M is a mode
     double lik_computed=0;
