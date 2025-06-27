@@ -23,7 +23,7 @@ struct IIT_visit_neighbors : public Worker
   const double theta; //Parameter for likelihood
   RVector<double> output;
   const std::size_t dim_p; // dimension of the problem (and length of X columns)
-  
+  const std::size_t num_modes; //Number of modes, # of columns of Q_matrix
   //// Functions to use from outside
   double loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta);
   
@@ -36,7 +36,7 @@ struct IIT_visit_neighbors : public Worker
   }
   arma::Mat<double> convert_Q(){
     RMatrix<double> tmp_matrix = Q_matrix;
-    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_modes, false,true);
     return MAT;
   }
   
@@ -48,15 +48,16 @@ struct IIT_visit_neighbors : public Worker
     const double temperature_in,
     const double theta_in,
     NumericVector output_in,
-    const size_t dim_p_in)://This binds the class members (defined above) to the constructor arguments
+    const size_t dim_p_in,
+    const size_t num_modes_in)://This binds the class members (defined above) to the constructor arguments
     X_n(X_n_in),
     Q_matrix(Q_matrix_in),
     bal_func(bal_func_in),
     temperature(temperature_in),
     theta(theta_in),
     output(output_in),
-    dim_p(dim_p_in)
-  {}
+    dim_p(dim_p_in),
+    num_modes(num_modes_in){}
   
   
   
@@ -67,7 +68,7 @@ struct IIT_visit_neighbors : public Worker
     arma::Mat<double> M = convert_Q();
     // int dim_p_int = X.n_rows;
     double logpi_current=loglik_internal(X,M,theta);
-    
+    // Rcpp::Rcout <<"Logpicurrent in parallel: "<<logpi_current << std::endl;
     for(std::size_t n = begin; n < end;n++){ // For for each neighbor
       arma::Col<double> temp_X=X;
       temp_X(n)=1-temp_X(n);//Switch the nth coordinate
@@ -88,6 +89,7 @@ struct IIT_visit_bounded : public Worker
   const double theta; //Parameter for likelihood
   RVector<double> output;
   const std::size_t dim_p; // dimension of the problem (and length of X columns)
+  const std::size_t num_modes;
   double log_bound;
   
   //// Functions to use from outside
@@ -102,7 +104,7 @@ struct IIT_visit_bounded : public Worker
   }
   arma::Mat<double> convert_Q_bounded(){
     RMatrix<double> tmp_matrix = Q_matrix;
-    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, 2, false,true);
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_modes, false,true);
     return MAT;
   }
   
@@ -114,6 +116,7 @@ struct IIT_visit_bounded : public Worker
     const double theta_in,
     NumericVector output_in,
     const size_t dim_p_in,
+    const size_t num_modes_in,
     double log_bound_in)://This binds the class members (defined above) to the constructor arguments
     X_n(X_n_in),
     Q_matrix(Q_matrix_in),
@@ -121,8 +124,8 @@ struct IIT_visit_bounded : public Worker
     theta(theta_in),
     output(output_in),
     dim_p(dim_p_in),
-    log_bound(log_bound_in)
-  {}
+    num_modes(num_modes_in),
+    log_bound(log_bound_in){}
   
   
   
