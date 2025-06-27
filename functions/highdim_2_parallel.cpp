@@ -82,7 +82,7 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
     int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
     
     A.col(r)=mode_matrix.col(choose_mode);//State close to that mode
-    int N = arma::randi<int>(arma::distr_param(1, 2));//Number of coords to flip
+    int N = arma::randi<int>(arma::distr_param(100,250));//Number of coords to flip
     // Rcpp::Rcout << "N:" <<N<< std::endl;
     Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
     uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
@@ -283,7 +283,8 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
   double max_dist=235.0;//How long do we allow the tail to go
-    double loglik_computed=0.0;
+  bool close_enough=false;  
+    double loglik_computed=-0.0;
     // Rcpp::Rcout <<"Created Lik: "<<lik_computed<< std::endl;
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
@@ -293,31 +294,42 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
         // Check the distance, so there's space between modes
         //Check that computing exp of the log-lik doesnt underflow
         loglik_computed-=(dist_mode*theta);
+        close_enough=true;
 //IMPORTANT: with max_dist<p/2
 //at most 1 mode will contribute to the log-likelihood
 //That's why we can do this.
       }
       // Rcpp::Rcout <<"New Lik: "<<lik_computed<<"New Likx100: "<<lik_computed*100<< std::endl;
     }
+    // Rcpp::Rcout <<"New LogLik: "<<loglik_computed<<"New LogLikx100: "<<loglik_computed*100<< std::endl;
+    // Rcpp::Rcout <<"Epxm1: "<<expm1(loglik_computed)<<"Log1p "<<log1p(expm1(loglik_computed)+1)<< std::endl;
+    if(close_enough){
+      return(log1p(expm1(loglik_computed)+1)); 
+    }else{
+      return(0);
+    }
 
-    return(log1p(expm1(loglik_computed)+1));
 }
 double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
   double max_dist=235.0;//How long do we allow the tail to go
-  
+  bool close_enough=false;  
     //Each column in M is a mode
     double loglik_computed=0;
     for(int c=0;c<M.ncol();c++){//For loop for modes
       double dist_mode=sum(abs(X-M(_,c)));
       if(dist_mode<max_dist && (dist_mode*theta)<706){//If to avoid underflowing
         loglik_computed-=(dist_mode*theta);
+        close_enough=true;
 //IMPORTANT: with max_dist<p/2
 //at most 1 mode will contribute to the log-likelihood
 //That's why we can do this.
       }
     }
-    
-    return(log1p(expm1(loglik_computed)+1));
+    if(close_enough){
+      return(log1p(expm1(loglik_computed)+1)); 
+    }else{
+      return(0);
+    }
 }
 
 
@@ -468,14 +480,6 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         //Find the index of the minimum entry
         GetMin min_coord(choose_min);
         parallelReduce(0,dim_size,min_coord);
-        // Rcpp::Rcout <<"Temp: "<<replica<< " Min Coord: " << min_coord.min_index  << std::endl;
-        // Rcpp::Rcout <<"Temp: "<<replica<< " Current X:\n " << output_current_X << std::endl;
-        // // Rcpp::Rcout <<"Temp: "<<replica<< " Current X (manual):\n " << temporal_vector << std::endl;
-        // Rcpp::Rcout <<"idx 72: "<<output_current_X[71]<< " idx 476: " <<output_current_X[475]<<" idx 1: " <<output_current_X[0]<< std::endl;
-        // Rcpp::Rcout <<"Minimum : "<<output_current_X[min_coord.min_index]<< std::endl;
-        // Rcpp::Rcout <<"Temp: "<<current_temp<< " Now with the rand: " << std::endl;
-        // Rcpp::Rcout <<"idx 72: "<<choose_min[71]<< " idx 476: " <<choose_min[475]<<" idx 1: " <<choose_min[0]<< std::endl;
-        // Rcpp::Rcout <<"Minimum : "<<choose_min[min_coord.min_index]<< std::endl;
         //Swap that coordinate
         X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
         // X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -609,10 +613,19 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         GetMin min_coord(choose_min);
         parallelReduce(0,dim_size,min_coord);
         
+        // Rcpp::Rcout <<"Temp: "<<replica<< " Min Coord: " << min_coord.min_index  << std::endl;
+        // // Rcpp::Rcout <<"Temp: "<<replica<< " Current X:\n " << output_current_X << std::endl;
+        // Rcpp::Rcout <<"idx 72: "<<output_current_X[71]<< " idx 476: " <<output_current_X[475]<<" idx 1: " <<output_current_X[0]<< std::endl;
+        // Rcpp::Rcout <<"Minimum : "<<output_current_X[min_coord.min_index]<< std::endl;
+        // Rcpp::Rcout <<"Temp: "<<current_temp<< " Now with the rand: " << std::endl;
+        // Rcpp::Rcout <<"idx 72: "<<choose_min[71]<< " idx 476: " <<choose_min[475]<<" idx 1: " <<choose_min[0]<< std::endl;
+        // Rcpp::Rcout <<"Minimum : "<<choose_min[min_coord.min_index]<< std::endl;
+        
 //// Check distance to modes
         for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
           double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
           if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+            // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
             distance_modes(mode_counter,temperature_index)=dist_mode;
             std::clock_t time_find_mode = std::clock();
             double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
