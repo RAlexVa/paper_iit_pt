@@ -82,7 +82,7 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
     int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
     
     A.col(r)=mode_matrix.col(choose_mode);//State close to that mode
-    int N = arma::randi<int>(arma::distr_param(1, 100));//Number of coords to flip
+    int N = arma::randi<int>(arma::distr_param(1, 2));//Number of coords to flip
     // Rcpp::Rcout << "N:" <<N<< std::endl;
     Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
     uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
@@ -99,34 +99,39 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
 // [[Rcpp::export]]
 arma::Mat<double> create_mode_matrix(const int num_rows,const int num_cols) {
   arma::mat Q(num_rows, num_cols,fill::zeros);
-  if(num_cols==2 ||num_cols==5 ||num_cols==7){
+  if((num_cols>=1) && (num_cols<=7)){
 for(int c=0;c<num_rows;c++){
-      if(c%2==0){Q(c,0)=1;}
-      if(c%2==1){Q(c,1)=1;}
+      if(c%2==0){Q(c,0)=1;}//First mode index 0
+      if(c%2==1){Q(c,1)=1;}//second mode index 1
       
       if(num_cols>2){
         if(c<(num_rows/2)){//First half is 1
-          Q(c,2)=1;
+          Q(c,2)=1;//Third mode index 2
         }
-        if(c>=(num_rows/2)){//Second half is 1
-          Q(c,3)=1;
-        }
-        
-        
-        if((c>=(num_rows/4)) && (c<(num_rows*3/4))){
-          Q(c,4)=1;
-        }//First and last quarter are 0
-        if(num_cols>5){
-          if((c<(num_rows/4)) || (c>=(num_rows*3/4))){
-            Q(c,5)=1;//First and last quarter are 1
+        if(num_cols>3){
+          if(c>=(num_rows/2)){//Second half is 1
+            Q(c,3)=1;//Fourth mode index 3
           }
-          Q(c,6)=1;  //All 1s
+          if(num_cols>4){
+            if((c>=(num_rows/4)) && (c<(num_rows*3/4))){//First and last quarter are 0
+              Q(c,4)=1;//Fifth mode index 4
+            }
+            if(num_cols>5){
+              if((c<(num_rows/4)) || (c>=(num_rows*3/4))){//First and last quarter are 1
+                Q(c,5)=1;//Sixth mode index 5
+              }
+              if(num_cols>6){
+                Q(c,6)=1;  //All 1s
+                //Seventh mode index 6
+              }
+            }
+          }
         }
       }
       
     }//End for loop for columns
   }else{//Check number of temperatures
-    Rcpp::Rcout << "Error: number of modes is not 2,5,7" << std::endl;
+    Rcpp::Rcout << "Error: number of modes is not between 1 and 7" << std::endl;
     Q.fill(-1);
   }
   return(Q);
@@ -277,38 +282,53 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
-  int max_dist=X.n_rows;//How long do we allow the tail to go
-    double lik_computed=0;
+  double max_dist=500.0;//How long do we allow the tail to go
+  // int max_dist=200;//How long do we allow the tail to go
+    long double loglik_computed=1.0L;
+    // Rcpp::Rcout <<"Created Lik: "<<lik_computed<< std::endl;
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
-      double dist_mode=sum(abs(X-M.col(c)));
-      if(dist_mode<=max_dist){
-        lik_computed+=(max_dist-dist_mode)*theta;//Add exp
+      double dist_mode=arma::accu(abs(X-M.col(c)));
+      // Rcpp::Rcout <<"mode: "<<c<<" dist: "<<dist_mode<< std::endl;
+      if(dist_mode<max_dist){
+        // double new_dist=dist_mode/max_dist;
+        // Rcpp::Rcout <<"new_dist: "<<new_dist<<"new_distx100: "<<new_dist*100<< std::endl;
+        // lik_computed+=exp((1-new_dist)*theta);//Add lik
+        // lik_computed+=(1.0-new_dist)*theta;//Add lik
+        // lik_computed+=theta;//Add lik
+        // lik_computed-=theta*new_dist;//Add lik
+        loglik_computed+=((max_dist-dist_mode)*theta);
+//IMPORTANT: with max_dist<p/2
+//at most 1 mode will contribute to the log-likelihood
+//That's why we can do this.
       }
+      // Rcpp::Rcout <<"New Lik: "<<lik_computed<<"New Likx100: "<<lik_computed*100<< std::endl;
     }
-    //Theta is the slope
-    //We trace a straight line from the mode to the points where 
-    //It reaches the max allowed distance and create a polytope there
-    
-    return(log1p(lik_computed));
+
+    // return(log1p(lik_computed));
+    return(loglik_computed);
 }
 double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
-  int max_dist=X.length();//How long do we allow the tail to go
+  double max_dist=X.length();//How long do we allow the tail to go
+  // int max_dist=200;//How long do we allow the tail to go
   
     //Each column in M is a mode
     double lik_computed=0;
     for(int c=0;c<M.ncol();c++){//For loop for modes
       double dist_mode=sum(abs(X-M(_,c)));
       if(dist_mode<=max_dist){//If to avoid underflowing
-        lik_computed+=(max_dist-dist_mode)*theta;//Add exp
+        // lik_computed+=(max_dist-dist_mode)*theta;//Add lik
+        double new_dist=dist_mode/max_dist;
+        // lik_computed+=exp((1-new_dist)*theta);//Add lik
+        lik_computed+=(1-new_dist)*theta;//Add lik
+//IMPORTANT: with max_dist<p/2
+//at most 1 mode will contribute to the log-likelihood
+//That's why we can do this.
       }
     }
     
-    return(log1p(lik_computed));
-
-  
-  
-  
+    // return(log1p(lik_computed));
+    return(1+lik_computed);
 }
 
 
@@ -346,6 +366,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //// Initialize arrays to store information
   // mat X(p,T); // To store the current state of the joint chain, as many rows as neighbors, as many columns as temperatures
   NumericMatrix X(p,T);
+  NumericMatrix initialX(p,T);
   vec index_process(T);   //Initialize index process vector
   mat ind_pro_hist(total_swaps*total_sim+1,T); //To store evolution of index process
   // int max_num=pow(2,p);
@@ -417,7 +438,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
     inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
     X=Rcpp::wrap(inter_mat);
-    
+    initialX=clone(X);
     swap_total.zeros();
     swap_success.zeros();
     //// Start loop for burn_in period
@@ -755,6 +776,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   // ret["time_mode1"]=time_find_m1;
   // ret["time_mode2"]=time_find_m2;
   ret["time_modes"]=time_find_modes_full;
+  ret["initial_X"]=initialX;
   // ret["distance_origin"]=full_distance_origin;
   return ret;
 }
