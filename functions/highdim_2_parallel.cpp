@@ -82,7 +82,7 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
     int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
     
     A.col(r)=mode_matrix.col(choose_mode);//State close to that mode
-    int N = arma::randi<int>(arma::distr_param(100,250));//Number of coords to flip
+    int N = arma::randi<int>(arma::distr_param(100,300));//Number of coords to flip
     // Rcpp::Rcout << "N:" <<N<< std::endl;
     Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
     uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
@@ -282,15 +282,17 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
-  double max_dist=235.0;//How long do we allow the tail to go
+  double max_dist=400.0;//How long do we allow the tail to go
   bool close_enough=false;  
     double loglik_computed=-0.0;
+    double loglik_second_part=-0.0;
     // Rcpp::Rcout <<"Created Lik: "<<lik_computed<< std::endl;
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
       double dist_mode=arma::accu(abs(X-M.col(c)));
       // Rcpp::Rcout <<"mode: "<<c<<" dist: "<<dist_mode<< std::endl;
-      if(dist_mode<max_dist && (dist_mode*theta)<706){
+      //&& (dist_mode*theta)<706
+      if(dist_mode<max_dist ){
         // Check the distance, so there's space between modes
         //Check that computing exp of the log-lik doesnt underflow
         loglik_computed-=(dist_mode*theta);
@@ -298,38 +300,61 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
 //IMPORTANT: with max_dist<p/2
 //at most 1 mode will contribute to the log-likelihood
 //That's why we can do this.
+      }else{
+        loglik_second_part-=(dist_mode*theta);
       }
-      // Rcpp::Rcout <<"New Lik: "<<lik_computed<<"New Likx100: "<<lik_computed*100<< std::endl;
-    }
+  
+    }//End for loop for modes
     // Rcpp::Rcout <<"New LogLik: "<<loglik_computed<<"New LogLikx100: "<<loglik_computed*100<< std::endl;
     // Rcpp::Rcout <<"Epxm1: "<<expm1(loglik_computed)<<"Log1p "<<log1p(expm1(loglik_computed)+1)<< std::endl;
+    // if(close_enough){
+    //   return(log1p(expm1(loglik_computed)+1)); 
+    // }else{
+    //   return(0);
+    // }
     if(close_enough){
-      return(log1p(expm1(loglik_computed)+1)); 
+      return(loglik_computed + log1p(exp(loglik_second_part)));
     }else{
-      return(0);
+      return(loglik_second_part);
     }
 
 }
 double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
-  double max_dist=235.0;//How long do we allow the tail to go
-  bool close_enough=false;  
-    //Each column in M is a mode
-    double loglik_computed=0;
-    for(int c=0;c<M.ncol();c++){//For loop for modes
-      double dist_mode=sum(abs(X-M(_,c)));
-      if(dist_mode<max_dist && (dist_mode*theta)<706){//If to avoid underflowing
-        loglik_computed-=(dist_mode*theta);
-        close_enough=true;
-//IMPORTANT: with max_dist<p/2
-//at most 1 mode will contribute to the log-likelihood
-//That's why we can do this.
-      }
+  int dim_x = X.length();
+  int row_M = M.nrow();
+  int col_M = M.ncol();
+  
+  
+  arma::Col<double> VEC(dim_x);
+  arma::Mat<double> MAT(row_M,col_M);
+  for(int r=0;r<dim_x;r++){//For loop for rows
+    VEC(r)=X(r);
+    for(int c=0;c<col_M;c++){
+      MAT(r,c)=M(r,c);
     }
-    if(close_enough){
-      return(log1p(expm1(loglik_computed)+1)); 
-    }else{
-      return(0);
-    }
+  }
+  
+ return(loglik(VEC,MAT,theta));
+ 
+//   double max_dist=235.0;//How long do we allow the tail to go
+//   bool close_enough=false;  
+//     //Each column in M is a mode
+//     double loglik_computed=0;
+//     for(int c=0;c<M.ncol();c++){//For loop for modes
+//       double dist_mode=sum(abs(X-M(_,c)));
+//       if(dist_mode<max_dist && (dist_mode*theta)<706){//If to avoid underflowing
+//         loglik_computed-=(dist_mode*theta);
+//         close_enough=true;
+// //IMPORTANT: with max_dist<p/2
+// //at most 1 mode will contribute to the log-likelihood
+// //That's why we can do this.
+//       }
+//     }
+//     if(close_enough){
+//       return(log1p(expm1(loglik_computed)+1)); 
+//     }else{
+//       return(0);
+//     }
 }
 
 
@@ -463,14 +488,6 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
                                             number_modes);
         parallelFor(0,dim_size,visit_current_X);//Apply ParallelFor
         
-        double logpi_current=loglik_R(current_X,Q_mat_R,theta);
-        arma::Col<double> temporal_vector(p);
-        for(int n = 0; n < p;n++){ // For for each neighbor
-          NumericVector temp_X=clone(current_X);
-          temp_X(n)=1-temp_X(n);//Switch the nth coordinate
-          double mid_step=loglik_R(temp_X,Q_mat_R,theta)-logpi_current;
-          temporal_vector[n]=apply_bal_func(mid_step*current_temp,bal_func);
-        }
         ////Sample Proportionally
         //Get random uniforms
         arma::Col<double> u_random(p,fill::randu);
