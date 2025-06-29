@@ -1560,6 +1560,8 @@ p <- 1000
 Q_matrix2 <- create_mode_matrix(p,2)
 Q_matrix5 <- create_mode_matrix(p,5)
 Q_matrix7 <- create_mode_matrix(p,7)
+loglik(Q_matrix5[,5],Q_matrix5,3)
+
 
 Q_matrix5[c((p/2-10):(p/2+10)),]
 
@@ -1578,40 +1580,149 @@ Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
 # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
 p <- 1000
 startsim <- 1
-endsim <- 2
-numiter <- 4000
+endsim <- 1
+numiter <- 25000
 interswap <- 100
-burn_in <- 1000
-temp <- c(1,0.917675,0.846553,0.78432,0.725)
+burn_in <- 5000
+temp <- c(50,44.19871045,39.94137485,36.33877887,33.23832154)
 # temp <- c(1,0.918)
 bal_func <- 2
 bias_fix <- T
 file_name <- ""
 states_visit <- 2
 starting_coord <- c(0.0)
-theta <- 3
-set.seed(90)
-num_modes <- 7;
+theta <- 0.1
+# set.seed(206)
+# set.seed(123)
+# num_modes <- 7
+set.seed(123)
+num_modes <- 7
 results <- PT_IIT_sim(p,startsim,endsim,numiter,interswap,burn_in,temp,
                       bal_func,bias_fix,file_name,states_visit,starting_coord,theta,num_modes)
+results$distance_modes
+results$swap_rate
+results$time_modes
+XX <- results$initial_X
+Q_matrix <- create_mode_matrix(p,num_modes)
 
+
+loglik(XX[,1],Q_matrix,theta)
+loglik(XX[,2],Q_matrix,theta)
+loglik(XX[,3],Q_matrix,theta)
+L1_distance(XX[,1],Q_matrix[,3])
+L1_distance(XX[,2],Q_matrix[,2])
+L1_distance(XX[,3],Q_matrix[,4])
+
+X <- XX[,1]
+for(i in 1:p){
+  tempX <- X;
+  tempX[i] <- 1-tempX[i];
+  check_loglik[i] <- loglik(tempX,Q_matrix,theta)
+}
+table(check_loglik)
+
+### Evolution of loglik from the mode
+Q_matrix <- create_mode_matrix(p,num_modes)
+evol_loglik <- rep(0,p)
+vvv <- Q_matrix[,3]
+loglik(Q_matrix[,3],Q_matrix,0.1)
+for(i in 1:p){
+  vvv[i] <- 1-vvv[i]
+  evol_loglik[i] <- loglik(vvv,Q_matrix,.1)
+}
+head(evol_loglik,150)
+exp(head(evol_loglik,238))
+
+
+mode_loglik <- rep(0,ncol(Q_matrix))
+for( i in 1:ncol(Q_matrix)){
+  mode_loglik[i] <- loglik(Q_matrix[,i],Q_matrix,1)
+}
+
+X <- c(rep(1,500),rep(0,500))
+Y <- X;Z <- X;
+X[72] <- 0;X[476] <- 0;Y[72] <- 0;
+identical(X,results$initial_X[,1])
+L1_distance(X,Q_matrix[,3])
+check_loglik <- rep(0,p)
+loglik(X,Q_matrix,1);loglik(Y,Q_matrix,1);loglik(Z,Q_matrix,1);
+theta <- 3
+compare <- c(loglik(X,Q_matrix,theta),loglik(Y,Q_matrix,theta),loglik(Z,Q_matrix,theta));
+compare1 <- c(loglik(X,Q_matrix,1),loglik(Y,Q_matrix,1),loglik(Z,Q_matrix,1));
+X <- XX[,1]
+for(i in 1:p){
+  tempX <- X;
+  tempX[i] <- 1-tempX[i];
+  check_loglik[i] <- loglik(tempX,Q_matrix,1)
+}
+table(check_loglik)
+check_loglik[72]
+check_loglik[1]
+
+vec_jump <- check_loglik-loglik(X,Q_matrix,theta)
+table(vec_jump)
+exp(check_loglik[72])/sum(exp(check_loglik))
+
+multipli <- 70/2
+prob_vec <- exp(multipli*check_loglik)/sum(exp(multipli*check_loglik))
+exp(multipli*check_loglik[72])/sum(exp(multipli*check_loglik))
+prob_vec[72];prob_vec[476];
+prob_vec[72]+prob_vec[476];
+prob_vec[1]
+
+sample(1:p,prob=prob_vec,size=1)
 
 p <- 1000
-total_swaps <- 1000
-interswap <- 100
-burn_in <- 1000
-temperatures <- c(1.189,1.089,1)
+total_swaps <- 500
+interswap <- 300
+burn_in <- 10000
+# temperatures <- c(0.69,0.59,0.49,0.39)
+# temperatures <- c(50,45,40,38,34,30)
+temperatures <- c(50,46.3601574854566,43.3538042646681,40.6321846629224,38.2687105788439,36.2020206295573,34.3651855869718,32.6104811828319,31.0814837265323,29.6057781720267,28.238894315197,26.9276369615018,25.6570426318098,24.4475549395622,23.2963636810398,22.2277710798978)
 bal_func <- 2
 filename <- ""
 states_visited <- 0
 starting_coord <- c(0)
 decreasing_constant <- 0
 reduc_model <- "never"
-theta <- 3
-num_modes <- 5
+theta <- 0.1
+num_modes <- 7
+set.seed(1899)
 # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
 
 results <- PT_a_IIT_sim(p,1,1,total_swaps,interswap,burn_in,temperatures,bal_func,filename,states_visited,starting_coord,decreasing_constant,reduc_model,theta,num_modes)
+results$distance_modes
+results$swap_rate
+results$time_modes
+
+
+Q_matrix5 <- create_mode_matrix(p,5)
+Q_matrix7 <- create_mode_matrix(p,7)
+loglik(Q_matrix5[,5],Q_matrix5,3)
+
+distances_modes <- matrix(nrow=ncol(Q_matrix7),ncol=ncol(Q_matrix7))
+for(i in 1:(ncol(Q_matrix7)-1)){
+  for(j in i:ncol(Q_matrix7)){
+    distances_modes[i,j] <- L1_distance(Q_matrix7[,i],Q_matrix7[,j])
+  }
+}
+distances_modes
+
+
+v1 <- Q_matrix5[,1]
+v1[1] <- 1-v1[1]
+loglik(v1,Q_matrix5,3)
+
+set.seed(16)
+X <- initializeRandom_w_modes(p,6,Q_matrix5)
+for(i in 1:ncol(X)){
+  print(loglik(X[,i],Q_matrix5,theta))
+  # print(exp(loglik(X[,i],Q_matrix5,theta)))
+}
 
 
 
+set.seed(123)
+Y <- initializeRandom_w_modes(p,6,Q_matrix5)
+
+identical(X,Y)
