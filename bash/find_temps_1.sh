@@ -8,8 +8,8 @@
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-#SBATCH --array=83-85,89-91
+#SBATCH --array=89-91,83-85
 
 module load r/4.4.0
 
-Rscript --vanilla codes/find_temps.R $SLURM_ARRAY_TASK_ID
+Rscript --vanilla codes/find_temp_manual.R $SLURM_ARRAY_TASK_ID
