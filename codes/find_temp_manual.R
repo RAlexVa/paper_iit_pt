@@ -166,7 +166,7 @@ find_temp_highd <- function(list_ids){
   
 }### End of function
 
-find_temp_highd_recurrent <- function(list_ids,min_temp_to_find=20){
+find_temp_highd_recurrent <- function(list_ids,temp_to_find=20){
   target_sr <- 0.234
   
   if(!("./results" %in% list.dirs(recursive=F))){
@@ -326,13 +326,23 @@ find_temp_highd_recurrent <- function(list_ids,min_temp_to_find=20){
               file = paste0("results/temperatures_id_",id_chosen,".txt"), 
               append = TRUE)
       }
-      
-      if(min(temperatures)<=min_temp_to_find){#We've reached the min_temperature
-        havent_reach_min <- FALSE;
-      }else{
-        after_first_run <- TRUE
-        new_temp_ini <- min(temperatures);
+if(sign(search_direction)<0){
+  if(min(temperatures)<=temp_to_find){#We've reached the min_temperature
+    havent_reach_min <- FALSE;
+  }else{
+    after_first_run <- TRUE
+    new_temp_ini <- min(temperatures);
+  }
+} 
+if(sign(search_direction)>0){
+  if(max(temperatures)>=temp_to_find){#We've reached the min_temperature
+    havent_reach_min <- FALSE;
+  }else{
+    after_first_run <- TRUE
+    new_temp_ini <- max(temperatures);
+  }
       }
+      
     }# End while reach_min
     }##End for loop for each ID chosen
   }## End else if there's no results folder
