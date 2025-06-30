@@ -184,11 +184,12 @@ find_temp_highd_recurrent <- function(list_ids,temp_to_find=20){
     parameters <- as.data.frame(read_csv("inputs/find_temps.csv", col_types = cols()))
     
     
-    havent_reach_min <- TRUE;
-    after_first_run <- FALSE
+    # havent_reach_min <- TRUE;
+    # after_first_run <- FALSE;
     #Start process for algorithms
     for(id_chosen in list_ids){
-      
+      havent_reach_min <- TRUE;
+      after_first_run <- FALSE;
       while(havent_reach_min){
       
       sim_chosen <- parameters |> filter(id==id_chosen)
