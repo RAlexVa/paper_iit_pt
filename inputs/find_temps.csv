@@ -105,3 +105,5 @@ id,algorithm,interswap,seed,model,p,num_modes,theta,rho,bf,t1,num_temp,gibbs_ste
 105,PT_IIT_Z,100,105,bimodal,1000,2,0.1,-2.5,sq,50,5,,4,2000,13000,,-1,,Running in Probability,,,
 106,PT_A_IIT,300,106,multimodal,1000,5,0.1,-2.5,sq,50,5,,4,10000,,300,-1,,Running in Probability,,,
 107,PT_A_IIT,300,107,bimodal,1000,2,0.1,-2.5,sq,50,5,,4,10000,,300,-1,,Running in Probability,,,
+108,PT_A_IIT,300,108,multimodal,20,5,0.1,-2.5,sq,50,5,,4,1000,,100,-1,,,,,
+109,PT_A_IIT,300,109,multimodal,20,7,0.1,-2.5,sq,50,5,,4,1000,,100,-1,,,,,
