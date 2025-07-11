@@ -412,7 +412,24 @@ void check_min_find(vec X, int value){
   Rcpp::Rcout << "Value: " <<X[index_value]<< std::endl;
 }
 
-
+// [[Rcpp::export]]
+void check_bo0l_vec(int d){
+  uvec vec_bool(d);
+  vec_bool.fill(0);
+  for(int i=0;i<100;i++){
+    vec_bool(i)=1;
+    
+    if(all(vec_bool)){
+      Rcpp::Rcout << "Finish loop " << std::endl;
+      break;
+    }else
+    {
+      Rcpp::Rcout << "Not finish" << std::endl;
+    }
+    
+    
+  }
+}
 
 
 
