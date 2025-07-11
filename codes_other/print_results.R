@@ -19,8 +19,8 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 # chosen_ids <-c(205,206,207,237,239,319,328,294)#c(318:333)#c(265:287)#c(205,206,207,237,239)#c(190,191,193,194,196:199)#223:227#c(900,902,903,905)#c(126:129)
-chosen_ids <-c(545:554,600:602)#525:534#c(129,131,133,135,137,139,140,141)>
-
+chosen_ids <-c(650:661,663:669)#525:534#c(129,131,133,135,137,139,140,141)>
+chosen_ids <- c(657,668)
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
 #For PT-IIT the last temperature does not achieve the 0.23 swap rate (it gets bigger rate)
@@ -228,7 +228,7 @@ for(i in 1:nrow(data_sum)){
   interswap <- data_sum |> slice(i) |> pull(interswap)
   temperatures <- as.numeric(data_sum |> slice(i) |> select(matches("^t\\d{1,2}$")))
   temperatures <- temperatures[!is.na(temperatures)]# all the temperatures are in order and consecutive in the CSV file
-  
+  num_modes <- data_sum |> slice(i) |> pull(num_modes)
   if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT m"}
   if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
   if(algorithm=="PT_IIT_Z"){algorithm <- paste0("PT-IIT (",data_sum |> slice(i)|> pull(bf),")")}
@@ -321,25 +321,24 @@ if(chosen_dim=="lowdim"){
 }
 if(chosen_dim=="highdim"){
 ### Specific extractions for highdim example
-    if(data_sum|> slice(i) |> pull(model)=="bimodal"){
+    # if(data_sum|> slice(i) |> pull(model)=="bimodal"){
       p <- data_sum$p;
-    }
-    if(data_sum|> slice(i) |> pull(model)=="gset"){
-      file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
-      p <- readParameters(file_matrix)
-    }
+    # }
+    # if(data_sum|> slice(i) |> pull(model)=="gset"){
+    #   file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
+    #   p <- readParameters(file_matrix)
+    # }
 ##### Extract distance to modes
-  for(mm in 1:2){###for(mm in 0:2) for report considering distance to 0
-    output_name <- paste0("distance_mode",mm)
-    output_time <- paste0("time_mode",mm)
-    chosen_mode <- paste0("m",mm)
+
+    output_name <- paste0("distance_modes")
+    output_time <- paste0("time_modes")
     
     ### Extract minimum distances  
     # temp_m <- as.data.frame(t(apply(data[[output_name]],c(2,3),min)))
     temp_m <- as.data.frame(data[[output_name]])
-    colnames(temp_m) <- round(temperatures,3)
+    colnames(temp_m) <- round(temperatures,num_modes)
     temp_m$alg <- algorithm
-    temp_m$mode <- chosen_mode
+    temp_m$mode <- paste0("m",1:num_modes) #temp_m$mode <- 1:num_modes
     temp_m$sim <- (1:tot_sim)
     
     temp_time_m <- as.data.frame(data[[output_name]])
@@ -347,9 +346,9 @@ if(chosen_dim=="highdim"){
     temp_m <- temp_m |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "min_dist")
     
     temporal_time <- as.data.frame(data[[output_time]])
-    colnames(temporal_time) <- round(temperatures,3)
+    colnames(temporal_time) <- round(temperatures,num_modes)
     temporal_time$alg <- algorithm
-    temporal_time$mode <- chosen_mode
+    temporal_time$mode <- paste0("m",1:num_modes)
     temporal_time$sim <- (1:tot_sim)
 
     temporal_time <- temporal_time |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "time_find")
@@ -357,7 +356,7 @@ if(chosen_dim=="highdim"){
     temp_join <- left_join(temp_m,temporal_time,by=c("alg","mode","sim","temperature"))
     
     distances <- rbind(distances,temp_join)
-  }
+  
 
   
   }
@@ -766,7 +765,7 @@ dev.off()
 #Starts high dim reports
 if(chosen_dim=="highdim"){
 #Input NAs
-  distances$time_find[distances$time_find==0] <- NA
+  # distances$time_find[distances$time_find==0] <- NA
 
 ## Get out ID
     distances$id <- str_extract(distances$alg, "\\(\\d+\\)") |> 
@@ -785,8 +784,11 @@ if(chosen_dim=="highdim"){
       pivot_longer(cols=c(time_find),names_to="variable",values_to="measure") |> 
       pivot_wider(names_from=mode,values_from=measure) |> 
       rowwise() |> 
-      mutate(first_time=min(m1,m2),last_time=max(m1,m2))
-
+      mutate(first_time = min(across(matches("^m\\d+$"))),
+             last_time = max(across(matches("^m\\d+$"))))
+      # mutate(first_time=min(m1,m2),last_time=max(m1,m2))
+    #How many didn't reach the optimum
+    table(dist_t1$min_dist)
     
     forsurv <- dist_t1_times  |>
     select(algorithm,last_time)
