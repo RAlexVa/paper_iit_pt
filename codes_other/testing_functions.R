@@ -1726,3 +1726,14 @@ set.seed(123)
 Y <- initializeRandom_w_modes(p,6,Q_matrix5)
 
 identical(X,Y)
+
+
+
+#if(!require('Rcpp')){install.packages('Rcpp')}
+library(Rcpp)
+library(RcppArmadillo)
+# setwd('..')
+Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
+
+check_bo0l_vec(5)
+
