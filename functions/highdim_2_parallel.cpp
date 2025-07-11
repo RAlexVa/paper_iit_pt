@@ -457,6 +457,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   time_find_modes.fill(-1);
   cube time_find_modes_full(num_modes,T,total_sim);
   
+  uvec check_mode_visit(num_modes);//Vector to break the loop when temp1 visits the mode
+  
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -474,6 +476,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     initialX=clone(X);
     swap_total.zeros();
     swap_success.zeros();
+    check_mode_visit.fill(0);
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 1000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
@@ -653,33 +656,12 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
             std::clock_t time_find_mode = std::clock();
             double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
             time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+            if(dist_mode==0){
+              check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+            }
           }
         }
-        // double dist1=sum(abs(current_X-mode1));
-        // double dist2=sum(abs(current_X-mode2));
-        // if(distance_mode1(s,temperature_index)>dist1){
-        //   distance_mode1(s,temperature_index)=dist1;
-        //   std::clock_t find_m1 = std::clock();
-        //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
-        //   time_find_m1(s,temperature_index)=time_m1;
-        //   }
-        // if(distance_mode2(s,temperature_index)>dist2){
-        //   distance_mode2(s,temperature_index)=dist2;
-        //   std::clock_t find_m2 = std::clock();
-        //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
-        //   time_find_m2(s,temperature_index)=time_m2;
-        //   }
-        
-        // if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
-        //   std::clock_t find_m1 = std::clock();
-        //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
-        //   time_find_m1(s,temperature_index)=time_m1;
-        // }
-        // if((dist2==0) & (time_find_m2(s,temperature_index)==0)){
-        //   std::clock_t find_m2 = std::clock();
-        //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
-        //   time_find_m2(s,temperature_index)=time_m2;
-        // }
+ 
         //Swap that coordinate
         X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
         // X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -795,6 +777,12 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         ind_pro_hist.row((s*total_swaps)+swap_count)=index_process.t();
         // Rcpp::Rcout <<"Store index process " << std::endl;
       }//End of replica swap process
+     if(all(check_mode_visit)){//Condition to break the loop when visit all modes
+       Rcpp::Rcout << "Found all modes: " << std::endl;
+       Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " iteration: " << i << std::endl;
+       break;
+     } 
+
     }// End loop of iterations
     std::clock_t end_time = std::clock(); // Stop timer
     // Calculate the time taken in seconds
@@ -928,8 +916,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     Rcpp::Rcout <<" The standard is: Bounding constant always increases."<< std::endl;
     prob_to_dec=0;}//If we don't define a reduc_model
 
-
-  // Rcpp::Rcout <<"Before starting simulations"<< std::endl;
+  uvec check_mode_visit(num_modes);//Vector to break the loop when temp1 visits the mode
+  
+  
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -944,7 +933,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
     X=Rcpp::wrap(inter_mat);
 
-
+    check_mode_visit.fill(0);
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
     //Reset the probability to reduce the bounding constant
@@ -1111,34 +1100,12 @@ max_log_bound_vector=log_bound_vector;
               std::clock_t time_find_mode = std::clock();
               double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
               time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+              if(dist_mode==0){
+                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+              }
             }
           }
           
-          // double dist1=sum(abs(current_X-mode1));
-          // double dist2=sum(abs(current_X-mode2));
-          // if(distance_mode1(s,temperature_index)>dist1){
-          //   distance_mode1(s,temperature_index)=dist1;
-          //   std::clock_t find_m1 = std::clock();
-          //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
-          //   time_find_m1(s,temperature_index)=time_m1;
-          //   }
-          // if(distance_mode2(s,temperature_index)>dist2){
-          //   distance_mode2(s,temperature_index)=dist2;
-          //   std::clock_t find_m2 = std::clock();
-          //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
-          //   time_find_m2(s,temperature_index)=time_m2;
-          //   }
-
-          // if((dist1==0) & (time_find_m1(s,temperature_index)==0)){
-          //   std::clock_t find_m1 = std::clock();
-          //   double time_m1 = static_cast<double>(find_m1 - start) / CLOCKS_PER_SEC;
-          //   time_find_m1(s,temperature_index)=time_m1;
-          // }
-          // if((dist2==0) & (time_find_m2(s,temperature_index)==0)){
-          //   std::clock_t find_m2 = std::clock();
-          //   double time_m2 = static_cast<double>(find_m2 - start) / CLOCKS_PER_SEC;
-          //   time_find_m2(s,temperature_index)=time_m2;
-          // }
 
 
           ///// Updating before the next iteration of the loop
@@ -1198,6 +1165,12 @@ max_log_bound_vector=log_bound_vector;
       index_process+=resulting_swap;
       ind_pro_hist.row((s*total_swaps)+swap_count)=index_process.t();
       ////End of replica swap process
+      if(all(check_mode_visit)){//Condition to break the loop when visit all modes
+        Rcpp::Rcout << "Found all modes: " << std::endl;
+        Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " swap: " << i << std::endl;
+        break;
+      } 
+      
     }// End loop of iterations
     std::clock_t end_time = std::clock(); // Stop timer
     // Calculate the time taken in seconds
