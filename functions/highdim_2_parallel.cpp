@@ -846,6 +846,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
   vec swap_total(J,fill::ones);
   swap_total*=total_swaps;//We always have the same number of total swaps
+  int final_swap; //Last swap before breaking the for loop
   vec swap_success(J);
   mat swap_rate(total_sim,J);
   cube total_iterations(total_swaps,T,total_sim,fill::zeros);//To store iterations needed in between swaps
@@ -1168,6 +1169,7 @@ max_log_bound_vector=log_bound_vector;
       if(all(check_mode_visit)){//Condition to break the loop when visit all modes
         Rcpp::Rcout << "Found all modes: " << std::endl;
         Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " swap: " << i << std::endl;
+        final_swap=i;
         break;
       } 
       
@@ -1177,7 +1179,8 @@ max_log_bound_vector=log_bound_vector;
     double duration = static_cast<double>(end_time - start) / CLOCKS_PER_SEC;
     time_taken[s] = duration;
     // Store result of the simulation
-    vec temp_rate=swap_success / swap_total;
+    // vec temp_rate=swap_success / swap_total;
+    vec temp_rate=swap_success / final_swap;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
     distance_modes_full.slice(s)=Rcpp::as<arma::mat>(distance_modes);
