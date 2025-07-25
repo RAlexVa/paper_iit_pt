@@ -479,7 +479,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     check_mode_visit.fill(0);
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
-      if (i % 1000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         
@@ -612,7 +612,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // Sleep(5000);
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
-      if (i % 1000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
+      if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
       // Rcpp::Rcout << "State X:\n " <<X << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int temperature_index=index_process(replica);
@@ -1052,7 +1052,7 @@ max_log_bound_vector=log_bound_vector;
     // Sleep(5000);    
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
-    if (i % 100 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+    if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
         // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
