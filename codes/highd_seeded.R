@@ -156,6 +156,7 @@ run_highd <- function(list_ids,unique_id=1){
         }
         output_name <- paste0("sim_highdim_id_",id_chosen,"_",unique_id,".Rds")
         saveRDS(export,file=file.path("results",output_name))
+        print(export[["swap_rate"]])
       }
     }
   }
