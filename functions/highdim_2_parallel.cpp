@@ -1156,8 +1156,7 @@ max_log_bound_vector=log_bound_vector;
           
 
 
-          ///// Updating before the next iteration of the loop
-          samples_replica+=new_samples; // Update number of samples obtained from the replica
+          
           if(update_state){
             ////Sample Proportionally
             //Get random uniforms
@@ -1174,8 +1173,11 @@ max_log_bound_vector=log_bound_vector;
           
 //// Process to perform step by step instead of rejection free steps          
           
+
           
-          
+                    
+///// Updating before the next iteration of the loop
+          samples_replica+=new_samples; // Update number of samples obtained from the replica 
         }//End loop to update a single replica
       }//End loop to update all replicas
 
