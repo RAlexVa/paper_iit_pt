@@ -863,7 +863,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -1123,10 +1123,10 @@ max_log_bound_vector=log_bound_vector;
             }
           }
           
-          
-//// Visit neighbors in parallel
-          NumericVector output_current_X_bounded(p);
-          IIT_visit_bounded visit_current_X_bounded(current_X,
+if(replica<temps_rf){//For the hotter temperatures we use Rejection-Free
+  //// Visit neighbors in parallel
+  NumericVector output_current_X_bounded(p);
+  IIT_visit_bounded visit_current_X_bounded(current_X,
                                             Q_mat_R,
                                             current_temp,
                                             theta,
@@ -1134,56 +1134,51 @@ max_log_bound_vector=log_bound_vector;
                                             dim_size,
                                             number_modes,
                                             current_log_bound);
-          
-          parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
-//// Add the h(piy/pix) to compute Z factor
-          SumExp get_sum(output_current_X_bounded);
-          parallelReduce(0,dim_size,get_sum);
-          Z=get_sum.Z/p;//Divide over number of neihgbors
-//// Compute weight
-          new_samples=1+R::rgeom(Z);
-          if(new_samples<1){
-            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
-            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
-            new_samples=sample_inter_swap;
-          }
-          if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
-            new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
-            update_state=false;
-          }
+  
+  parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
+  //// Add the h(piy/pix) to compute Z factor
+  SumExp get_sum(output_current_X_bounded);
+  parallelReduce(0,dim_size,get_sum);
+  Z=get_sum.Z/p;//Divide over number of neihgbors
+  //// Compute weight
+  new_samples=1+R::rgeom(Z);
+  if(new_samples<1){
+    Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+    Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+    new_samples=sample_inter_swap;
+  }
+  if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
+    new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
+    update_state=false;
+  }
+  
+  
+  if(update_state){
+    ////Sample Proportionally
+    //Get random uniforms
+    arma::Col<double> u_random(p,fill::randu);
+    NumericVector u=Rcpp::wrap(u_random);
+    //Compute the needed values
+    NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);//We can sample from
+    //Find the index of the minimum entry
+    GetMin min_coord(choose_min);
+    parallelReduce(0,dim_size,min_coord);
+    //Swap that coordinate
+    X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
+  }//End If for updating state
+  
+}else{//For the colder temperatures we use step by step update
+  //// Process to perform step by step instead of rejection free steps     
+  // single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
+  single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound)
+  new_samples=1;
+  bool accept_jump=single_step_output(0);
+  int chosen_coord_single = single_step_output(1);
+  if(accept_jump){
+    X(chosen_coord_single,replica)=1-X(chosen_coord_single,replica);   
+  }
+}
 
-          
-          
-
-
-          
-          if(update_state){
-            ////Sample Proportionally
-            //Get random uniforms
-            arma::Col<double> u_random(p,fill::randu);
-            NumericVector u=Rcpp::wrap(u_random);
-            //Compute the needed values
-            NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);//We can sample from
-            //Find the index of the minimum entry
-            GetMin min_coord(choose_min);
-            parallelReduce(0,dim_size,min_coord);
-            //Swap that coordinate
-            X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
-          }//End If for updating state
-          
-//// Process to perform step by step instead of rejection free steps     
-// single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
-          single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound)
-          new_samples=1;
-          bool accept_jump=single_step_output(0);
-          int chosen_coord_single = single_step_output(1);
-          if(accept_jump){
-            X(chosen_coord_single,replica)=1-X(chosen_coord_single,replica);   
-          }
-
-
-          
-                    
 ///// Updating before the next iteration of the loop
           samples_replica+=new_samples; // Update number of samples obtained from the replica 
         }//End loop to update a single replica
