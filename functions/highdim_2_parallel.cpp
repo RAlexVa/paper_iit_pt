@@ -1171,8 +1171,16 @@ max_log_bound_vector=log_bound_vector;
             X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
           }//End If for updating state
           
-//// Process to perform step by step instead of rejection free steps          
-          
+//// Process to perform step by step instead of rejection free steps     
+// single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
+          single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound)
+          new_samples=1;
+          bool accept_jump=single_step_output(0);
+          int chosen_coord_single = single_step_output(1);
+          if(accept_jump){
+            X(chosen_coord_single,replica)=1-X(chosen_coord_single,replica);   
+          }
+
 
           
                     
