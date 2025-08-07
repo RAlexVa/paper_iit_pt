@@ -385,7 +385,7 @@ double IIT_visit_bounded::loglik_internal(const arma::Col<double>& X,const arma:
 
 ///// Update function that is not rejection free
 // [[Rcpp::export]]
-NumericVector single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound){
+List single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound){
   NumericVector newX=clone(currentX);
   
   double current_loglik=loglik_R(currentX,Q,theta);
@@ -396,6 +396,8 @@ NumericVector single_step_update(NumericVector currentX, NumericMatrix Q,int p, 
   double new_loglik=loglik_R(newX,Q,theta);
   
   double logratio_probs = current_temp*(new_loglik - current_loglik);
+  
+  bool success_jump=false;
   
   // Apply the corresponding balancing function
   double jump_logprob=0;
@@ -408,11 +410,15 @@ NumericVector single_step_update(NumericVector currentX, NumericMatrix Q,int p, 
     jump_logprob=-10000;
   }
   double rand_jump = arma::randu();
-  if(log(rand_jump)>=jump_logprob){//If we reject the jump
-    newX = clone(currentX);//We stay in the same state
-  }else{//We jumped to the new state
-    
+  if(log(rand_jump)<jump_logprob){//We jumped to the new state
+    success_jump=true;
+  }else{//If we reject the jump
+    // newX = clone(currentX);//We stay in the same state
   }
+  
+  List ret_single_step;
+  ret["jump"]=success_jump;
+  ret["coord"]=random_neighbor;
   
   return newX;
   
@@ -954,6 +960,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
   uvec check_mode_visit(num_modes);//Vector to break the loop when temp1 visits the mode
   
+  List single_step_output;
   
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -1101,34 +1108,8 @@ max_log_bound_vector=log_bound_vector;
           current_X=X(_,replica);
           bool update_state=true;
 
-          NumericVector output_current_X_bounded(p);
-          IIT_visit_bounded visit_current_X_bounded(current_X,
-                                            Q_mat_R,
-                                            current_temp,
-                                            theta,
-                                            output_current_X_bounded,
-                                            dim_size,
-                                            number_modes,
-                                            current_log_bound);
           
-          parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
-
-          SumExp get_sum(output_current_X_bounded);
-          parallelReduce(0,dim_size,get_sum);
-          Z=get_sum.Z/p;//Divide over number of neihgbors
-          //// Compute weight
-          new_samples=1+R::rgeom(Z);
-          if(new_samples<1){
-            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
-            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
-            new_samples=sample_inter_swap;
-          }
-          if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
-            new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
-            update_state=false;
-          }
-
-          ///// Check distance to modes
+///// Check distance to modes
           for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
             double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
             if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
@@ -1141,6 +1122,37 @@ max_log_bound_vector=log_bound_vector;
               }
             }
           }
+          
+          
+//// Visit neighbors in parallel
+          NumericVector output_current_X_bounded(p);
+          IIT_visit_bounded visit_current_X_bounded(current_X,
+                                            Q_mat_R,
+                                            current_temp,
+                                            theta,
+                                            output_current_X_bounded,
+                                            dim_size,
+                                            number_modes,
+                                            current_log_bound);
+          
+          parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
+//// Add the h(piy/pix) to compute Z factor
+          SumExp get_sum(output_current_X_bounded);
+          parallelReduce(0,dim_size,get_sum);
+          Z=get_sum.Z/p;//Divide over number of neihgbors
+//// Compute weight
+          new_samples=1+R::rgeom(Z);
+          if(new_samples<1){
+            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            new_samples=sample_inter_swap;
+          }
+          if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
+            new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
+            update_state=false;
+          }
+
+          
           
 
 
@@ -1159,6 +1171,11 @@ max_log_bound_vector=log_bound_vector;
             //Swap that coordinate
             X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
           }//End If for updating state
+          
+//// Process to perform step by step instead of rejection free steps          
+          
+          
+          
         }//End loop to update a single replica
       }//End loop to update all replicas
 
