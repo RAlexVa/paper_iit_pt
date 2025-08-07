@@ -19,6 +19,7 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 chosen_ids <-c(730,733,736,739)+1
+chosen_ids <-c(745,748,751)+1
 
 # chosen_ids <- c(650:661,663:669)
 #### Chosen for lowdim bimodal problem ####
@@ -827,13 +828,28 @@ if(chosen_dim=="highdim"){
 
     
     
-#### Reports    
+#### Reports   
+    new_id_join <- tibble(alg=as.character(c("PT A-IIT m(745)",
+                                             "PT-IIT (sq)(748)",
+                                             "PT-IIT (sq)(751)",
+                                             "PT A-IIT m(746)",
+                                             "PT-IIT (sq)(749)",
+                                             "PT-IIT (sq)(752)")),
+                          new_alg=c("PT_A_IIT(300)",
+                                    "PT_IIT_Z(5)",
+                                    "PT_IIT_Z(10)",
+                                    "PT_A_IIT(300)",
+                                    "PT_IIT_Z(5)",
+                                    "PT_IIT_Z(10)"))
 #For bimodal with 100 simulations each
     # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(730)","PT A-IIT m(733)","PT-IIT (sq)(736)","PT-IIT (sq)(739)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
+
+    #For bimodal 
+    # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(745)","PT-IIT (sq)(748)","PT-IIT (sq)(751)")),new_alg=c("PT_A_IIT(300)","PT_IIT_Z(5)","PT_IIT_Z(10)"))
     
 #For 5-modes with 100 simulations each
     # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(731)","PT A-IIT m(734)","PT-IIT (sq)(737)","PT-IIT (sq)(740)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
-    
+   
 #For 7-modes with 100 simulations each
     # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(732)","PT A-IIT m(735)","PT-IIT (sq)(738)","PT-IIT (sq)(741)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
 #Apply modification to datasets    
@@ -883,8 +899,8 @@ if(chosen_dim=="highdim"){
     # fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~new_id,data=forsurv)
  
 #For bimodal with 100 simulations each
-    # forsurv <- dist_t1_times |> select(new_alg,last_time)
-    # fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
+    forsurv <- dist_t1_times |> select(new_alg,last_time)
+    fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
 #For 5-modes with 100 simulations each
     # forsurv <- dist_t1_times  |> select(new_alg,last_time)
     # fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
