@@ -383,6 +383,41 @@ double IIT_visit_bounded::loglik_internal(const arma::Col<double>& X,const arma:
 }
 
 
+///// Update function that is not rejection free
+// [[Rcpp::export]]
+NumericVector single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound){
+  NumericVector newX=clone(currentX);
+  
+  double current_loglik=loglik_R(currentX,Q,theta);
+  double rand_val = arma::randu(); // Random value in [0, 1)
+  int random_neighbor = static_cast<int>(rand_val * p); // Scale to [0, p) and cast to int
+  
+  newX(random_neighbor) = 1-newX(random_neighbor); // Update coordinate
+  double new_loglik=loglik_R(newX,Q,theta);
+  
+  double logratio_probs = current_temp*(new_loglik - current_loglik);
+  
+  // Apply the corresponding balancing function
+  double jump_logprob=0;
+  if(bal_func==1){//Using MIN bal_fun (Traditional Metropolis algorithm)
+    jump_logprob=bf_min(logratio_probs);
+  }else if(bal_func==2){//Using bounded Sqrt root 
+    jump_logprob=bound_sq(logratio_probs, current_log_bound);
+  }else{
+    Rcpp::Rcout <<"The chosen balancing function is not correct"<< std::endl;
+    jump_logprob=-10000;
+  }
+  double rand_jump = arma::randu();
+  if(log(rand_jump)>=jump_logprob){//If we reject the jump
+    newX = clone(currentX);//We stay in the same state
+  }else{//We jumped to the new state
+    
+  }
+  
+  return newX;
+  
+}
+
 ////////// Code for Parallel Tempering simulations //////////
 // [[Rcpp::export]]
 List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta, int num_modes){
@@ -983,7 +1018,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           // Rcpp::Rcout <<"Before parallelReduce SumExp"<< std::endl;
           parallelReduce(0,dim_size,get_sum);
           // Rcpp::Rcout <<"After parallelReduce SumExp"<< std::endl;
-          Z=get_sum.Z/p;//Divide over the number of neighbors
+          Z=get_sum.Z/p;//Divide over the number of neighbors since we're using uniform distribution
           new_samples=1+R::rgeom(Z);//Get multiplicity list
           if(new_samples<1){
             Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
