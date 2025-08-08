@@ -68,6 +68,9 @@ run_highd <- function(list_ids,unique_id=1){
       alg <- sim_chosen$algorithm
       defined_seed <- sim_chosen$seed
       temps_for_rf <- sim_chosen$temps_rf
+      if(is.na(temps_for_rf)||temps_for_rf<=0){#The default is all are RF
+        temps_for_rf <- length(temperatures)
+      }
       #Parameters for PT with IIT
       total_iter <- sim_chosen$iterations 
       iterswap <- sim_chosen$interswap #Total iterations before trying a replica swap
