@@ -91,11 +91,12 @@ struct IIT_visit_bounded : public Worker
   const std::size_t dim_p; // dimension of the problem (and length of X columns)
   const std::size_t num_modes;
   double log_bound;
+  int bal_func;
   
   //// Functions to use from outside
   double loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta);
   
-  double apply_bal_func_bounded_internal(double x, double log_bound);
+  double apply_bal_func_bounded_internal(double x, double log_bound, int bal_func);
   ////  Functions to transform data
   arma::Col<double> convert_X_bounded(){
     RVector<double> tmp_X = X_n;
@@ -117,7 +118,8 @@ struct IIT_visit_bounded : public Worker
     NumericVector output_in,
     const size_t dim_p_in,
     const size_t num_modes_in,
-    double log_bound_in)://This binds the class members (defined above) to the constructor arguments
+    double log_bound_in,
+    int bal_func_in)://This binds the class members (defined above) to the constructor arguments
     X_n(X_n_in),
     Q_matrix(Q_matrix_in),
     temperature(temperature_in),
@@ -125,7 +127,8 @@ struct IIT_visit_bounded : public Worker
     output(output_in),
     dim_p(dim_p_in),
     num_modes(num_modes_in),
-    log_bound(log_bound_in){}
+    log_bound(log_bound_in),
+    bal_func(bal_func_in){}
   
   
   
@@ -140,7 +143,7 @@ struct IIT_visit_bounded : public Worker
       arma::Col<double> temp_X=X;
       temp_X(n)=1-temp_X(n);//Switch the nth coordinate
       double mid_step=loglik_internal(temp_X,M,theta)-logpi_current;
-      output[n]=apply_bal_func_bounded_internal(mid_step*temperature,log_bound);
+      output[n]=apply_bal_func_bounded_internal(mid_step*temperature,log_bound,bal_func);
       
     }// End for loop
   }//End operator

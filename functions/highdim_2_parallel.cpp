@@ -374,8 +374,16 @@ double IIT_visit_neighbors::loglik_internal(const arma::Col<double>& X,const arm
   return loglik(X,M,theta);
 }
 
-double IIT_visit_bounded::apply_bal_func_bounded_internal(double x,double log_bound){
-  return bound_sq(x,log_bound);
+double IIT_visit_bounded::apply_bal_func_bounded_internal(double x,double log_bound, int bal_func){
+  if(bal_func==1){
+    return bf_sq(x);
+  }else   if(bal_func==2){
+    return bound_sq(x,log_bound); 
+  }else{
+    Rcpp::Rcout <<" The balancing function is incorrect (bal_func_bounded_internal)"<< std::endl;
+    
+  }
+
 }
 
 double IIT_visit_bounded::loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta){
@@ -1133,7 +1141,8 @@ if(replica<temps_rf){//For the hotter temperatures we use Rejection-Free
                                             output_current_X_bounded,
                                             dim_size,
                                             number_modes,
-                                            current_log_bound);
+                                            current_log_bound,
+                                            bal_func);
   
   parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
   //// Add the h(piy/pix) to compute Z factor
