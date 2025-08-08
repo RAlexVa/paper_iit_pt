@@ -417,10 +417,10 @@ List single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_f
   }
   
   List ret_single_step;
-  ret["jump"]=success_jump;
-  ret["coord"]=random_neighbor;
+  ret_single_step["jump"]=success_jump;
+  ret_single_step["coord"]=random_neighbor;
   
-  return newX;
+  return ret_single_step;
   
 }
 
@@ -1170,7 +1170,7 @@ if(replica<temps_rf){//For the hotter temperatures we use Rejection-Free
 }else{//For the colder temperatures we use step by step update
   //// Process to perform step by step instead of rejection free steps     
   // single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
-  single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound)
+  single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound);
   new_samples=1;
   bool accept_jump=single_step_output(0);
   int chosen_coord_single = single_step_output(1);
