@@ -1131,7 +1131,7 @@ max_log_bound_vector=log_bound_vector;
             }
           }
           
-if(replica<temps_rf){//For the hotter temperatures we use Rejection-Free
+if(temperature_index<temps_rf){//For the hotter temperatures we use Rejection-Free
   //// Visit neighbors in parallel
   NumericVector output_current_X_bounded(p);
   IIT_visit_bounded visit_current_X_bounded(current_X,
