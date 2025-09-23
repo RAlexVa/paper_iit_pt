@@ -1737,3 +1737,22 @@ Rcpp::sourceCpp("functions_other/testing_cpp_functions.cpp")
 
 check_bo0l_vec(5)
 
+
+
+# Test single_step_update
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+# setwd('..')
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+
+
+
+Q_matrix5 <- create_mode_matrix(p,5)
+
+Q_matrix7 <- create_mode_matrix(p,7)
+p <- 100
+theta <- 0.1
+single_step_update(rep(0,p),Q_matrix5, p,1,1,theta,0)
+
+single_step_update(rep(0,p),Q_matrix5, p,2,1,theta,0)
