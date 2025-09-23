@@ -376,7 +376,7 @@ double IIT_visit_neighbors::loglik_internal(const arma::Col<double>& X,const arm
 
 double IIT_visit_bounded::apply_bal_func_bounded_internal(double x,double log_bound, int bal_func){
   if(bal_func==1){
-    return bf_sq(x);
+    return bf_min(x);//Apply min balancing function ignoring the log-bound
   }else   if(bal_func==2){
     return bound_sq(x,log_bound); 
   }else{
@@ -895,7 +895,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
   vec swap_total(J,fill::ones);
   swap_total*=total_swaps;//We always have the same number of total swaps
-  int final_swap; //Last swap before breaking the for loop
+  int final_swap=total_swaps; //Last swap before breaking the for loop
+  //By default the final swap will be the total number of specified swaps
+  //If it finds the modes earlier, then it's updated before used to compute swap rate
   vec swap_success(J);
   mat swap_rate(total_sim,J);
   cube total_iterations(total_swaps,T,total_sim,fill::zeros);//To store iterations needed in between swaps
@@ -1131,7 +1133,7 @@ max_log_bound_vector=log_bound_vector;
             }
           }
           
-if(temperature_index<temps_rf){//For the hotter temperatures we use Rejection-Free
+if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
   //// Visit neighbors in parallel
   NumericVector output_current_X_bounded(p);
   IIT_visit_bounded visit_current_X_bounded(current_X,
@@ -1176,7 +1178,7 @@ if(temperature_index<temps_rf){//For the hotter temperatures we use Rejection-Fr
     X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
   }//End If for updating state
   
-}else{//For the colder temperatures we use step by step update
+}else{//For the hotter temperatures we use step by step update
   //// Process to perform step by step instead of rejection free steps     
   // single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
   single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound);
