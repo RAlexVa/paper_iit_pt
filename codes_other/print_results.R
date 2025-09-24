@@ -19,8 +19,8 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 chosen_ids <-c(730,733,736,739)+1
-chosen_ids <-c(745,748,751)+1
-
+chosen_ids <-c(745,748,751)#+1
+# chosen_ids <-755
 # chosen_ids <- c(650:661,663:669)
 #### Chosen for lowdim bimodal problem ####
 #We stay with 3 temperatures for everything
@@ -436,6 +436,10 @@ distances |> filter(min_dist<2)
 swap_rate
 colSums(swap_rate[,-(1:2)])/nrow(swap_rate)
 
+### Check which IDs didn't finish running
+
+
+
 ##### Export plots and tables #####
 export_path <- paste0("C:/Users/ralex/Documents/src/paper_iit_pt/images/",chosen_dim,"_ex")
 export_file_name <- paste0(paste0(chosen_ids,collapse="_"),"_",chosen_dim)
@@ -834,8 +838,14 @@ if(chosen_dim=="highdim"){
                                              "PT-IIT (sq)(751)",
                                              "PT A-IIT m(746)",
                                              "PT-IIT (sq)(749)",
-                                             "PT-IIT (sq)(752)")),
+                                             "PT-IIT (sq)(752)",
+                                             "PT A-IIT m(747)",
+                                             "PT-IIT (sq)(750)",
+                                             "PT-IIT (sq)(753)")),
                           new_alg=c("PT_A_IIT(300)",
+                                    "PT_IIT_Z(5)",
+                                    "PT_IIT_Z(10)",
+                                    "PT_A_IIT(300)",
                                     "PT_IIT_Z(5)",
                                     "PT_IIT_Z(10)",
                                     "PT_A_IIT(300)",
@@ -853,18 +863,166 @@ if(chosen_dim=="highdim"){
 #For 7-modes with 100 simulations each
     # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(732)","PT A-IIT m(735)","PT-IIT (sq)(738)","PT-IIT (sq)(741)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
 #Apply modification to datasets    
-    # dist_t1_times <- dist_t1_times |> left_join(new_id_join,by="alg")
-    # swap_rate <- swap_rate|> left_join(new_id_join,by="alg")
-    # iterations <- iterations |> left_join(new_id_join,by="alg")
+    dist_t1_times <- dist_t1_times |> left_join(new_id_join,by="alg")
+    swap_rate <- swap_rate|> left_join(new_id_join,by="alg")
+    iterations <- iterations |> left_join(new_id_join,by="alg")
+ 
+#Report of simulations that ANY replica have visited the modes.
+
+    dist_mode_times <- distances  |> 
+      mutate(time_fixed=ifelse(min_dist>0,Inf,time_find)) |> 
+      select(-min_dist,-time_find) |> 
+      pivot_longer(cols=c(time_fixed),names_to="variable",values_to="measure") |> 
+      pivot_wider(names_from=mode,values_from=measure)|> 
+      rowwise() |> 
+      mutate(min_time = min(across(matches("^m\\d+$")))) |> 
+      filter(min_time<Inf)
     
+    first_visit_report <- dist_mode_times |> 
+      select(-variable,-min_time) |> 
+      group_by(alg,algorithm,id,sim) |> 
+      summarise(across(starts_with("m"),~min(.x,na.rm=T),.names="min_{.col}"),
+                across(starts_with("m"),~ {
+                  # col_name <- cur_column()
+                  min_val <- min(.x, na.rm = TRUE)
+                  # Find the first row where this minimum value occurs
+                  first(which(.x == min_val))
+                },.names="row_{.col}")
+                ) |> 
+      select(-starts_with("row_min_")) |> 
+      rowwise() |> 
+      mutate(last_visit = max(across(starts_with("min_m")))) |> 
+      ungroup()
+    
+    #Add new identification of algorithm
+    first_visit_report <- first_visit_report |> left_join(new_id_join,by="alg")
+    
+    report_modes_visited <- first_visit_report |> 
+      select(new_alg,algorithm,id,sim,starts_with("min_m")) |> 
+      pivot_longer(cols=starts_with("min_m"),names_to = "mode",values_to="time") |> 
+      mutate(visited=time!=Inf) |> 
+      group_by(id,new_alg,sim) |> 
+      summarise(modes_visited=sum(visited)) |> 
+      ungroup() 
+    
+    sim_not_visiting <- report_modes_visited |> 
+      filter(modes_visited<max(report_modes_visited$modes_visited)) |> 
+      pull(sim)
+    
+    
+    unique_ids <- unique(report_modes_visited |> 
+                           select(id,new_alg))
+    
+    sim_ids <- 101:250
+    
+    full_list <- tibble(id=rep(unique_ids$id,length(sim_ids)),
+                        new_alg=rep(unique_ids$new_alg,length(sim_ids)),
+                                    sim=rep(sim_ids,each=3))
+    
+    #Report on simulations that didn't finish or didin't find all modes
+    detailed_report <- full_list |> 
+      left_join(report_modes_visited,by=c("id","new_alg","sim")) |> 
+      select(-new_alg) |> 
+      pivot_wider(names_from = id,values_from=modes_visited) |> 
+      rowwise() |> 
+      mutate(none_finished=all(is.na(across(-sim))),
+             some_finished=any(is.na(across(-sim))))
+    
+    sim_to_rerun <- detailed_report |> filter(some_finished==T,none_finished==F)
+    sim_no_finish <- detailed_report |> filter(none_finished==T)
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"sim_no_finish",".jpg")),width=110 + (60*(ncol(sim_no_finish)-1)),height=25*nrow(sim_no_finish),pointsize = 30)
+    grid.arrange(tableGrob(sim_no_finish))
+    dev.off()
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"sim_to_rerun",".jpg")),width=90 + (60*(ncol(sim_to_rerun)-1)),height=30*nrow(sim_to_rerun),pointsize = 30)
+    grid.arrange(tableGrob(sim_to_rerun))
+    dev.off()
+    
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"_detailed_report",".jpg")),width=110 + (60*(ncol(detailed_report)-1)),height=25*nrow(detailed_report),pointsize = 30)
+    grid.arrange(tableGrob(detailed_report))
+    dev.off()
+    
+    long_report <- full_list |> left_join(report_modes_visited,by=c("id","new_alg","sim")) |> 
+      filter(modes_visited<max(report_modes_visited$modes_visited) | is.na(modes_visited)) 
+    
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"_not_visiting",".jpg")),width=110 + (60*(ncol(long_report)-1)),height=25*nrow(long_report),pointsize = 30)
+    grid.arrange(tableGrob(long_report))
+    dev.off()
+    #List of sim (seeds) that did not finish or didn't find all modes
+    unique(full_report |> pull(sim))
+    #Count of simulations that didnot finish or didn't find all modes
+    summarized_report <- full_list |> left_join(report_modes_visited,by=c("id","new_alg","sim")) |> 
+      filter(modes_visited<max(report_modes_visited$modes_visited) | is.na(modes_visited)) |> 
+      group_by(id,new_alg) |> 
+      summarise(not_visiting=n())
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"_not_visiting_summary",".jpg")),width=50 + (100*(ncol(summarized_report)-1)),height=50*nrow(summarized_report),pointsize = 30)
+    grid.arrange(tableGrob(summarized_report))
+    dev.off()
+    
+    report_replicas_visiting <- first_visit_report |> 
+      select(new_alg,algorithm,id,starts_with("row_m")) |> 
+      pivot_longer(cols=starts_with("row_m"),names_to = "mode",values_to="replica") |> 
+      group_by(id,new_alg,replica) |> 
+      summarise(count=n()) |> 
+      pivot_wider(names_from = replica,values_from = count)
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"_replicas_visiting",".jpg")),width=110 + (60*(ncol(report_replicas_visiting)-1)),height=40*nrow(report_replicas_visiting),pointsize = 30)
+    grid.arrange(tableGrob(report_replicas_visiting))
+    dev.off()
+    
+    
+    
+    
+    
+##################################################
+    #Report of speed to mode considering that any replica visits the mode
+    forsurv <- first_visit_report |> select(new_alg,last_visit)
+    fit <- survfit(Surv(last_visit,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
+    
+    (plot_surv_mode <- ggsurvplot(fit,
+                                  data=forsurv,
+                                  fun="event",
+                                  palette = "Set1",    # Color palette
+                                  xlab = "Time (seconds)",
+                                  ylab = "Prop. of simulations visiting all modes",
+                                  legend.title = "Algorithm",
+                                  # break.time.by = time_br,
+                                  font.x = 15,        # X-axis label font size
+                                  font.y = 15,        # Y-axis label font size
+                                  font.tickslab = 12, # Axis tick labels (numbers) font size
+                                  font.legend = 10,
+                                  conf.int = FALSE,
+                                  censor = TRUE))   # Legend text font size)
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode",".jpg")),width=1200,height =600,pointsize = 30)
+    print(plot_surv_mode)
+    dev.off()
+    
+############################################################          
+    
+    
+#Report of simulations that the first temperature haven't visited all modes       
     listing_tot_sim <- dist_t1_times |> group_by(new_alg) |> summarize(tot_sim=n())
     listing_uncompleted_sim <- dist_t1_times |> filter(is.na(last_time)) |> group_by(new_alg) |> summarize(no_visit=n())
+    report_uncompleted_sim <- dist_t1_times |> filter(is.na(last_time)) |> select(new_alg,sim,id) 
+    report_uncompleted_sim
+    
+    list_ids_notcomplete <- report_uncompleted_sim  |> group_by(id) |> 
+      summarize(array_string = paste(sim, collapse = ",")) |> 
+      ungroup()
+    list_ids_notcomplete
     report <- left_join(listing_tot_sim,listing_uncompleted_sim,by="new_alg")
     report
     
     jpeg(file.path(export_path,paste0(export_file_name,"_sim_report",".jpg")),width=110 + (60*(ncol(report)-1)),height=40*nrow(report),pointsize = 30)
     grid.arrange(tableGrob(report))
     dev.off()
+# Finish report
+    
     
    #Avg. swap rate report 
     swap_rate_report <- swap_rate |> select(-sim) |> 
