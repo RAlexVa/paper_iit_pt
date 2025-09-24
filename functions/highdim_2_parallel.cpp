@@ -100,7 +100,19 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
   }
   return(A);
 }
-
+// [[Rcpp::export]]
+arma::Col<double> Random_modes(const int num_rows,const int num_cols, const mat mode_matrix) {
+  arma::vec chosen_modes(num_cols,fill::zeros);
+  int number_modes=mode_matrix.n_cols;
+  for(int r=0;r<num_cols;r++){
+    // double rand_mode=number_modes*randu();
+    // int choose_mode=rand_mode*1;
+    int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
+    
+    chosen_modes(r)=choose_mode;
+  }
+  return(chosen_modes);
+}
 
 // [[Rcpp::export]]
 arma::Mat<double> create_mode_matrix(const int num_rows,const int num_cols) {
