@@ -97,8 +97,7 @@ find_temp_highd <- function(list_ids){
     }
     if(alg=="PT_A_IIT"){
       # Using A-IIT in each replica
-      # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
-      output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",theta_chosen,num_modes)
+      output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",theta_chosen,num_modes,length(temperatures))
     }
 
     
@@ -263,8 +262,8 @@ find_temp_highd_recurrent <- function(list_ids,temp_to_find=20){
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
-          # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta)
-          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",theta_chosen,num_modes)
+          # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf)
+          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",theta_chosen,num_modes,length(temperatures))
         }
         
         
