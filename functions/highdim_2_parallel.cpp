@@ -1261,6 +1261,8 @@ if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Fr
     // Store result of the simulation
     // vec temp_rate=swap_success / swap_total;
     vec temp_rate=swap_success / final_swap;
+    Rcpp::Rcout << "Swap count: " << swap_count<< std::endl;
+    Rcpp::Rcout << "Final swap: " << final_swap<< std::endl;
     swap_rate.row(s)=temp_rate.t();
     // Rcpp::Rcout <<"Final state "<< X << std::endl;
     distance_modes_full.slice(s)=Rcpp::as<arma::mat>(distance_modes);
