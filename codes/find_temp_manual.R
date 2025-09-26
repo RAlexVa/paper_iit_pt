@@ -165,7 +165,7 @@ find_temp_highd <- function(list_ids){
   
 }### End of function
 
-find_temp_highd_recurrent <- function(list_ids,temp_to_find=20){
+find_temp_highd_recurrent <- function(list_ids,temp_to_find=15){
   target_sr <- 0.234
   
   if(!("./results" %in% list.dirs(recursive=F))){
@@ -352,6 +352,7 @@ if(sign(search_direction)>0){
 
 if (!interactive()) {
   args <- commandArgs(trailingOnly = TRUE)
-  find_temp_highd(args[1])
+  # find_temp_highd(args[1])
+  find_temp_highd_recurrent(args[1],temp_to_find=15)
 }
 
