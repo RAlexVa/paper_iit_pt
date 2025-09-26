@@ -119,3 +119,8 @@ id,algorithm,interswap,seed,model,p,num_modes,theta,rho,bf,t1,num_temp,gibbs_ste
 119,PT_IIT_Z,100,119,multimodal,1000,7,0.1,-2.5,min,50,5,,4,2000,13000,,-1,until reaching temperature 20,Running in Probability,,,
 120,PT_IIT_Z,100,120,multimodal,1000,5,0.1,-2.5,min,50,5,,4,2000,13000,,-1,until reaching temperature 20,Running in Probability,,,
 121,PT_IIT_Z,100,121,multimodal,1000,2,0.1,-2.5,min,50,5,,4,2000,13000,,-1,until reaching temperature 20,Running in Probability,,,
+122,PT_IIT_Z,100,122,multimodal,1000,7,0.1,-2.5,min,17.3289041505637,5,,4,2000,13000,,-1,until reaching temperature 20,Running in Probability,,,
+123,PT_A_IIT,300,123,multimodal,3000,7,0.1,-2.5,sq,50,5,,4,10000,,300,-1,,,,,
+124,PT_IIT_Z,100,124,multimodal,3000,7,0.1,-2.5,sq,50,5,,4,2000,13000,,-1,,,,,
+125,PT_A_IIT,300,125,multimodal,3000,7,0.1,-2.5,min,50,5,,4,10000,,300,-1,,,,,
+126,PT_IIT_Z,100,126,multimodal,3000,7,0.1,-2.5,min,50,5,,4,2000,13000,,-1,,,,,
