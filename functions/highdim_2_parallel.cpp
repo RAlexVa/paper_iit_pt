@@ -85,9 +85,11 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
     int N;
     if(num_rows<1000){
       N= arma::randi<int>(arma::distr_param(1,num_rows));
-    }else{
+    }else if(num_rows=1000){
       N = arma::randi<int>(arma::distr_param(100,300));//Number of coords to flip
       
+    }else{
+      N = arma::randi<int>(arma::distr_param(1000,num_rows));//Number of coords to flip
     }
     // Rcpp::Rcout << "N:" <<N<< std::endl;
     Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
