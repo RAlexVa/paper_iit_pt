@@ -85,11 +85,11 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
     int N;
     if(num_rows<1000){
       N= arma::randi<int>(arma::distr_param(1,num_rows));
-    }else if(num_rows=1000){
+    }else if(num_rows==1000){
       N = arma::randi<int>(arma::distr_param(100,300));//Number of coords to flip
       
     }else{
-      N = arma::randi<int>(arma::distr_param(1000,num_rows));//Number of coords to flip
+      N = arma::randi<int>(arma::distr_param(num_rows*0.1,num_rows*0.3));//Increase number of coords to flip
     }
     // Rcpp::Rcout << "N:" <<N<< std::endl;
     Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
@@ -303,6 +303,10 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   // double theta=3;
   double max_dist=400.0;//How long do we allow the tail to go
+  uword dimension=X.n_rows;
+  if(dimension>1000){max_dist=(dimension/4);//Increase the max_dist from mode
+    if((max_dist*theta)>700){max_dist=((700/theta)-1);}//To avoid underflow of EXP function
+    }
   bool close_enough=false;  
     double loglik_computed=-0.0;
     double loglik_second_part=-0.0;
@@ -317,11 +321,13 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
         //Check that computing exp of the log-lik doesnt underflow
         loglik_computed-=(dist_mode*theta);
         close_enough=true;
+        // Rcpp::Rcout <<" loglik_computed: "<<loglik_computed<< std::endl;
 //IMPORTANT: with max_dist<p/2
 //at most 1 mode will contribute to the log-likelihood
 //That's why we can do this.
       }else{
         loglik_second_part-=(dist_mode*theta);
+        // Rcpp::Rcout <<" loglik_second_part: "<<loglik_second_part<< std::endl;
       }
   
     }//End for loop for modes
@@ -332,10 +338,14 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
     // }else{
     //   return(0);
     // }
+    // Rcpp::Rcout <<" Close enough: "<<close_enough<< std::endl;
     if(close_enough){
+      // Rcpp::Rcout <<"Yes CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
       return(loglik_computed + log1p(exp(loglik_second_part)));
     }else{
-      return(loglik_second_part);
+      // return(loglik_second_part);
+      // Rcpp::Rcout <<"NO CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
+      return((-max_dist*theta) + log1p(exp(loglik_second_part)));
     }
 
 }
@@ -1042,7 +1052,10 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           log_bound_vector(replica)=ret_max(get_max.max_value,log_bound_vector(replica),0);
 
           current_log_bound=log_bound_vector(replica);
-
+          if(current_log_bound>700){
+            Rcpp::Rcout <<"Replica:"<<replica<<" Current log-bound:"<<current_log_bound<< std::endl;
+            Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
+          }
           NumericVector bounded_vector=output_current_X - current_log_bound;
           // Rcpp::Rcout <<"Declaring getmax"<< std::endl;
           SumExp get_sum(bounded_vector);
@@ -1054,6 +1067,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           if(new_samples<1){
             Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
             Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
             new_samples=sample_inter_swap;
           }
 
