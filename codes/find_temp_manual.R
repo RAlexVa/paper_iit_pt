@@ -10,6 +10,8 @@ source("functions/r_functions.R");
 Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
 find_temp_highd <- function(list_ids){
   target_sr <- 0.234
+  lower_limit <- 0.21
+  upper_limit <- 0.39
   
   if(!("./results" %in% list.dirs(recursive=F))){
     print("Wrong directory. There's no results folder for the output")
@@ -109,7 +111,7 @@ find_temp_highd <- function(list_ids){
     # new_rho <- rho_vector+3*distance_sr;
     new_rho <- rho_vector+distance_sr;
     for(i in 1:length(summary_sr)){
-      if(summary_sr[i]>0.234 && summary_sr[i]<0.27){
+      if(summary_sr[i]>lower_limit && summary_sr[i]<upper_limit){
         #Dont change the rho_factor
         check_convergence[i] <- TRUE
       }else{
@@ -167,6 +169,8 @@ find_temp_highd <- function(list_ids){
 
 find_temp_highd_recurrent <- function(list_ids,temp_to_find=15){
   target_sr <- 0.234
+  lower_limit <- 0.21
+  upper_limit <- 0.39
   
   if(!("./results" %in% list.dirs(recursive=F))){
     print("Wrong directory. There's no results folder for the output")
@@ -275,7 +279,7 @@ find_temp_highd_recurrent <- function(list_ids,temp_to_find=15){
         # new_rho <- rho_vector+3*distance_sr;
         new_rho <- rho_vector+distance_sr;
         for(i in 1:length(summary_sr)){
-          if(summary_sr[i]>0.234 && summary_sr[i]<0.27){
+          if(summary_sr[i]>lower_limit && summary_sr[i]<upper_limit){
             #Dont change the rho_factor
             check_convergence[i] <- TRUE
           }else{
@@ -353,6 +357,6 @@ if(sign(search_direction)>0){
 if (!interactive()) {
   args <- commandArgs(trailingOnly = TRUE)
   # find_temp_highd(args[1])
-  find_temp_highd_recurrent(args[1],temp_to_find=15)
+  find_temp_highd_recurrent(args[1],temp_to_find=5)
 }
 
