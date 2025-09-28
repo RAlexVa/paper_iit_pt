@@ -301,15 +301,17 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 }
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
-  // double theta=3;
-  double max_dist=400.0;//How long do we allow the tail to go
-  uword dimension=X.n_rows;
-  if(dimension>1000){max_dist=(dimension/4);//Increase the max_dist from mode
-    if((max_dist*theta)>700){max_dist=((700/theta)-1);}//To avoid underflow of EXP function
-    }
-  bool close_enough=false;  
-    double loglik_computed=-0.0;
+  double loglik_computed=-0.0;
+////////////////First case with theta=0.1
+  if(theta==0.1){//For theta=0.1 only 1 mode contribute at a time to the likelihood
+    bool close_enough=false;  
+    
     double loglik_second_part=-0.0;
+    double max_dist=400.0;//How long do we allow the tail to go
+    uword dimension=X.n_rows;
+    if(dimension>1000){max_dist=(dimension/4);//Increase the max_dist from mode
+      if((max_dist*theta)>700){max_dist=((700/theta)-1);}//To avoid underflow of EXP function
+    }
     // Rcpp::Rcout <<"Created Lik: "<<lik_computed<< std::endl;
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
@@ -322,23 +324,15 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
         loglik_computed-=(dist_mode*theta);
         close_enough=true;
         // Rcpp::Rcout <<" loglik_computed: "<<loglik_computed<< std::endl;
-//IMPORTANT: with max_dist<p/2
-//at most 1 mode will contribute to the log-likelihood
-//That's why we can do this.
+        //IMPORTANT: with max_dist<p/2
+        //at most 1 mode will contribute to the log-likelihood
+        //That's why we can do this.
       }else{
         loglik_second_part-=(dist_mode*theta);
         // Rcpp::Rcout <<" loglik_second_part: "<<loglik_second_part<< std::endl;
       }
-  
+      
     }//End for loop for modes
-    // Rcpp::Rcout <<"New LogLik: "<<loglik_computed<<"New LogLikx100: "<<loglik_computed*100<< std::endl;
-    // Rcpp::Rcout <<"Epxm1: "<<expm1(loglik_computed)<<"Log1p "<<log1p(expm1(loglik_computed)+1)<< std::endl;
-    // if(close_enough){
-    //   return(log1p(expm1(loglik_computed)+1)); 
-    // }else{
-    //   return(0);
-    // }
-    // Rcpp::Rcout <<" Close enough: "<<close_enough<< std::endl;
     if(close_enough){
       // Rcpp::Rcout <<"Yes CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
       return(loglik_computed + log1p(exp(loglik_second_part)));
@@ -347,6 +341,23 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
       // Rcpp::Rcout <<"NO CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
       return((-max_dist*theta) + log1p(exp(loglik_second_part)));
     }
+/////////////////Second case with smaller theta
+  }else if(theta==0.001){//With this smaller theta we can work with p=10k 
+    //and the contributions is at most -10 and the change is less than 0.001
+    for(uword c=0;c<M.n_cols;c++){//For loop for modes
+      double dist_mode=arma::accu(abs(X-M.col(c)));
+
+        // Check the distance, 
+        loglik_computed+=exp(-(dist_mode*theta));
+      //All the modes contribute because theta is small enough to avoid underflow
+      
+    }//End for loop for modes
+    return(log(loglik_computed));
+  }else{//For a different theta the function is not defined
+    Rcpp::Rcout <<" The value of theta is not 0.1 or 0.001, Modify! "<< std::endl;
+  }
+  
+  
 
 }
 double loglik_R(NumericVector& X,const NumericMatrix& M, const double& theta){
