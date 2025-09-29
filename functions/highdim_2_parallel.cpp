@@ -355,6 +355,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
     return(log(loglik_computed));
   }else{//For a different theta the function is not defined
     Rcpp::Rcout <<" The value of theta is not 0.1 or 0.001, Modify! "<< std::endl;
+    return(-10000);
   }
   
   
