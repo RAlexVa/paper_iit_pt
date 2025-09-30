@@ -742,6 +742,10 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
             double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
             time_find_modes(mode_counter,temperature_index)=secs_find_mode;
             if(dist_mode==0){
+              if(check_mode_visit(mode_counter)==0){
+                //The first time a mode is visited, it prints a message
+                Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+              }
               check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
             }
           }
@@ -1168,6 +1172,10 @@ max_log_bound_vector=log_bound_vector;
               double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
               time_find_modes(mode_counter,temperature_index)=secs_find_mode;
               if(dist_mode==0){
+                if(check_mode_visit(mode_counter)==0){
+                  //The first time a mode is visited, it prints a message
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in swap"<<i<< std::endl;
+                }
                 check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
               }
             }
