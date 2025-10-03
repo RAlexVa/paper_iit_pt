@@ -167,7 +167,7 @@ find_temp_highd <- function(list_ids){
   
 }### End of function
 
-find_temp_highd_recurrent <- function(list_ids,temp_to_find=15){
+find_temp_highd_recurrent <- function(list_ids,temp_to_find=5){
   target_sr <- 0.234
   lower_limit <- 0.21
   upper_limit <- 0.39
