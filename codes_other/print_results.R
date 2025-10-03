@@ -18,8 +18,8 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 # chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
-chosen_ids <-c(730,733,736,739)+1
-chosen_ids <-c(745,748,751)#+1
+# chosen_ids <-c(730,733,736,739)+1
+chosen_ids <-c(745,748,751,759)#+1
 # chosen_ids <-755
 # chosen_ids <- c(650:661,663:669)
 #### Chosen for lowdim bimodal problem ####
@@ -841,7 +841,10 @@ if(chosen_dim=="highdim"){
                                              "PT-IIT (sq)(752)",
                                              "PT A-IIT m(747)",
                                              "PT-IIT (sq)(750)",
-                                             "PT-IIT (sq)(753)")),
+                                             "PT-IIT (sq)(753)",
+                                             "PT A-IIT m(759)",
+                                             "PT A-IIT m(760)",
+                                             "PT A-IIT m(761)")),
                           new_alg=c("PT_A_IIT(300)",
                                     "PT_IIT_Z(5)",
                                     "PT_IIT_Z(10)",
@@ -850,7 +853,10 @@ if(chosen_dim=="highdim"){
                                     "PT_IIT_Z(10)",
                                     "PT_A_IIT(300)",
                                     "PT_IIT_Z(5)",
-                                    "PT_IIT_Z(10)"))
+                                    "PT_IIT_Z(10)",
+                                    "PT MH-mult (300)",
+                                    "PT MH-mult (300)",
+                                    "PT MH-mult (300)"))
 #For bimodal with 100 simulations each
     # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(730)","PT A-IIT m(733)","PT-IIT (sq)(736)","PT-IIT (sq)(739)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
 
@@ -917,16 +923,19 @@ if(chosen_dim=="highdim"){
     
     full_list <- tibble(id=rep(unique_ids$id,length(sim_ids)),
                         new_alg=rep(unique_ids$new_alg,length(sim_ids)),
-                                    sim=rep(sim_ids,each=3))
+                                    sim=rep(sim_ids,each=length(unique_ids$new_alg)))
     
     #Report on simulations that didn't finish or didin't find all modes
+    number_modes <- 2
     detailed_report <- full_list |> 
       left_join(report_modes_visited,by=c("id","new_alg","sim")) |> 
       select(-new_alg) |> 
+      mutate(across(-sim, ~replace_na(.,0))) |> 
       pivot_wider(names_from = id,values_from=modes_visited) |> 
       rowwise() |> 
-      mutate(none_finished=all(is.na(across(-sim))),
-             some_finished=any(is.na(across(-sim))))
+      mutate(none_finished=all(c_across(as.character(chosen_ids))<number_modes),
+             all_finished=all(c_across(as.character(chosen_ids))==number_modes),
+             some_finished=any(c_across(as.character(chosen_ids))==number_modes) && !all_finished)
     
     sim_to_rerun <- detailed_report |> filter(some_finished==T,none_finished==F)
     sim_no_finish <- detailed_report |> filter(none_finished==T)
@@ -955,11 +964,14 @@ if(chosen_dim=="highdim"){
     unique(full_report |> pull(sim))
     #Count of simulations that didnot finish or didn't find all modes
     summarized_report <- full_list |> left_join(report_modes_visited,by=c("id","new_alg","sim")) |> 
-      filter(modes_visited<max(report_modes_visited$modes_visited) | is.na(modes_visited)) |> 
-      group_by(id,new_alg) |> 
-      summarise(not_visiting=n())
+      mutate(modes_visited=ifelse(is.na(modes_visited),0,modes_visited)) |> 
+      # filter(modes_visited<max(report_modes_visited$modes_visited) | is.na(modes_visited)) |> 
+      group_by(id,new_alg, modes_visited) |> 
+      summarise(counted=n()) |> 
+      ungroup() |> 
+      pivot_wider(names_from=modes_visited,values_from=counted)
     
-    jpeg(file.path(export_path,paste0(export_file_name,"_not_visiting_summary",".jpg")),width=50 + (100*(ncol(summarized_report)-1)),height=50*nrow(summarized_report),pointsize = 30)
+    jpeg(file.path(export_path,paste0(export_file_name,"_number_modes_visited",".jpg")),width=50 + (100*(ncol(summarized_report)-1)),height=50*nrow(summarized_report),pointsize = 30)
     grid.arrange(tableGrob(summarized_report))
     dev.off()
     
@@ -981,6 +993,8 @@ if(chosen_dim=="highdim"){
 ##################################################
     #Report of speed to mode considering that any replica visits the mode
     forsurv <- first_visit_report |> select(new_alg,last_visit)
+    forsurv <- forsurv |> filter(last_visit<Inf)
+    # forsurv <- forsurv |> filter(new_alg!="PT_IIT_Z(5)")
     fit <- survfit(Surv(last_visit,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
     
     (plot_surv_mode <- ggsurvplot(fit,
@@ -991,14 +1005,15 @@ if(chosen_dim=="highdim"){
                                   ylab = "Prop. of simulations visiting all modes",
                                   legend.title = "Algorithm",
                                   # break.time.by = time_br,
-                                  font.x = 15,        # X-axis label font size
-                                  font.y = 15,        # Y-axis label font size
-                                  font.tickslab = 12, # Axis tick labels (numbers) font size
-                                  font.legend = 10,
+                                  font.x = 25,        # X-axis label font size
+                                  font.y = 25,        # Y-axis label font size
+                                  font.tickslab = 18, # Axis tick labels (numbers) font size
+                                  font.legend = 20,
+                                  size=2,
                                   conf.int = FALSE,
                                   censor = TRUE))   # Legend text font size)
     
-    jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode",".jpg")),width=1200,height =600,pointsize = 30)
+    jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode_anyrep",".jpg")),width=1200,height =600,pointsize = 30)
     print(plot_surv_mode)
     dev.off()
     
@@ -1067,9 +1082,9 @@ if(chosen_dim=="highdim"){
     # fit <- survfit(Surv(last_time,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
        
     forsurv <- dist_t1_times  |>
-    select(algorithm,last_time) |> 
+    select(new_alg,last_time) |> 
     mutate(status=ifelse(is.na(last_time),0,1))
-    fit <- survfit(Surv(last_time,status)~algorithm,data=forsurv)
+    fit <- survfit(Surv(last_time,status)~new_alg,data=forsurv)
     
     (plot_surv_mode <- ggsurvplot(fit,
                                   data=forsurv,
