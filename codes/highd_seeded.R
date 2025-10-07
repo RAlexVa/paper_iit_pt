@@ -33,7 +33,7 @@ run_highd <- function(list_ids,unique_id=1){
       if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
         file_matrix <- paste0("gset/",unique(parameters|> filter(id %in% list_ids) |> pull(file)),".txt");
         p <- readParameters(file_matrix);}
-      if(tot_models=="bimodal"){
+      if(tot_models=="bimodal" || tot_models=="multimodal"){
         # Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
         Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
         
@@ -52,7 +52,7 @@ run_highd <- function(list_ids,unique_id=1){
         if(sim_chosen$model=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
           file_matrix <- paste0("gset/",sim_chosen$file,".txt");
           p <- readParameters(file_matrix);}
-        if(sim_chosen$model=="bimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
+        if(sim_chosen$model=="bimodal" || sim_chosen$model=="multimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
           p <- unique(parameters|> filter(id==id_chosen) |> pull(p));file_matrix <- "NA";}
       }
       # Parameters for all algorithms
