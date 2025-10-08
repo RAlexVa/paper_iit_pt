@@ -1940,3 +1940,22 @@ for(i in 1:length(Y)){
   vec_logliks[i] <- loglik(temp_x,Q_matrix,theta)
 }
 table(vec_logliks)
+
+
+#######################
+# Testing for Gset
+library(Rcpp)
+library(RcppArmadillo)
+
+
+Rcpp::sourceCpp("functions/highdim_parallel_file.cpp")
+
+set.seed(123)
+p <- 3000
+num_modes <- 7
+theta <- 0.001
+Q_matrix <- create_mode_matrix(p,num_modes)
+temp_vec <- c(50,46.2070909989378,42.7019051716824,39.4626163619189,36.4690541058272)
+#PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf)
+test <- PT_a_IIT_sim(p,1,1,total_swaps=1,10,burn_in=4000, temp_vec,2,"",2,0,0,"never",theta, num_modes, length(temp_vec))
+
