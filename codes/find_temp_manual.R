@@ -7,7 +7,7 @@ library(readr)
 ##### import functions #####
 
 source("functions/r_functions.R");
-Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
+
 find_temp_highd <- function(list_ids){
   target_sr <- 0.234
   lower_limit <- 0.21
@@ -167,7 +167,7 @@ find_temp_highd <- function(list_ids){
   
 }### End of function
 
-find_temp_highd_recurrent <- function(list_ids,temp_to_find=5){
+find_temp_highd_recurrent <- function(list_ids){
   target_sr <- 0.234
   lower_limit <- 0.21
   upper_limit <- 0.39
@@ -233,11 +233,24 @@ find_temp_highd_recurrent <- function(list_ids,temp_to_find=5){
       export <- list();
       #### Function depending on algorithm to use
       
+      ### Depending on the model}
+      chosen_model <- sim_chosen$model
+      if(chosen_model=="multimodal"){
+        Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
+      }else if(chosen_model=="gset"){
+        Rcpp::sourceCpp("functions/highdim_parallel_file.cpp");
+        chosen_file <- paste0("gset/",sim_chosen$filename,".txt")
+        p <- problem_dim(chosen_file)
+        chosen_model_toprint <- paste0(chosen_model," ",chosen_file)
+      }
+      
+      temp_to_find <- sim_chosen$tf;
       writeLines(c("Parameters:",
                    paste0("ID: ",id_chosen),
                    paste0("Algorithm: ",alg),
-                   paste0("Problem: ",sim_chosen$model),
+                   paste0("Problem: ",chosen_model_toprint),
                    paste0("Num Modes: ",num_modes),
+                   paste0("Temp to find: ",num_modes),
                    paste0("Number of Replicas: ",length(temperatures)),
                    paste0("Theta: ",theta_chosen),
                    paste0("Total simulations: ",total_simulations),
@@ -262,12 +275,12 @@ find_temp_highd_recurrent <- function(list_ids,temp_to_find=5){
         if(alg=="PT_IIT_Z"){
           # Using Z factor bias correction
           # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
-          output <- PT_IIT_sim(p,1,total_simulations,total_iter,sample_inter_swap,burnin_iter,temperatures,bal_f,TRUE,"",0,0,theta_chosen,num_modes)
+          output <- PT_IIT_sim(p,1,total_simulations,total_iter,sample_inter_swap,burnin_iter,temperatures,bal_f,TRUE,chosen_file,0,0,theta_chosen,num_modes)
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
           # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf)
-          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",theta_chosen,num_modes,length(temperatures))
+          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,chosen_file,0,0,0,"never",theta_chosen,num_modes,length(temperatures))
         }
         
         
@@ -357,6 +370,6 @@ if(sign(search_direction)>0){
 if (!interactive()) {
   args <- commandArgs(trailingOnly = TRUE)
   # find_temp_highd(args[1])
-  find_temp_highd_recurrent(args[1],temp_to_find=5)
+  find_temp_highd_recurrent(args[1])
 }
 
