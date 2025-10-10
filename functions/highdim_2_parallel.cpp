@@ -152,7 +152,7 @@ for(int r=0;r<num_cols;r++){
     N = arma::randi<int>(arma::distr_param(100,300));//Number of coords to flip
     
   }else{
-    N = arma::randi<int>(arma::distr_param(num_rows*0.1,num_rows*0.3));//Increase number of coords to flip
+    N = arma::randi<int>(arma::distr_param(num_rows*0.1,num_rows*0.45));//Increase number of coords to flip
   }
   Rcpp::Rcout << "Chosen mode:" <<chosen_modes(r)<<", Change coords: "<<N<< std::endl;
   uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
