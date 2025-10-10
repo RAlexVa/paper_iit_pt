@@ -237,6 +237,7 @@ find_temp_highd_recurrent <- function(list_ids){
       chosen_model <- sim_chosen$model
       if(chosen_model=="multimodal"){
         Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
+        chosen_model_toprint <- paste0(chosen_model)
       }else if(chosen_model=="gset"){
         Rcpp::sourceCpp("functions/highdim_parallel_file.cpp");
         chosen_file <- paste0("gset/",sim_chosen$filename,".txt")
