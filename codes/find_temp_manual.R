@@ -235,6 +235,7 @@ find_temp_highd_recurrent <- function(list_ids){
       
       ### Depending on the model}
       chosen_model <- sim_chosen$model
+      chosen_file <- "" #Define a default chosen_file
       if(chosen_model=="multimodal"){
         Rcpp::sourceCpp("functions/highdim_2_parallel.cpp");
         chosen_model_toprint <- paste0(chosen_model)
