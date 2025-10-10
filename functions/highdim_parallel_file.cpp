@@ -497,7 +497,10 @@ if(current_loglik>loglikelihood_visited(temperature_index,s)){//If the current l
   //Store state
   arma::vec current_X_arma = Rcpp::as<arma::vec>(current_X);
   states_visited.slice(s).col(temperature_index) = current_X_arma;
-  Rcpp::Rcout <<"Found higher lik: "<<exp(current_loglik)<<" in iteration: "<<i<<" in temp: "<<temperature_index<<" in time: "<<secs_find_mode<< std::endl;
+  if(current_loglik>log(11500)){
+    Rcpp::Rcout <<"Found higher lik: "<<exp(current_loglik)<<" in iteration: "<<i<<" in temp: "<<temperature_index<<" in time: "<<secs_find_mode<< std::endl; 
+  }
+
 }
 
         //Swap that coordinate
@@ -880,7 +883,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             //Store state
             arma::vec current_X_arma = Rcpp::as<arma::vec>(current_X);
             states_visited.slice(s).col(temperature_index) = current_X_arma;
-            Rcpp::Rcout <<"Found higher lik: "<<exp(current_loglik)<<" in iteration: "<<i<<" in temp: "<<temperature_index<<" in time: "<<secs_find_mode<< std::endl;
+            if(current_loglik>log(11500)){
+              Rcpp::Rcout <<"Found higher lik: "<<exp(current_loglik)<<" in iteration: "<<i<<" in temp: "<<temperature_index<<" in time: "<<secs_find_mode<< std::endl; 
+            }
           }
           
           
