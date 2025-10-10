@@ -66,42 +66,44 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
   
   return(A);
 }
+
+
 // [[Rcpp::export]]
-// arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols, const mat mode_matrix) {
-//   arma::mat A(num_rows, num_cols,fill::zeros);
-//   int check_nrows=mode_matrix.n_rows;
-//   if((num_rows!=check_nrows)){
-//     Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
-//     return(A);}
-//   
-//   int number_modes=mode_matrix.n_cols;
-//   
-//   for(int r=0;r<num_cols;r++){
-//     // double rand_mode=number_modes*randu();
-//     // int choose_mode=rand_mode*1;
-//     int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
-//     
-//     A.col(r)=mode_matrix.col(choose_mode);//State close to that mode
-//     int N;
-//     if(num_rows<1000){
-//       N= arma::randi<int>(arma::distr_param(1,num_rows));
-//     }else if(num_rows==1000){
-//       N = arma::randi<int>(arma::distr_param(100,300));//Number of coords to flip
-//       
-//     }else{
-//       N = arma::randi<int>(arma::distr_param(num_rows*0.1,num_rows*0.3));//Increase number of coords to flip
-//     }
-//     // Rcpp::Rcout << "N:" <<N<< std::endl;
-//     Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
-//     uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
-//     
-//     
-//     for (arma::uword i = 0; i < indices.n_elem; ++i) {
-//       A(indices(i),r) = 1 - A(indices(i),r);
-//     }
-//   }
-//   return(A);
-// }
+arma::Mat<double> initializeRandom_w_modes_1(const int num_rows,const int num_cols, const mat mode_matrix) {
+  arma::mat A(num_rows, num_cols,fill::zeros);
+  int check_nrows=mode_matrix.n_rows;
+  if((num_rows!=check_nrows)){
+    Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
+    return(A);}
+
+  int number_modes=mode_matrix.n_cols;
+
+  for(int r=0;r<num_cols;r++){
+    // double rand_mode=number_modes*randu();
+    // int choose_mode=rand_mode*1;
+    int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
+
+    A.col(r)=mode_matrix.col(choose_mode);//State close to that mode
+    int N;
+    if(num_rows<1000){
+      N= arma::randi<int>(arma::distr_param(1,num_rows));
+    }else if(num_rows==1000){
+      N = arma::randi<int>(arma::distr_param(100,300));//Number of coords to flip
+
+    }else{
+      N = arma::randi<int>(arma::distr_param(num_rows*0.1,num_rows*0.3));//Increase number of coords to flip
+    }
+    // Rcpp::Rcout << "N:" <<N<< std::endl;
+    Rcpp::Rcout << "Chosen mode:" <<choose_mode<<", Change coords: "<<N<< std::endl;
+    uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
+
+
+    for (arma::uword i = 0; i < indices.n_elem; ++i) {
+      A(indices(i),r) = 1 - A(indices(i),r);
+    }
+  }
+  return(A);
+}
 
 // [[Rcpp::export]]
 arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols, const mat mode_matrix) {
