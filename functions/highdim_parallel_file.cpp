@@ -328,7 +328,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     swap_total.zeros();
     swap_success.zeros();
     finish_sim=false;
-    //// Start loop for burn_in period
+/////// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
@@ -449,11 +449,11 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
       }//Finish IF for replica swap
     }// Finish burn-in period
     
-    /////////////////////// Finish burn-in period
+/////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
     std::clock_t start = std::clock(); // Start timer for simulation s
     
-    //// Start the loop for all iterations in simulation s
+////// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
       // Rcpp::Rcout << "State X:\n " <<X << std::endl;
@@ -629,6 +629,10 @@ if(current_loglik>loglikelihood_visited(temperature_index,s)){//If the current l
     vec temp_rate=swap_success / swap_total;
     swap_rate.row(s)=temp_rate.t();
   }//End loop simulations
+  
+// Print highest likelihood visited  
+  Rcpp::Rcout <<"Found liks: \n"<<exp(loglikelihood_visited )<< std::endl; 
+  
   
   List ret;
   ret["ip"]=ind_pro_hist;
@@ -1004,7 +1008,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     swap_rate.row(s)=temp_rate.t();
   }//End loop simulations
   List ret;
-
+//Print found likelihoods
+  Rcpp::Rcout <<"Found liks: \n"<<exp(loglikelihood_visited)<< std::endl; 
   ret["ip"]=ind_pro_hist;
   ret["swap_rate"]=swap_rate;
   ret["loglik_visited"]=loglikelihood_visited;
