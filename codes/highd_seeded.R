@@ -30,7 +30,7 @@ run_highd <- function(list_ids,unique_id=1){
     if(only_1_model){
       print("Reading one set of C++ functions")
       print(paste0("Model = ",tot_models))
-      if(tot_models=="gset"){Rcpp::sourceCpp("functions/cpp_functions_highdim.cpp");
+      if(tot_models=="gset"){Rcpp::sourceCpp("functions/highdim_parallel_file.cpp");
         file_matrix <- paste0("gset/",unique(parameters|> filter(id %in% list_ids) |> pull(file)),".txt");
         p <- readParameters(file_matrix);}
       if(tot_models=="bimodal" || tot_models=="multimodal"){
@@ -40,6 +40,12 @@ run_highd <- function(list_ids,unique_id=1){
         p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
         file_matrix <- "NA";
         if(length(p)>1){stop("You're trying to run multiple values for p")}}
+      
+      if(tot_models=="spaced"){
+        Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp");
+        p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
+        file_matrix <- "NA";
+      }
     }
     #Start process for algorithms
     for(id_chosen in list_ids){
@@ -54,6 +60,11 @@ run_highd <- function(list_ids,unique_id=1){
           p <- readParameters(file_matrix);}
         if(sim_chosen$model=="bimodal" || sim_chosen$model=="multimodal"){Rcpp::sourceCpp("functions/cpp_functions_highdim_2.cpp");
           p <- unique(parameters|> filter(id==id_chosen) |> pull(p));file_matrix <- "NA";}
+        if(sim_chosen$model=="spaced"){
+          Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp");
+          p <- unique(parameters|> filter(id %in% list_ids) |> pull(p));
+          file_matrix <- "NA";
+        }
       }
       # Parameters for all algorithms
       total_simulations <- sim_chosen$simulations
