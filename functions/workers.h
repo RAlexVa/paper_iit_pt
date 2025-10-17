@@ -149,6 +149,79 @@ struct IIT_visit_bounded : public Worker
   }//End operator
 };// End of worker to visit neighbors
 
+struct IIT_visit_neighbors_new_bound : public Worker
+{
+  //// Data
+  RVector<double> X_n;//State matrix
+  const RMatrix<double> Q_matrix; //Matrix with modes
+  const double temperature;//Chosen temperature
+  const double theta; //Parameter for likelihood
+  RVector<double> output;
+  RVector<double> output_bound;
+  const std::size_t dim_p; // dimension of the problem (and length of X columns)
+  const std::size_t num_modes;
+  double log_bound;
+  int bal_func;
+  
+  //// Functions to use from outside
+  double loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta);
+  
+  double apply_bal_func_bounded_internal(double x, double log_bound, int bal_func);
+  ////  Functions to transform data
+  arma::Col<double> convert_X_bounded(){
+    RVector<double> tmp_X = X_n;
+    arma::Col<double> VEC(tmp_X.begin(), dim_p, false,true);
+    return VEC;
+  }
+  arma::Mat<double> convert_Q_bounded(){
+    RMatrix<double> tmp_matrix = Q_matrix;
+    arma::Mat<double> MAT(tmp_matrix.begin(), dim_p, num_modes, false,true);
+    return MAT;
+  }
+  
+  //// Main constructor
+  IIT_visit_bounded(
+    NumericVector X_n_in,
+    const NumericMatrix Q_matrix_in,
+    const double temperature_in,
+    const double theta_in,
+    NumericVector output_in,
+    NumericVector output_bound_in,
+    const size_t dim_p_in,
+    const size_t num_modes_in,
+    double log_bound_in,
+    int bal_func_in)://This binds the class members (defined above) to the constructor arguments
+    X_n(X_n_in),
+    Q_matrix(Q_matrix_in),
+    temperature(temperature_in),
+    theta(theta_in),
+    output(output_in),
+    output(output_bound_in),
+    dim_p(dim_p_in),
+    num_modes(num_modes_in),
+    log_bound(log_bound_in),
+    bal_func(bal_func_in){}
+  
+  
+  
+  //// Operator
+  void operator()(std::size_t begin, std::size_t end){
+    //First transform all the inputs
+    arma::Col<double> X = convert_X_bounded();
+    arma::Mat<double> M = convert_Q_bounded();
+    double logpi_current=loglik_internal(X,M,theta);
+    
+    for(std::size_t n = begin; n < end;n++){ // For for each neighbor
+      arma::Col<double> temp_X=X;
+      temp_X(n)=1-temp_X(n);//Switch the nth coordinate
+      double mid_step=loglik_internal(temp_X,M,theta)-logpi_current;
+      output_bound[n]=mid_step*temperature;
+      output[n]=apply_bal_func_bounded_internal(mid_step*temperature,log_bound,bal_func);
+      
+    }// End for loop
+  }//End operator
+};// End of worker to visit neighbors
+
 struct GibbsSampler : public Worker
 {
   //// Data
