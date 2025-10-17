@@ -492,6 +492,22 @@ double IIT_visit_bounded::loglik_internal(const arma::Col<double>& X,const arma:
   return loglik(X,M,theta);
 }
 
+double Apply_bal_func_parallel::apply_bal_func_bounded_internal(double x,double log_bound, int bal_func){
+  if(bal_func==1){
+    return bf_min(x);//Apply min balancing function ignoring the log-bound
+  }else   if(bal_func==2){
+    return bound_sq(x,log_bound); 
+  }else{
+    Rcpp::Rcout <<" The balancing function is incorrect (bal_func_bounded_internal)"<< std::endl;
+    
+  }
+  
+}
+
+double Ratio_probabilities::loglik_internal(const arma::Col<double>& X,const arma::Mat<double>& M, const double& theta){
+  return loglik(X,M,theta);
+}
+
 
 ///// Update function that is not rejection free
 // [[Rcpp::export]]
@@ -529,6 +545,7 @@ List single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_f
   List ret_single_step;
   ret_single_step["jump"]=success_jump;
   ret_single_step["coord"]=random_neighbor;
+  ret_single_step["ratio_probs"]=logratio_probs;
   
   return ret_single_step;
   
@@ -634,7 +651,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
-        current_temp=temp(index_process(replica));
+        int temperature_index=index_process(replica);
+        current_temp=temp(temperature_index);
         
         NumericVector output_current_X(p);
         // NumericVector current_X=Rcpp::wrap(X.col(replica));
@@ -988,6 +1006,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   return ret;
 }
 
+
 // [[Rcpp::export]]
 List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf){
   //// Initialize variables to use in the code
@@ -1010,7 +1029,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   // Rcpp::Rcout << "max num: " << max_num << std::endl;
   // vec current_state(p);//To print when I find a very small Z factor
   NumericVector current_X(p);
-
+  
   vec swap_total(J,fill::ones);
   swap_total*=total_swaps;//We always have the same number of total swaps
   int final_swap=total_swaps; //Last swap before breaking the for loop
@@ -1066,8 +1085,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   cube time_find_modes_full(num_modes,T,total_sim);
   const std::size_t dim_size = static_cast <size_t> (p);
   const std::size_t number_modes = static_cast <size_t> (num_modes); 
-
-
+  
+  
   std::vector<double> time_taken(total_sim); // vector to store the seconds each process took
   // Probability to update
   bool update_prob=false; //To define if the probability to decrease the constant should decrease or not
@@ -1085,7 +1104,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   else {Rcpp::Rcout <<"reduc_model= " <<reduc_model<<" is not a valid reduc_model. Default to standard"<< std::endl;
     Rcpp::Rcout <<" The standard is: Bounding constant always increases."<< std::endl;
     prob_to_dec=0;}//If we don't define a reduc_model
-
+  
   uvec check_mode_visit(num_modes);//Vector to break the loop when temp1 visits the mode
   
   List single_step_output;
@@ -1097,100 +1116,155 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     }
     ind_pro_hist.row(0)=index_process.t(); // First entry of the index process
     swap_count=0; //Reset swap count
-
+    
     // double ppm=randu();
     arma::Mat<double> inter_mat(p,T);
     // inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
     inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
     X=Rcpp::wrap(inter_mat);
-
+    
     check_mode_visit.fill(0);
     log_bound_vector.zeros();//Reset log-bounds, all log-bounds start at 0
     swap_success.zeros();
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
-//////Start the loop for burn-in period
+    //////Start the loop for burn-in period
     Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Starting burn-in period "<< std::endl;
     int track_burn_in=0;
-// Start tracking of time
-std::clock_t start = std::clock(); // Start timer for simulation s    
+    // Start tracking of time
+    std::clock_t start = std::clock(); // Start timer for simulation s    
     while(track_burn_in<burn_in){
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
         int samples_replica=0;
         while(samples_replica<sample_inter_swap && samples_replica<burn_in){//Loop to create samples for each replica until we reach the defined threshold
-          update_state=true;
-          current_temp=temp(replica);// Extract temperature of the replica
-          current_X=X(_,replica);
           
-          //Visit neighbors of current state
-          NumericVector output_current_X(p);
-          IIT_visit_neighbors visit_current_X(current_X,
-                                              Q_mat_R,
-                                              bal_func,
-                                              current_temp,
-                                              theta,
-                                              output_current_X,
-                                              dim_size,
-                                              number_modes);
-          // Rcpp::Rcout <<"Before parallelFor IIT neighbors"<< std::endl;
-
-          parallelFor(0,dim_size,visit_current_X);//Apply ParallelFor
-          // Rcpp::Rcout <<"After parallelFor IIT neighbors"<< std::endl;
-
-// Update the bounding constant
-          // Rcpp::Rcout <<"Declaring getmax"<< std::endl;
-          GetMax get_max(output_current_X);
-          // Rcpp::Rcout <<"Before parallelReduce GetMax"<< std::endl;
-          parallelReduce(0,dim_size,get_max);
-          // Rcpp::Rcout <<"After parallelReduce GetMax"<< std::endl;
-          //Always increase the bounding constant
-          log_bound_vector(replica)=ret_max(get_max.max_value,log_bound_vector(replica),0);
-
-          current_log_bound=log_bound_vector(replica);
-          if(current_log_bound>700){
-            Rcpp::Rcout <<"Replica:"<<replica<<" Current log-bound:"<<current_log_bound<< std::endl;
-            Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
+          int temperature_index=index_process(replica);
+          current_temp=temp(temperature_index);// Extract temperature of the replica
+          
+          current_X=X(_,replica);
+          update_state=true;
+          ///// Check distance to modes
+          for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+            double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+            if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+              distance_modes(mode_counter,temperature_index)=dist_mode;
+              std::clock_t time_find_mode = std::clock();
+              double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+              time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+              if(dist_mode==0){
+                if(check_mode_visit(mode_counter)==0){
+                  //The first time a mode is visited, it prints a message
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" during burn-in, swaps:"<<swap_count<<" temp:"<<current_temp<< std::endl;
+                }
+                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+              }
+            }
           }
-          NumericVector bounded_vector=output_current_X - current_log_bound;
-          // Rcpp::Rcout <<"Declaring getmax"<< std::endl;
-          SumExp get_sum(bounded_vector);
-          // Rcpp::Rcout <<"Before parallelReduce SumExp"<< std::endl;
-          parallelReduce(0,dim_size,get_sum);
-          // Rcpp::Rcout <<"After parallelReduce SumExp"<< std::endl;
-          Z=get_sum.Z/p;//Divide over the number of neighbors since we're using uniform distribution
-          new_samples=1+R::rgeom(Z);//Get multiplicity list
-          if(new_samples<1){
-            Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
-            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
-            Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
-            new_samples=sample_inter_swap;
-          }
+          
+          if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
+            
+            NumericVector output_current_X_ratios(p);
+            //// Visit neighbors of current state in parallel and compute probability ratios
+            Ratio_probabilities visit_X_neighbors(current_X,
+                                                  Q_mat_R,
+                                                  current_temp,
+                                                  theta,
+                                                  output_current_X_ratios,
+                                                  dim_size,
+                                                  number_modes);
 
-          if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
-            new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
-            update_state=false;
-          }
-          samples_replica+=new_samples; // Update number of samples obtained from the replica
-          if(update_state){
-            ////Sample Proportionally
-            //Get random uniforms
-            arma::Col<double> u_random(p,fill::randu);
-            NumericVector u=Rcpp::wrap(u_random);
-            //Compute the needed values
-            NumericVector choose_min=log(-log(u)) - (output_current_X);//We can sample from
-            //Find the index of the minimum entry
-            GetMin min_coord(choose_min);
-            parallelReduce(0,dim_size,min_coord);
-            //Swap that coordinate
-            X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
-          }//End If for updating state
+            parallelFor(0,dim_size,visit_X_neighbors);//Apply ParallelFor
+            
+            // And find the new bounding constant
+            if(bal_func==1){
+              //If we are using MIN balancing function we don't need to update the bounding constant.
+            }else{
+              // Find new bounding constant  
+              GetMax get_max(output_current_X_ratios);
+              parallelReduce(0,dim_size,get_max);
+              //Update the vector of bounding constants
+              //Considering the previous constant and the BF applied to the max of the ratios 
+              log_bound_vector(temperature_index)=ret_max(apply_bal_func(get_max.max_value,bal_func),log_bound_vector(temperature_index),0);  
+            }
+            if(current_log_bound>700){//Message in case we underlow the probabilities
+              Rcpp::Rcout <<"Replica:"<<replica<<" Current log-bound:"<<current_log_bound<< std::endl;
+              Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
+            }
+            // Extract the updated log-bound of the corresponding temperature
+            current_log_bound=log_bound_vector(temperature_index);
+            
+            NumericVector output_current_X_bounded(p);
+            //// Apply balancing function to probability ratios
+            Apply_bal_func_parallel X_apply_bf(output_current_X_ratios,
+                                      output_current_X_bounded,
+                                      dim_size,
+                                      current_log_bound,
+                                      bal_func);
 
-        }//End while loop to update repicas
+            parallelFor(0,dim_size,X_apply_bf);//Apply ParallelFor
+            
+            
+            //Add the probabilities to compute the Z factor
+            SumExp get_sum(output_current_X_bounded);
+            parallelReduce(0,dim_size,get_sum);
+            Z=get_sum.Z/p;//Divide over number of neighbors
+            //// Compute weight
+            new_samples=1+R::rgeom(Z);
+            if(new_samples<1){//In case we encounter numerical errors
+              Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << swap_count <<" temperature:"<<current_temp<< std::endl;
+              Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+              new_samples=sample_inter_swap;
+            }
+            if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
+              new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
+              update_state=false;//Then we stay in the current state.
+            }
+            
+            
+            if(update_state){
+              ////Sample Proportionally
+              //Get random uniforms
+              arma::Col<double> u_random(p,fill::randu);
+              NumericVector u=Rcpp::wrap(u_random);
+              //Compute the needed values
+              NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);//We can sample from
+              //Find the index of the minimum entry
+              GetMin min_coord(choose_min);
+              parallelReduce(0,dim_size,min_coord);
+              //Swap that coordinate
+              X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
+            }//End If for updating state
+            
+            //The new bounding constant will be used in the next iteration
+          }else{//For the hotter temperatures we use step by step update
+            //// Process to perform step by step instead of rejection free steps     
+            // single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
+            single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound);
+            new_samples=1;
+            bool accept_jump=single_step_output(0);
+            int chosen_coord_single = single_step_output(1);
+            if(accept_jump){
+              X(chosen_coord_single,replica)=1-X(chosen_coord_single,replica);   
+            }
+            //For the acceptance-rejection we update the bound after trying the jump
+            if(bal_func==1){
+              //If we are using MIN balancing function we don't need to update the bounding constant.
+            }else{
+              //Update the vector of bounding constants
+              //Considering the previous constant and the BF applied to the ratio of probabilities 
+              log_bound_vector(temperature_index)=ret_max(apply_bal_func(single_step_output(2),bal_func),log_bound_vector(temperature_index),0);  
+            }
+          }//End IF-ELSE between rejection free or acceptance-rejection
+          
+          samples_replica+=new_samples; // Update number of samples obtained from the replica 
+          
+          
+        }//End while loop to update replicas
       }//End loop to update replicas in the burn-in
-
+      
       //// Start replica swap process for the burn-in
-
+      
       swap_count+=1;//Increase the count of swaps
       //Try a replica swap after reaching sample_inter_swap in each replica
       //We're doing non-reversible parallel tempering
@@ -1199,7 +1273,7 @@ std::clock_t start = std::clock(); // Start timer for simulation s
       for(int t=starting;t<J;t+=2){// For loop that runs over temperature indexes to swap
         Xtemp_from=X(_,t);
         Xtemp_to=X(_,t+1);
-
+        
         //// Computing swap probability
         swap_prob=(temp(t)-temp(t+1))*(loglik_R(Xtemp_to,Q_mat_R,theta) - loglik_R(Xtemp_from,Q_mat_R,theta));
         swap_prob=exp(swap_prob);
@@ -1210,36 +1284,36 @@ std::clock_t start = std::clock(); // Start timer for simulation s
           for(int coord=0;coord<p;coord++){
             X(coord,t+1)=Xtemp_from[coord];
             X(coord,t)=Xtemp_to[coord];
-              }
           }
+        }
       }//End for loop for swaping odd-even replicas
       track_burn_in+=sample_inter_swap;
-
+      
     }//End while loop to track burn-in
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
-//////////////////////Finish the loop for burn-in period
+    //////////////////////Finish the loop for burn-in period
     max_log_bound_vector=log_bound_vector;
     swap_count=0; //Reset swap count
-   
     
-      
-//// Start the loop for all iterations in simulation s
+    
+    
+    //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
-    if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
-        // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
+      if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+      // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
         while(samples_replica<sample_inter_swap){//Loop to create samples for each replica until we reach the defined threshold
-         
+          
           int temperature_index=index_process(replica);
           total_iterations(i,temperature_index,s)+=1;//increase the number of iterations
           current_temp=temp(temperature_index);// Extract temperature of the replica
           current_log_bound=log_bound_vector(temperature_index);// Extract log-bound of the corresponding temperature
           current_X=X(_,replica);
-          bool update_state=true;
-
+          update_state=true;
           
-///// Check distance to modes
+          
+          ///// Check distance to modes
           for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
             double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
             if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
@@ -1257,68 +1331,68 @@ std::clock_t start = std::clock(); // Start timer for simulation s
             }
           }
           
-if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
-  //// Visit neighbors in parallel
-  NumericVector output_current_X_bounded(p);
-  IIT_visit_bounded visit_current_X_bounded(current_X,
-                                            Q_mat_R,
-                                            current_temp,
-                                            theta,
-                                            output_current_X_bounded,
-                                            dim_size,
-                                            number_modes,
-                                            current_log_bound,
-                                            bal_func);
-  
-  parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
-  //// Add the h(piy/pix) to compute Z factor
-  SumExp get_sum(output_current_X_bounded);
-  parallelReduce(0,dim_size,get_sum);
-  Z=get_sum.Z/p;//Divide over number of neihgbors
-  //// Compute weight
-  new_samples=1+R::rgeom(Z);
-  if(new_samples<1){
-    Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
-    Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
-    new_samples=sample_inter_swap;
-  }
-  if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
-    new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
-    update_state=false;
-  }
-  
-  
-  if(update_state){
-    ////Sample Proportionally
-    //Get random uniforms
-    arma::Col<double> u_random(p,fill::randu);
-    NumericVector u=Rcpp::wrap(u_random);
-    //Compute the needed values
-    NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);//We can sample from
-    //Find the index of the minimum entry
-    GetMin min_coord(choose_min);
-    parallelReduce(0,dim_size,min_coord);
-    //Swap that coordinate
-    X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
-  }//End If for updating state
-  
-}else{//For the hotter temperatures we use step by step update
-  //// Process to perform step by step instead of rejection free steps     
-  // single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
-  single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound);
-  new_samples=1;
-  bool accept_jump=single_step_output(0);
-  int chosen_coord_single = single_step_output(1);
-  if(accept_jump){
-    X(chosen_coord_single,replica)=1-X(chosen_coord_single,replica);   
-  }
-}
-
-///// Updating before the next iteration of the loop
+          if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
+            //// Visit neighbors in parallel
+            NumericVector output_current_X_bounded(p);
+            IIT_visit_bounded visit_current_X_bounded(current_X,
+                                                      Q_mat_R,
+                                                      current_temp,
+                                                      theta,
+                                                      output_current_X_bounded,
+                                                      dim_size,
+                                                      number_modes,
+                                                      current_log_bound,
+                                                      bal_func);
+            
+            parallelFor(0,dim_size,visit_current_X_bounded);//Apply ParallelFor
+            //// Add the h(piy/pix) to compute Z factor
+            SumExp get_sum(output_current_X_bounded);
+            parallelReduce(0,dim_size,get_sum);
+            Z=get_sum.Z/p;//Divide over number of neihgbors
+            //// Compute weight
+            new_samples=1+R::rgeom(Z);
+            if(new_samples<1){
+              Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+              Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+              new_samples=sample_inter_swap;
+            }
+            if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
+              new_samples = sample_inter_swap-samples_replica;//We force to stop at sample_inter_swap
+              update_state=false;
+            }
+            
+            
+            if(update_state){
+              ////Sample Proportionally
+              //Get random uniforms
+              arma::Col<double> u_random(p,fill::randu);
+              NumericVector u=Rcpp::wrap(u_random);
+              //Compute the needed values
+              NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);//We can sample from
+              //Find the index of the minimum entry
+              GetMin min_coord(choose_min);
+              parallelReduce(0,dim_size,min_coord);
+              //Swap that coordinate
+              X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
+            }//End If for updating state
+            
+          }else{//For the hotter temperatures we use step by step update
+            //// Process to perform step by step instead of rejection free steps     
+            // single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_func, double current_temp, double theta, double current_log_bound)
+            single_step_output=single_step_update(current_X,Q_mat_R,p,bal_func,current_temp,theta,current_log_bound);
+            new_samples=1;
+            bool accept_jump=single_step_output(0);
+            int chosen_coord_single = single_step_output(1);
+            if(accept_jump){
+              X(chosen_coord_single,replica)=1-X(chosen_coord_single,replica);   
+            }
+          }
+          
+          ///// Updating before the next iteration of the loop
           samples_replica+=new_samples; // Update number of samples obtained from the replica 
         }//End loop to update a single replica
       }//End loop to update all replicas
-
+      
       //// Start replica swap process
       swap_count+=1;//Increase the count of swaps
       epsilon_indic.fill(-1); //Epsilon indic starts as -1
@@ -1329,7 +1403,7 @@ if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Fr
       int starting=swap_count%2; // Detect if it's even or odd
       // Rcpp::Rcout <<"Trying replica swap "<<swap_count<<" start: "<<starting <<" at iteration: "<< i << std::endl;
       for(int t=starting;t<J;t+=2){// For loop that runs over temperature indexes to swap
-
+        
         epsilon_indic.elem(find(index_process==t)).ones();
         prop_swap.elem(find(index_process==t)).ones(); //we swap temperature t
         prop_swap.elem(find(index_process==t+1)).ones(); //With t+1
@@ -1340,11 +1414,11 @@ if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Fr
         size_t index_t_1=std::distance(index_process.begin(), find_t_1);
         Xtemp_from=X(_,index_t);
         Xtemp_to=X(_,index_t_1);
-
+        
         //// Computing swap probability
         swap_prob=(temp(t)-temp(t+1))*(loglik_R(Xtemp_to,Q_mat_R,theta) - loglik_R(Xtemp_from,Q_mat_R,theta));
         swap_prob=exp(swap_prob);
-
+        
         // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
         ppp=randu();
         if(ppp<swap_prob){//In case the swap is accepted
