@@ -8,7 +8,7 @@
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-#SBATCH --array=167,169
+#SBATCH --array=184-187
 
 module load r/4.5.0
 
