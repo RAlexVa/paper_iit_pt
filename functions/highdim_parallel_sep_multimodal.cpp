@@ -476,6 +476,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     swap_total.zeros();
     swap_success.zeros();
     check_mode_visit.fill(0);
+    
+    std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
@@ -607,7 +609,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     
     /////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
-    std::clock_t start = std::clock(); // Start timer for simulation s
+    
     // Sleep(5000);
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){

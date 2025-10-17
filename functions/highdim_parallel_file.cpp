@@ -183,10 +183,6 @@ double loglik_R(Rcpp::NumericVector& X, NumericMatrix& M) {
 
 
 
-
-
-
-
 ///// Full definition of internal functions of workers 
 double IIT_visit_neighbors::apply_bal_func_internal(double x,const int chosen){
   return apply_bal_func(x,chosen);
@@ -328,6 +324,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     swap_total.zeros();
     swap_success.zeros();
     finish_sim=false;
+    
+    std::clock_t start = std::clock(); // Start timer for simulation s
 /////// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
@@ -451,7 +449,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     
 /////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
-    std::clock_t start = std::clock(); // Start timer for simulation s
+    
     
 ////// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
@@ -821,7 +819,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
           }//End If for updating state
           
-        }//End while loop to update repicas
+        }//End while loop to update replicas
       }//End loop to update replicas in the burn-in
       
       //// Start replica swap process for the burn-in
