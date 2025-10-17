@@ -409,11 +409,12 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
 /////////////////Second case with smaller theta
   }else if(theta==0.001){//With this smaller theta we can work with p=10k 
     //and the contributions is at most -10 and the change is less than 0.001
+    // vec mode_weight={1,2.5,1,3.2,1,1.5,0.5};
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
       double dist_mode=arma::accu(abs(X-M.col(c)));
 
-        // Check the distance, 
         loglik_computed+=exp(-(dist_mode*theta));
+        // loglik_computed+=exp(-(dist_mode*theta*mode_weight(c)));
       //All the modes contribute because theta is small enough to avoid underflow
       
     }//End for loop for modes
@@ -627,6 +628,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     swap_total.zeros();
     swap_success.zeros();
     check_mode_visit.fill(0);
+// Start time tracking
+    std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
@@ -656,6 +659,24 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         //Find the index of the minimum entry
         GetMin min_coord(choose_min);
         parallelReduce(0,dim_size,min_coord);
+//// Check distance to modes
+        for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+          double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+          if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+            // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
+            distance_modes(mode_counter,temperature_index)=dist_mode;
+            std::clock_t time_find_mode = std::clock();
+            double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+            time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+            if(dist_mode==0){
+              if(check_mode_visit(mode_counter)==0){
+                //The first time a mode is visited, it prints a message
+                Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+              }
+              check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+            }
+          }
+        }
         //Swap that coordinate
         X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
         // X.col(replica)=vec(output(0)); //Update current state of the chain
@@ -758,8 +779,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 
     /////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
-    std::clock_t start = std::clock(); // Start timer for simulation s
-    // Sleep(5000);
+
+
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
@@ -788,15 +809,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         //Find the index of the minimum entry
         GetMin min_coord(choose_min);
         parallelReduce(0,dim_size,min_coord);
-        
-        // Rcpp::Rcout <<"Temp: "<<replica<< " Min Coord: " << min_coord.min_index  << std::endl;
-        // // Rcpp::Rcout <<"Temp: "<<replica<< " Current X:\n " << output_current_X << std::endl;
-        // Rcpp::Rcout <<"idx 72: "<<output_current_X[71]<< " idx 476: " <<output_current_X[475]<<" idx 1: " <<output_current_X[0]<< std::endl;
-        // Rcpp::Rcout <<"Minimum : "<<output_current_X[min_coord.min_index]<< std::endl;
-        // Rcpp::Rcout <<"Temp: "<<current_temp<< " Now with the rand: " << std::endl;
-        // Rcpp::Rcout <<"idx 72: "<<choose_min[71]<< " idx 476: " <<choose_min[475]<<" idx 1: " <<choose_min[0]<< std::endl;
-        // Rcpp::Rcout <<"Minimum : "<<choose_min[min_coord.min_index]<< std::endl;
-        
+
 //// Check distance to modes
         for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
           double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
@@ -1097,9 +1110,11 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //Reset the probability to reduce the bounding constant
     if(reduc_model=="iterations"){update_prob=true;prob_to_dec=1;} //Reset the bool to update probability
     sample_iterations_count=0; // Reset the counting of iterations (or samples)
-    ////Start the loop for burn-in period
+//////Start the loop for burn-in period
     Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Starting burn-in period "<< std::endl;
     int track_burn_in=0;
+// Start tracking of time
+std::clock_t start = std::clock(); // Start timer for simulation s    
     while(track_burn_in<burn_in){
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
         int samples_replica=0;
@@ -1107,9 +1122,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           update_state=true;
           current_temp=temp(replica);// Extract temperature of the replica
           current_X=X(_,replica);
-          NumericVector output_current_X(p);
+          
           //Visit neighbors of current state
-          // Rcpp::Rcout <<"Declaring vising IIT neighbors"<< std::endl;
+          NumericVector output_current_X(p);
           IIT_visit_neighbors visit_current_X(current_X,
                                               Q_mat_R,
                                               bal_func,
@@ -1202,17 +1217,13 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 
     }//End while loop to track burn-in
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
-    //////////////////////Finish the loop for burn-in period
-max_log_bound_vector=log_bound_vector;
-// Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
-// Rcpp::Rcout <<"Dist2\n "<< distance_mode2 << std::endl;
-// Rcpp::Rcout <<"Time1\n "<< time_find_m1 << std::endl;
-// Rcpp::Rcout <<"Time2\n "<< time_find_m2 << std::endl;
+//////////////////////Finish the loop for burn-in period
+    max_log_bound_vector=log_bound_vector;
     swap_count=0; //Reset swap count
-    std::clock_t start = std::clock(); // Start timer for simulation s
+   
     
-    // Sleep(5000);    
-    //// Start the loop for all iterations in simulation s
+      
+//// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
     if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
         // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
