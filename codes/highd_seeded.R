@@ -148,7 +148,7 @@ run_highd <- function(list_ids,unique_id=1){
           if(alg=="PT_A_IIT"){
             # Using A-IIT in each replica
             # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf){
-            output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,iterswap,burnin_iter,temperatures,bal_f,"",0,0,0,"never",theta,num_modes, temps_for_rf)
+            output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,iterswap,burnin_iter,temperatures,bal_f,file_matrix,0,0,0,"never",theta,num_modes, temps_for_rf)
             #round trip rate (NA for IIT)
             swaps_for_rt_rate <- total_swap
           }
