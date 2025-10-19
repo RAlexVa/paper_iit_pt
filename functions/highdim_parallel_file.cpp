@@ -748,6 +748,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     ////Start the loop for burn-in period
     Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Starting burn-in period "<< std::endl;
     int track_burn_in=0;
+    // Start tracking of time
+    std::clock_t start = std::clock(); // Start timer for simulation s
     while(track_burn_in<burn_in){
       for(int replica=0;replica<T;replica++){//For loop for replica update in the burn-in
         int samples_replica=0;
@@ -853,7 +855,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //////////////////////Finish the loop for burn-in period
     max_log_bound_vector=log_bound_vector;
     swap_count=0; //Reset swap count
-    std::clock_t start = std::clock(); // Start timer for simulation s
+    
     
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
