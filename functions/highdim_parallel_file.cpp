@@ -263,7 +263,7 @@ List single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_f
   List ret_single_step;
   ret_single_step["jump"]=success_jump;
   ret_single_step["coord"]=random_neighbor;
-  
+  ret_single_step["ratio_probs"]=logratio_probs;
   return ret_single_step;
   
 }
