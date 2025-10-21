@@ -66,6 +66,61 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
   
   return(A);
 }
+// [[Rcpp::export]]
+arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols, const mat mode_matrix) {
+  arma::mat A(num_rows, num_cols,fill::zeros);
+  arma::vec chosen_modes(num_cols); //Create vector to store chosen modes
+  Rcpp::NumericVector b(num_cols);
+  int check_nrows=mode_matrix.n_rows;
+  int k=150 //Size of the cone of the likelihood function
+  int l=10 // How far apart are we from the border of the cone.
+  if((num_rows!=check_nrows)){
+    Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
+    return(A);}
+  
+  int number_modes=mode_matrix.n_cols; //Number of modes in the model
+  
+  if(number_modes>num_cols){//Check if we have enough replicas
+    Rcpp::Rcout << "Number of modes is bigger than number of replicas" << std::endl;
+    //Randomly choose from all the modes using the previous code
+    //We use this for the find_temp algorithm
+    for(int r=0;r<num_cols;r++){
+      int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));
+      chosen_modes(r)=choose_mode;//Store the chosen mode in the vector
+    }
+  }else{//In case we have more replicas than modes
+    
+    for(int r=0;r<number_modes;r++){
+      chosen_modes(r)=r;//We first input 1 of each mode to have a replica close to each
+    }
+    for(int r=number_modes;r<num_cols;r++){
+      int choose_mode = arma::randi<int>(arma::distr_param(0, number_modes-1));//Randomly choose a mode
+      chosen_modes(r)=choose_mode;//Store the chosen mode in the vector
+    }
+    
+    // Shuffle the vector of modes
+    chosen_modes=arma::shuffle(chosen_modes);
+  }
+  // After the modes have been chosen, we create the random initial states
+  // Rcpp::Rcout << "Chosen modes vec:\n" <<chosen_modes<< std::endl;
+  
+  for(int r=0;r<num_cols;r++){
+    
+    A.col(r)=mode_matrix.col(chosen_modes(r));//State close to that mode
+    int N;
+    
+    N = arma::randi<int>(arma::distr_param(k-l,k+l));//Define number of coords to flip
+
+    Rcpp::Rcout << "Chosen mode:" <<chosen_modes(r)<<", Change coords: "<<N<< std::endl;
+    uvec indices = arma::randperm(num_rows, N);//Choose coords to flip
+    
+    //Flip the chosen coords.
+    for (arma::uword i = 0; i < indices.n_elem; ++i) {
+      A(indices(i),r) = 1 - A(indices(i),r);
+    }
+  }
+  return(A);
+}
 
 
 // [[Rcpp::export]]
