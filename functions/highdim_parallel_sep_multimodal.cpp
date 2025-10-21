@@ -539,8 +539,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // double ppm=randu();
     arma::Mat<double> inter_mat(p,T);
     // inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
-    // inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
-    inter_mat=initializeRandom(p,T,arma::randu());//Random initialization, with few 1s
+    inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
+    // inter_mat=initializeRandom(p,T,arma::randu());//Random initialization, with few 1s
     X=Rcpp::wrap(inter_mat);
     initialX=clone(X);
     swap_total.zeros();
@@ -1029,9 +1029,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     
     // double ppm=randu();
     arma::Mat<double> inter_mat(p,T);
-    // inter_mat=initializeRandom(p,T,ppm);//Randomly initialize the state of each replica.
-    // inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
-    inter_mat=initializeRandom(p,T,arma::randu());//Random initialization, with few 1s
+
+    inter_mat=initializeRandom_w_modes(p,T,Q_matrix);
+    // inter_mat=initializeRandom(p,T,arma::randu());//Random initialization, with few 1s
     X=Rcpp::wrap(inter_mat);
     
     check_mode_visit.fill(0);
