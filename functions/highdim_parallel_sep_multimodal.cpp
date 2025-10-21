@@ -72,8 +72,8 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
   arma::vec chosen_modes(num_cols); //Create vector to store chosen modes
   Rcpp::NumericVector b(num_cols);
   int check_nrows=mode_matrix.n_rows;
-  int k=150 //Size of the cone of the likelihood function
-  int l=10 // How far apart are we from the border of the cone.
+  int k=150; //Size of the cone of the likelihood function
+  int l=10; // How far apart are we from the border of the cone.
   if((num_rows!=check_nrows)){
     Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
     return(A);}
@@ -322,19 +322,18 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 }
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
-  double loglik_computed=-0.0;
-  ////////////////First case with theta=0.1
+  double loglik_computed=+0.0;
     bool close_enough=false;  
-    
     uword dimension=X.n_rows;//Dimension of the problem
+    int k=150; // Size of the cone surrounding the mode
     
-    double max_dist=dimension*0.15;//The size of the cone around the mode is 15% of the dim
+    double max_dist=k;//The size of the cone around the mode is 15% of the dim
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
       double dist_mode=arma::accu(abs(X-M.col(c)));
       if(dist_mode<max_dist){
         // At most 1 mode contributes to the likelihood
-        loglik_computed-=(dist_mode*theta);
+        loglik_computed+=(theta/(1+dist_mode));
         close_enough=true;
       }
       
@@ -343,7 +342,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
 
     }else{
       //If not close to any mode, return something flat.
-      loglik_computed=-max_dist*theta;
+      loglik_computed=theta/(1+max_dist);
     }
  
  return(loglik_computed);
