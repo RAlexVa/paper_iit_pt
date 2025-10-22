@@ -196,7 +196,10 @@ find_temp_highd_recurrent <- function(list_ids){
       while(havent_reach_min){
       
       sim_chosen <- parameters |> filter(id==id_chosen)
-      if(nrow(sim_chosen)!=1){print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one")); next;}
+      if(nrow(sim_chosen)!=1){
+        print(paste0("Error: id ",id_chosen," doesn't exist or there's more than one"));
+        if(length(list_ids)==1){break;}else{next;}
+        next;}
       #In case there are more than 1 model, I need to re-read functions depending on model
       
       # Parameters for all algorithms
@@ -244,6 +247,9 @@ find_temp_highd_recurrent <- function(list_ids){
         chosen_file <- paste0("gset/",sim_chosen$filename,".txt")
         p <- problem_dim(chosen_file)
         chosen_model_toprint <- paste0(chosen_model," ",chosen_file)
+      }else if(chosen_model=="spaced"){
+        Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp");
+        chosen_model_toprint <- paste0(chosen_model)
       }
       
       temp_to_find <- sim_chosen$tf;
@@ -345,16 +351,16 @@ find_temp_highd_recurrent <- function(list_ids){
               file = paste0("results/temperatures_id_",id_chosen,".txt"), 
               append = TRUE)
       }
-if(sign(search_direction)<0){
-  if(min(temperatures)<=temp_to_find){#We've reached the min_temperature
+if(sign(search_direction)<0){# For decreasing temperatures
+  if(min(temperatures)<=temp_to_find){#We've reached the threshold temperature
     havent_reach_min <- FALSE;
   }else{
     after_first_run <- TRUE
     new_temp_ini <- min(temperatures);
   }
 } 
-if(sign(search_direction)>0){
-  if(max(temperatures)>=temp_to_find){#We've reached the min_temperature
+if(sign(search_direction)>0){ #For increasing temperatures
+  if(max(temperatures)>=temp_to_find){#We've reached the threshold temperature
     havent_reach_min <- FALSE;
   }else{
     after_first_run <- TRUE
