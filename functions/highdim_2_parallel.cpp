@@ -367,13 +367,14 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   double loglik_computed=-0.0;
+  uword dimension=X.n_rows;
 ////////////////First case with theta=0.1
   if(theta==0.1){//For theta=0.1 only 1 mode contribute at a time to the likelihood
     bool close_enough=false;  
     
     double loglik_second_part=-0.0;
     double max_dist=400.0;//How long do we allow the tail to go
-    uword dimension=X.n_rows;
+    
     if(dimension>1000){max_dist=(dimension/4);//Increase the max_dist from mode
       if((max_dist*theta)>700){max_dist=((700/theta)-1);}//To avoid underflow of EXP function
     }
@@ -419,9 +420,31 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
       
     }//End for loop for modes
     return(log(loglik_computed));
-  }else{//For a different theta the function is not defined
-    Rcpp::Rcout <<" The value of theta is not 0.1 or 0.001, Modify! "<< std::endl;
-    return(-10000);
+  }else if((dimension*theta)/5 <700){//For a different theta 
+    bool close_enough=false;  
+    double max_dist=dimension/5;//How long do we allow the tail to go
+    //Each column in M is a mode
+    for(uword c=0;c<M.n_cols;c++){//For loop for modes
+      double dist_mode=arma::accu(abs(X-M.col(c)));
+      if(dist_mode<max_dist ){
+        // Check the distance, so there's space between modes
+        //Check that computing exp of the log-lik doesnt underflow
+        loglik_computed-=(dist_mode*theta);
+        close_enough=true;
+      }
+      
+    }//End for loop for modes
+    if(close_enough){
+      // Rcpp::Rcout <<"Yes CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
+      return(loglik_computed);
+    }else{
+      // return(loglik_second_part);
+      // Rcpp::Rcout <<"NO CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
+      return(-max_dist*theta);
+    }
+  }else{
+    Rcpp::Rcout <<"The value of theta and dimension of the problem make the probabilities underflow"<< std::endl;
+    return(-100000);
   }
   
   
