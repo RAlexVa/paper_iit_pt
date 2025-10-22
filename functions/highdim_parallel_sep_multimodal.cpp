@@ -70,10 +70,10 @@ arma::Mat<double> initializeRandom(const int num_rows,const int num_cols, const 
 arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols, const mat mode_matrix) {
   arma::mat A(num_rows, num_cols,fill::zeros);
   arma::vec chosen_modes(num_cols); //Create vector to store chosen modes
-  Rcpp::NumericVector b(num_cols);
+  // Rcpp::NumericVector b(num_cols);
   int check_nrows=mode_matrix.n_rows;
-  int k=150; //Size of the cone of the likelihood function
-  int l=10; // How far apart are we from the border of the cone.
+  int k=check_nrows/5; //Size of the cone of the likelihood function
+  int l=check_nrows/40; // How far apart are we from the border of the cone.
   if((num_rows!=check_nrows)){
     Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
     return(A);}
@@ -325,7 +325,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   double loglik_computed=+0.0;
     bool close_enough=false;  
     uword dimension=X.n_rows;//Dimension of the problem
-    int k=150; // Size of the cone surrounding the mode
+    int k=dimension/5; // Size of the cone surrounding the mode
     
     double max_dist=k;//The size of the cone around the mode is 15% of the dim
     //Each column in M is a mode
