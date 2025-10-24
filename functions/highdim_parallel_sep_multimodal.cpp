@@ -1090,7 +1090,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               //If we are using MIN balancing function we don't need to update the bounding constant.
             }else{
               // Find new bounding constant  
-              GetMax get_max(output_current_X_ratios);
+              // GetMax get_max(output_current_X_ratios);
+              GetMaxAbs get_max(output_current_X_ratios);
               parallelReduce(0,dim_size,get_max);
               //Update the vector of bounding constants
               //Considering the previous constant and the BF applied to the max of the ratios 

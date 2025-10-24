@@ -1204,19 +1204,20 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               //If we are using MIN balancing function we don't need to update the bounding constant.
             }else{
               // Find new bounding constant  
-              GetMax get_max(output_current_X_ratios);
+              // GetMax get_max(output_current_X_ratios);
+              GetMaxAbs get_max(output_current_X_ratios);
               parallelReduce(0,dim_size,get_max);
               //Update the vector of bounding constants
               //Considering the previous constant and the BF applied to the max of the ratios 
               log_bound_vector(temperature_index)=ret_max(apply_bal_func(get_max.max_value,bal_func),log_bound_vector(temperature_index),0);  
             }
+            
+            // Extract the updated log-bound of the corresponding temperature
+            current_log_bound=log_bound_vector(temperature_index);
             if(current_log_bound>700){//Message in case we underlow the probabilities
               Rcpp::Rcout <<"Replica:"<<replica<<" Current log-bound:"<<current_log_bound<< std::endl;
               Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
             }
-            // Extract the updated log-bound of the corresponding temperature
-            current_log_bound=log_bound_vector(temperature_index);
-            
             NumericVector output_current_X_bounded(p);
             //// Apply balancing function to probability ratios
             Apply_bal_func_parallel X_apply_bf(output_current_X_ratios,
