@@ -1187,13 +1187,23 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           
           if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
             
-            NumericVector output_current_X_ratios(p);
-            //// Visit neighbors of current state in parallel and compute probability ratios
-            Ratio_probabilities visit_X_neighbors(current_X,
+            // NumericVector output_current_X_ratios(p);
+            // //// Visit neighbors of current state in parallel and compute probability ratios
+            // Ratio_probabilities visit_X_neighbors(current_X,
+            //                                       Q_mat_R,
+            //                                       current_temp,
+            //                                       theta,
+            //                                       output_current_X_ratios,
+            //                                       dim_size,
+            //                                       number_modes);
+            NumericVector output_current_X(p);
+            //// Visit neighbors of current state in parallel and apply Balancing function to probability ratios
+            IIT_visit_neighbors visit_X_neighbors(current_X,
                                                   Q_mat_R,
+                                                  bal_func,
                                                   current_temp,
                                                   theta,
-                                                  output_current_X_ratios,
+                                                  output_current_X,
                                                   dim_size,
                                                   number_modes);
 
@@ -1205,11 +1215,13 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             }else{
               // Find new bounding constant  
               // GetMax get_max(output_current_X_ratios);
-              GetMaxAbs get_max(output_current_X_ratios);
+              GetMaxAbs get_max(output_current_X);
               parallelReduce(0,dim_size,get_max);
               //Update the vector of bounding constants
               //Considering the previous constant and the BF applied to the max of the ratios 
-              log_bound_vector(temperature_index)=ret_max(apply_bal_func(get_max.max_value,bal_func),log_bound_vector(temperature_index),0);  
+              // log_bound_vector(temperature_index)=ret_max(apply_bal_func(get_max.max_value,bal_func),log_bound_vector(temperature_index),0);  
+              //Considering the previous constant and the current needed bound
+              log_bound_vector(temperature_index)=ret_max(get_max.max_value,log_bound_vector(temperature_index),0);  
             }
             
             // Extract the updated log-bound of the corresponding temperature
@@ -1218,19 +1230,20 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               Rcpp::Rcout <<"Replica:"<<replica<<" Current log-bound:"<<current_log_bound<< std::endl;
               Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
             }
-            NumericVector output_current_X_bounded(p);
-            //// Apply balancing function to probability ratios
-            Apply_bal_func_parallel X_apply_bf(output_current_X_ratios,
-                                      output_current_X_bounded,
-                                      dim_size,
-                                      current_log_bound,
-                                      bal_func);
-
-            parallelFor(0,dim_size,X_apply_bf);//Apply ParallelFor
-            
+            // NumericVector output_current_X_bounded(p);
+            // //// Apply balancing function to probability ratios
+            // Apply_bal_func_parallel X_apply_bf(output_current_X_ratios,
+            //                           output_current_X_bounded,
+            //                           dim_size,
+            //                           current_log_bound,
+            //                           bal_func);
+            // 
+            // parallelFor(0,dim_size,X_apply_bf);//Apply ParallelFor
+            NumericVector bounded_vector=output_current_X-current_log_bound;
             
             //Add the probabilities to compute the Z factor
-            SumExp get_sum(output_current_X_bounded);
+            // SumExp get_sum(output_current_X_bounded);
+            SumExp get_sum(bounded_vector);
             parallelReduce(0,dim_size,get_sum);
             Z=get_sum.Z/p;//Divide over number of neighbors
             //// Compute weight
@@ -1251,8 +1264,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               //Get random uniforms
               arma::Col<double> u_random(p,fill::randu);
               NumericVector u=Rcpp::wrap(u_random);
-              //Compute the needed values
-              NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);//We can sample from
+              //Sample proportional to the BF applied to the ratio of probabilities
+              // NumericVector choose_min=log(-log(u)) - (output_current_X_bounded);
+              NumericVector choose_min=log(-log(u)) - (bounded_vector);
               //Find the index of the minimum entry
               GetMin min_coord(choose_min);
               parallelReduce(0,dim_size,min_coord);
