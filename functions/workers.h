@@ -487,5 +487,34 @@ struct GetMax : public Worker
   }
 };//End of worker to find maximum of a vector
 
+struct GetMaxAbs : public Worker
+{   
+  const RVector<double> X;// input vector
+  double max_value; // MIN value found
+  std::size_t max_index; // Index of MIN value
+  // constructors
+  GetMaxAbs(const NumericVector X) : X(X), max_value(-9999999),max_index(0) {}
+  GetMaxAbs(const GetMaxAbs& max_cons, Split) : X(max_cons.X), max_value(-9999999),max_index(0) {}
+  
+  // accumulate just the element of the range I've been asked to
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t i = begin; i < end; ++i) {
+      double temp=abs(X[i]);
+      if(temp>max_value){
+        max_value=temp;
+        max_index=i;
+      }
+    }
+  }// End of operator
+  
+  // join my value with that of another Sum
+  void join(const GetMaxAbs& other) {
+    if(other.max_value>max_value){
+      max_value = other.max_value;
+      max_index = other.max_index;
+    }
+  }
+};//End of worker to find maximum of a vector
+
 
 #endif
