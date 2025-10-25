@@ -72,8 +72,8 @@ arma::Mat<double> initializeRandom_w_modes(const int num_rows,const int num_cols
   arma::vec chosen_modes(num_cols); //Create vector to store chosen modes
   // Rcpp::NumericVector b(num_cols);
   int check_nrows=mode_matrix.n_rows;
-  int k=check_nrows/5; //Size of the cone of the likelihood function
-  int l=check_nrows/40; // How far apart are we from the border of the cone.
+  int k=check_nrows/2;//5; //Size of the cone of the likelihood function
+  int l=check_nrows/10;//40; // How far apart are we from the border of the cone.
   if((num_rows!=check_nrows)){
     Rcpp::Rcout << "Error: Number of rows dont match" << std::endl;
     return(A);}
@@ -325,7 +325,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   double loglik_computed=+0.0;
     bool close_enough=false;  
     uword dimension=X.n_rows;//Dimension of the problem
-    int k=dimension/5; // Size of the cone surrounding the mode
+    int k=dimension/2;///5; // Size of the cone surrounding the mode
     
     double max_dist=k;//The size of the cone around the mode is 15% of the dim
     //Each column in M is a mode
@@ -550,7 +550,9 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     std::clock_t start = std::clock(); // Start timer for simulation s
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
-      if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      if (i % 10000 == 1) {
+        Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;
+        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         int temperature_index=index_process(replica);
         current_temp=temp(temperature_index);
@@ -704,7 +706,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // Sleep(5000);
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
-      if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
+      if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;
+        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
       // Rcpp::Rcout << "State X:\n " <<X << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int temperature_index=index_process(replica);
@@ -1101,7 +1104,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             }else{
               // Find new bounding constant  
               // GetMax get_max(output_current_X_ratios);
-              GetMaxAbs get_max(output_current_X_ratios);
+              GetMaxAbs get_max(output_current_X);
               parallelReduce(0,dim_size,get_max);
               //Update the vector of bounding constants
               //Considering the previous constant and the BF applied to the max of the ratios 
@@ -1202,7 +1205,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         //// Computing swap probability
         swap_prob=(temp(t)-temp(t+1))*(loglik_R(Xtemp_to,Q_mat_R,theta) - loglik_R(Xtemp_from,Q_mat_R,theta));
         swap_prob=exp(swap_prob);
-        Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
+        // Rcpp::Rcout <<"Swap prob "<< swap_prob << std::endl;
         ppp=randu();
         if(ppp<swap_prob){//In case the swap is accepted
           //Swap vectors in the matrix X
@@ -1216,6 +1219,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       
     }//End while loop to track burn-in
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
+    Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
     //////////////////////Finish the loop for burn-in period
     max_log_bound_vector=log_bound_vector;
     // Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
@@ -1227,7 +1231,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     // Sleep(5000);    
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
-      if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;}
+      if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;
+        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
       // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
