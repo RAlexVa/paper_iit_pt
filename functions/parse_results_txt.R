@@ -103,9 +103,4 @@ parse_pt_file <- function(filename, print_res=TRUE) {
 
 id <- 182
 dat <- parse_pt_file(file.path(getwd(),"results",paste0("temperatures_id_",id,".txt")))
-
-
-# paste0(dat$temps,collapse = ",")
-# paste0(dat$iterations,collapse = ",")
-# paste0(dat$swap_rate,collapse = ",")
-                     
+            
