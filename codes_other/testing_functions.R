@@ -2024,3 +2024,247 @@ for(i in 1:B){
 }
 
 table(probs[vector_jumps])
+
+
+######### checking random stuff
+
+n <- 1000
+q <- 0.99
+
+t <- 2*log(q*(n-1)/(1-q))
+t
+# t <- 24
+exp(t/2)/(n-1+exp(t/2))
+
+
+###### Checking the behavior of likelihoods for different balancing function
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
+p <- 1000
+k=150
+num_modes <- 7
+theta <- 5#0.001
+Q_matrix <- create_mode_matrix(p,num_modes)
+k <- 150
+vec_out <- c(rep(1,p-k-1),rep(0,k+1))
+vec_bor <- c(rep(1,p-k),rep(0,k))#In the boundary
+d <- 20
+vec_in <-  c(rep(1,p-k+d),rep(0,k-d))
+
+loglik_neigh <- c()
+loglik_neigh_in <- c()
+loglik_neigh_out <- c()
+
+cur_llik_out <- loglik(vec_out,Q_matrix,theta)
+cur_llik <- loglik(vec_bor,Q_matrix,theta)
+cur_llik_in <- loglik(vec_in,Q_matrix,theta)
+
+for(i in 1:p){
+  temp <- vec_out
+  temp[i] <- 1-temp[i]
+  loglik_neigh_out[i] <- loglik(temp,Q_matrix,theta)-cur_llik_out
+  
+  temp <- vec_bor
+  temp[i] <- 1-temp[i]
+  loglik_neigh[i] <- loglik(temp,Q_matrix,theta)-cur_llik
+  
+  temp <- vec_in
+  temp[i] <- 1-temp[i]
+  loglik_neigh_in[i] <- loglik(temp,Q_matrix,theta)-cur_llik_in
+  
+}
+table(loglik_neigh_out)
+table(loglik_neigh)
+table(loglik_neigh_in)
+## With min BF
+table(sapply(loglik_neigh_out,min,0))
+table(sapply(loglik_neigh,min,0)) #In the border it's still a random walk
+table(sapply(loglik_neigh_in,min,0))
+## With SQ BF
+table(sapply(loglik_neigh_out,function(x) x/2))
+table(sapply(loglik_neigh,function(x) x/2)) #In the border there's different probability
+table(sapply(loglik_neigh_in,function(x) x/2))
+
+#Comparing probabilities
+
+bf_min <- sapply(loglik_neigh_in,min,0)
+bf_sq <- sapply(loglik_neigh_in,function(x) x/2)
+
+probs_min <- exp(bf_min)/sum(exp(bf_min))
+probs_sq <- exp(bf_sq)/sum(exp(bf_sq))
+
+table(probs_min)
+table(probs_sq)
+
+###### Checking unif random
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
+
+set.seed(123)
+test_random();
+set.seed(12)
+test_random();
+set.seed(123)
+test_random();
+set.seed(13)
+test_random();
+set.seed(12)
+test_random()
+
+### Check likelihood of overlaping modes
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+p <- 1000
+num_modes <- 7
+theta <- 0.001
+Q_matrix <- create_mode_matrix(p,num_modes)
+
+distances_modes <- matrix(nrow=ncol(Q_matrix),ncol=ncol(Q_matrix))
+for(i in 1:(ncol(Q_matrix)-1)){
+  for(j in i:ncol(Q_matrix)){
+    distances_modes[i,j] <- L1_distance(Q_matrix[,i],Q_matrix[,j])
+  }
+}
+distances_modes
+
+x <- c(rep(1,p/2),rep(0,p/2))
+x <- rep(0,p)
+dist_modes <- c()
+for(i in 1:num_modes){
+dist_modes[i] <- sum(abs(x-Q_matrix[,i]))
+}
+dist_modes
+
+loglik(x,Q_matrix,theta)
+loglik(c(1,rep(0,p-1)),Q_matrix,theta)
+
+loglik_modes <- c()
+for(i in 1:num_modes){
+  loglik_modes[i] <- loglik(Q_matrix[,i],Q_matrix,theta)
+}
+loglik_modes
+
+llik_neigh <- matrix(NA,nrow=p,ncol=num_modes)
+for(i in 1:num_modes){
+  chosen_mode <- Q_matrix[,i]
+  for(j in 1:p){
+    temp <- chosen_mode
+    temp[j] <- 1-temp[j]
+    llik_neigh[j,i] <- loglik(temp,Q_matrix,theta)
+  }
+}
+#Checking that all of them are local modes
+for(i in 1:num_modes){
+check <-   all(llik_neigh[,i]<loglik_modes[i])
+print(check)
+}
+
+table(llik_neigh[,3])
+
+### Testing modifications to the Burn-in
+
+### Check likelihood of overlaping modes
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+p <- 1000
+num_modes <- 7
+theta <- 0.001
+Q_matrix <- create_mode_matrix(p,num_modes)
+
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/highdim_parallel_file.cpp")
+Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+
+### Check new likelihood
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
+p <- 1000
+k <- 149
+num_modes <- 7
+theta <- 0.001
+Q_matrix <- create_mode_matrix(p,num_modes)
+
+x <- c(rep(1,p-k),rep(0,k))
+
+loglik(x,Q_matrix,1)
+loglik(Q_matrix[,7],Q_matrix,1)
+
+ll_neigh <- c()
+for(i in 1:p){
+  temp <- x
+  temp[i] <- 1-temp[i]
+  ll_neigh[i] <- loglik(temp,Q_matrix,1)
+}
+table(ll_neigh)
+
+
+### Check likelihood of first problem
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
+p <- 1000
+num_modes <- 7
+theta <- 0.1
+Q_matrix <- create_mode_matrix(p,num_modes)
+
+colSums(Q_matrix)
+
+distances_modes <- matrix(nrow=ncol(Q_matrix),ncol=ncol(Q_matrix))
+for(i in 1:(ncol(Q_matrix)-1)){
+  for(j in i:ncol(Q_matrix)){
+    distances_modes[i,j] <- L1_distance(Q_matrix[,i],Q_matrix[,j])
+  }
+}
+distances_modes
+
+x <- c(rep(1,500),rep(0,p-500))
+z <- rep(0,p)
+
+sum(abs(z-Q_matrix[,7]))
+#Entonces el 0 es el que está lejos de todo.
+# conforme añado 1s me acerco a alguna moda y me alejo de otras
+# Hay modas que están a p/2 de distancia entre ellas
+#Pero si me alejo de una me acerco a otra
+#Para poder tener un espacio de baja probabilidad entre las modas 
+#Creo que necesito que el cono (max dist) sea más pequeño que p/4
+# E.g., para p=1000 podemos poner max_dist=200 
+#y asi hay 50 coord entre cualesquiera 2 modas que 
+#van a estar con baja probabilidad (flat landscape)
+# O sea usar p/5
+
+### Check initial states of new algorithm
+rm(list=ls())
+library(Rcpp)
+Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
+p <- 1000
+num_modes <- 7
+theta <- 0.1
+Q_matrix <- create_mode_matrix(p,num_modes)
+
+set.seed(444)
+X <- initializeRandom_w_modes(p,10,Q_matrix)
+
+dist_x_modes <- matrix(NA,nrow=ncol(X),ncol=num_modes)
+for(i in 1:ncol(X)){
+  for(j in 1:num_modes){
+    dist_x_modes[i,j] <- sum(abs(X[,i]-Q_matrix[,j]))
+  }
+}
+dist_x_modes
+
+loglik(X[,10],Q_matrix,theta)
+loglik(X[,9],Q_matrix,theta)
+loglik(X[,8],Q_matrix,theta)
+loglik(X[,2],Q_matrix,theta)
+loglik(X[,1],Q_matrix,theta)
+loglik(X[,4],Q_matrix,theta)
+
