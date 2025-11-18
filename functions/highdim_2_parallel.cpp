@@ -994,6 +994,9 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
      } 
 
     }// End loop of iterations
+    //Print distances to modes after each simulation finishes
+    Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
+    
     std::clock_t end_time = std::clock(); // Stop timer
     // Calculate the time taken in seconds
     double duration = static_cast<double>(end_time - start) / CLOCKS_PER_SEC;
@@ -1482,6 +1485,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       } 
       
     }// End loop of iterations
+    //Print distances to modes after each simulation finishes
+    Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
+    
     std::clock_t end_time = std::clock(); // Stop timer
     // Calculate the time taken in seconds
     double duration = static_cast<double>(end_time - start) / CLOCKS_PER_SEC;
