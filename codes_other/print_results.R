@@ -19,7 +19,11 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 # chosen_ids <-c(730,733,736,739)+1
-chosen_ids <-c(745,748,751,759)#+1
+chosen_ids <-c(745,748,751,759)#+1 #For results with modes separated (initial setup, dim 1k)
+chosen_ids <- c(767,769:773)#c(766,768)#c(767,769:773) #For results with modes overlaping
+chosen_ids <- c(782,783,784,785)#For spaced problem
+chosen_ids <- c(806:809)#For MultiM dim 5k theta 0.001
+chosen_ids <- c(802:805)#For MultiM dim 3k theta 0.001
 # chosen_ids <-755
 # chosen_ids <- c(650:661,663:669)
 #### Chosen for lowdim bimodal problem ####
@@ -176,11 +180,10 @@ if(chosen_dim=="highdim"){
   #we dont track distribution convergence
   #we track visit to high probability states
   
-  
   check_number_replicas <- data_sum |> select(id,matches("^t\\d+")) #Select all temperatures columns
   # check_number_sim <- unique(data_sum |> pull(simulations))
   check_number_sim <- 2
-  if(length(check_number_sim)>1){stop("Some IDs have different number of simualtions")}
+  if(length(check_number_sim)>1){stop("Some IDs have different number of simualations")}
   #Check which columns are full of NAs to exclude them
   na_temps <- data_sum |> 
     select(matches("^t\\d+$")) |>  # Select columns of the form tX
@@ -201,7 +204,7 @@ if(chosen_dim=="highdim"){
   }else{
     num_replicas <- ncol(check_number_replicas |> select(-id))
     round_trip <- as.data.frame(matrix(ncol=(num_replicas+2),nrow=0)); colnames(round_trip) <- c("alg","sim",1:num_replicas)
-    if(num_replicas>1){    swap_rate <- as.data.frame(matrix(ncol=(num_replicas+1),nrow=0)); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))}
+    if(num_replicas>1){swap_rate <- as.data.frame(matrix(ncol=(num_replicas+1),nrow=0)); colnames(swap_rate) <- c("alg","sim",1:(num_replicas-1))}
     iterations <- as.data.frame(matrix(ncol=(num_replicas+2),nrow=0)); colnames(iterations) <- c("alg","sim",1:num_replicas)
     
     list_of_states <- list()
@@ -214,11 +217,7 @@ if(chosen_dim=="highdim"){
     }else{
       distances <- tibble(alg=character(),sim=numeric(),temperature=numeric(),mode=character(),min_dist=numeric(),max_dist=numeric(),min_iter=numeric(),max_iter=numeric())  
     }
-    
-    
-    
   }
-
 }
 time_taken <- as.data.frame(matrix(nrow=0,ncol=2));colnames(time_taken) <- c("alg","time")
 full_iter_names <- c() #To identify the list of full_iter with the corresponding algorithms
@@ -238,7 +237,7 @@ for(i in 1:nrow(data_sum)){
   temperatures <- as.numeric(data_sum |> slice(i) |> select(matches("^t\\d{1,2}$")))
   temperatures <- temperatures[!is.na(temperatures)]# all the temperatures are in order and consecutive in the CSV file
   num_modes <- data_sum |> slice(i) |> pull(num_modes)
-  if(algorithm=="PT_A_IIT"){algorithm <- "PT A-IIT m"}
+  if(algorithm=="PT_A_IIT"){algorithm <- paste0("PT A-IIT (",data_sum |> slice(i)|> pull(bf),")")}
   if(algorithm=="PT_IIT_no_Z"){algorithm <- "PT-IIT no Z"}
   if(algorithm=="PT_IIT_Z"){algorithm <- paste0("PT-IIT (",data_sum |> slice(i)|> pull(bf),")")}
   if(algorithm=="PT_A_IIT_RF"){algorithm <- "PT A-IIT w"}
@@ -338,44 +337,35 @@ if(chosen_dim=="lowdim"){
 }
 if(chosen_dim=="highdim"){
 ### Specific extractions for highdim example
-    # if(data_sum|> slice(i) |> pull(model)=="bimodal"){
       p <- data_sum$p;
-    # }
-    # if(data_sum|> slice(i) |> pull(model)=="gset"){
-    #   file_matrix <- paste0("gset/",data_sum |> slice(i)|> pull(file),".txt")
-    #   p <- readParameters(file_matrix)
-    # }
-##### Extract distance to modes
 
+##### Extract distance to modes
     output_name <- paste0("distance_modes")
     output_time <- paste0("time_modes")
     
     ### Extract minimum distances  
-    # temp_m <- as.data.frame(t(apply(data[[output_name]],c(2,3),min)))
-    temp_m <- as.data.frame(data[[output_name]])
-    colnames(temp_m) <- round(temperatures,num_modes)
-    temp_m$alg <- algorithm
-    temp_m$mode <- paste0("m",1:num_modes) #temp_m$mode <- 1:num_modes
-    
-    temp_m$sim <- (list_sim_numbers)
-    
-    temp_time_m <- as.data.frame(data[[output_name]])
-    
+    temp_m <- as.data.frame(data[[output_name]]) 
+    colnames(temp_m) <- round(temperatures,2) #column name is the temperature value
+    temp_m$alg <- algorithm #Column with name of the algorithm
+    temp_m$mode <- paste0("m",1:num_modes) #Column indicating the mode
+    temp_m$sim <- (list_sim_numbers) #Column indicating the number of simulation
+    # temp_time_m <- as.data.frame(data[[output_name]])
+    #Pivot wider
     temp_m <- temp_m |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "min_dist")
     
+    ### Extract time to reach minimum distances
     temporal_time <- as.data.frame(data[[output_time]])
-    colnames(temporal_time) <- round(temperatures,num_modes)
+    colnames(temporal_time) <- round(temperatures,2)
+    #Create columns to identify
     temporal_time$alg <- algorithm
     temporal_time$mode <- paste0("m",1:num_modes)
     temporal_time$sim <- (list_sim_numbers)
-
+    #Pivot longer
     temporal_time <- temporal_time |> pivot_longer(-(alg:sim),names_to="temperature",values_to = "time_find")
     
     temp_join <- left_join(temp_m,temporal_time,by=c("alg","mode","sim","temperature"))
     
     distances <- rbind(distances,temp_join)
-  
-
   
   }
   
@@ -431,12 +421,6 @@ if(chosen_dim=="highdim"){
 # iterations <- iterations |> filter(!is.na(alg))
 # time_taken <- time_taken |> filter(!is.na(alg))
 
-distances |> filter(min_dist==0)
-distances |> filter(min_dist<2)
-swap_rate
-colSums(swap_rate[,-(1:2)])/nrow(swap_rate)
-
-### Check which IDs didn't finish running
 
 
 
@@ -833,6 +817,8 @@ if(chosen_dim=="highdim"){
     
     
 #### Reports   
+### This is for specific Ids
+    
     new_id_join <- tibble(alg=as.character(c("PT A-IIT m(745)",
                                              "PT-IIT (sq)(748)",
                                              "PT-IIT (sq)(751)",
@@ -844,7 +830,15 @@ if(chosen_dim=="highdim"){
                                              "PT-IIT (sq)(753)",
                                              "PT A-IIT m(759)",
                                              "PT A-IIT m(760)",
-                                             "PT A-IIT m(761)")),
+                                             "PT A-IIT m(761)",
+                                             "PT A-IIT m(806)",  
+                                             "PT A-IIT m(808)",  
+                                             "PT-IIT (min)(809)",
+                                             "PT-IIT (sq)(807)",
+                                             "PT A-IIT m(802)",  
+                                             "PT-IIT (sq)(803)",
+                                             "PT A-IIT m(804)",  
+                                             "PT-IIT (min)(805)")),
                           new_alg=c("PT_A_IIT(300)",
                                     "PT_IIT_Z(5)",
                                     "PT_IIT_Z(10)",
@@ -856,22 +850,39 @@ if(chosen_dim=="highdim"){
                                     "PT_IIT_Z(10)",
                                     "PT MH-mult (300)",
                                     "PT MH-mult (300)",
-                                    "PT MH-mult (300)"))
-#For bimodal with 100 simulations each
-    # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(730)","PT A-IIT m(733)","PT-IIT (sq)(736)","PT-IIT (sq)(739)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
+                                    "PT MH-mult (300)",
+                                    "PT_A_IIT",
+                                    "PT MH-mult",
+                                    "PT RF-MH",
+                                    "PT-IIT",
+                                    "PT_A_IIT",
+                                    "PT-IIT",
+                                    "PT MH-mult",
+                                    "PT RF-MH"))
 
-    #For bimodal 
-    # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(745)","PT-IIT (sq)(748)","PT-IIT (sq)(751)")),new_alg=c("PT_A_IIT(300)","PT_IIT_Z(5)","PT_IIT_Z(10)"))
     
-#For 5-modes with 100 simulations each
-    # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(731)","PT A-IIT m(734)","PT-IIT (sq)(737)","PT-IIT (sq)(740)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
-   
-#For 7-modes with 100 simulations each
-    # new_id_join <- tibble(alg=as.character(c("PT A-IIT m(732)","PT A-IIT m(735)","PT-IIT (sq)(738)","PT-IIT (sq)(741)")),new_alg=c("PT_A_IIT(300)","PT_A_IIT(200)","PT_IIT_Z(50)","PT_IIT_Z(10)"))
 #Apply modification to datasets    
     dist_t1_times <- dist_t1_times |> left_join(new_id_join,by="alg")
     swap_rate <- swap_rate|> left_join(new_id_join,by="alg")
     iterations <- iterations |> left_join(new_id_join,by="alg")
+ 
+    dist_t1_times$new_alg <- dist_t1_times$alg
+    swap_rate$new_alg <- swap_rate$alg
+    iterations$new_alg <- iterations$alg
+    
+### Report minimum distance reached by ANY replica
+report_min_dist <- distances |> 
+  group_by(alg,mode) |> 
+  slice_min(min_dist,n=1) |> 
+  slice_min(time_find,n=1) |> 
+  select(alg,mode,min_dist,time_find) |> 
+  ungroup()
+ view(report_min_dist)   
+    
+wide_report_min_dist <-  report_min_dist |> 
+   select(-time_find) |> 
+   pivot_wider(names_from = mode,values_from = min_dist)
+ view(wide_report_min_dist)
  
 #Report of simulations that ANY replica have visited the modes.
 
@@ -902,6 +913,9 @@ if(chosen_dim=="highdim"){
     
     #Add new identification of algorithm
     first_visit_report <- first_visit_report |> left_join(new_id_join,by="alg")
+    ###OR
+    first_visit_report$new_alg <- first_visit_report$alg
+    
     
     report_modes_visited <- first_visit_report |> 
       select(new_alg,algorithm,id,sim,starts_with("min_m")) |> 
@@ -1016,6 +1030,11 @@ if(chosen_dim=="highdim"){
     jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode_anyrep",".jpg")),width=1200,height =600,pointsize = 30)
     print(plot_surv_mode)
     dev.off()
+    
+    jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode_anyrep_just2",".jpg")),width=1200,height =600,pointsize = 30)
+    print(plot_surv_mode)
+    dev.off()
+    
     
 ############################################################          
     
