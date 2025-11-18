@@ -819,6 +819,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
       }//Finish IF for replica swap
     }// Finish burn-in period
 
+    //Print distances to modes after burn-in
+    Rcpp::Rcout <<"Distance modes after burn-in: \n"<<distance_modes<< std::endl;
     /////////////////////// Finish burn-in period
     swap_count=0; //Reset swap count
 
@@ -1334,7 +1336,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       
     }//End while loop to track burn-in
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
-    Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
+    Rcpp::Rcout <<"Distance modes after burn-in: \n"<<distance_modes<< std::endl;
     //////////////////////Finish the loop for burn-in period
     max_log_bound_vector=log_bound_vector;
     swap_count=0; //Reset swap count
