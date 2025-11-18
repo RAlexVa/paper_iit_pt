@@ -3,7 +3,8 @@ create_sh_files <- function(numbers,
                             hours=48,
                             cpus=20,
                             num_sims=100,
-                            output_dir = ".") {
+                            output_dir = ".",
+                            name_file="default") {
   # Ensure output directory exists
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
@@ -13,7 +14,7 @@ create_sh_files <- function(numbers,
     filename <- file.path(output_dir, paste0(prefix, "_", i, ".sh"))
     
     content <- '#!/bin/bash
-#SBATCH --job-name=A-IIT_1k_7m
+#SBATCH --job-name=NAMEFILE
 #SBATCH --output=output_%a_%A.log
 #SBATCH --error=error_%a_%A.log
 #SBATCH --time=HOURS:00:00
@@ -35,6 +36,7 @@ Rscript --vanilla codes/highd_seeded.R $FIXED_INPUT $SLURM_ARRAY_TASK_ID
     content <- gsub("HOURS", hours, content)
     content <- gsub("CPUS", cpus, content)
     content <- gsub("NUMSIMS", num_sims, content)
+    content <- gsub("NAMEFILE", name_file, content)
     
     # # Write the file with UNIX line endings
     # writeLines(content, filename, sep = "\n")
@@ -51,19 +53,21 @@ Rscript --vanilla codes/highd_seeded.R $FIXED_INPUT $SLURM_ARRAY_TASK_ID
 }
 
 # Usage with your example vector
-numbers <- c(786:801,810:813)
+numbers <- c(814:829)
 
 create_sh_files(numbers,
                 prefix = "high",
-                hours=48,
+                hours=60,
                 cpus=10,
                 num_sims=50,
-                output_dir = "bash")
+                output_dir = "bash",
+                name_file="1-3k_6modes")
 
-numbers <- c(802:809)
+numbers <- c(830:845)
 create_sh_files(numbers,
                 prefix = "higher",
-                hours=96,
+                hours=100,
                 cpus=20,
-                num_sims=25,
-                output_dir = "bash")
+                num_sims=20,
+                output_dir = "bash",
+                name_file="5-7k_6modes")
