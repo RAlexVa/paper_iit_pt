@@ -105,8 +105,8 @@ data_u <- tibble(r=x,
 (plot1 <- data_u |> pivot_longer(-r,names_to = "h",values_to = 'h(r)') |>  
     ggplot(aes(x=r,y=`h(r)`,color = `h`))+
     geom_line(size=1)+
-    geom_segment(aes(x=2,y=0,xend=2,yend=2),color = "blue", linetype = "dashed", size = 1)+
-    geom_segment(aes(x=3,y=0,xend=3,yend=3),color = "red", linetype = "dashed", size = 1)+
+    geom_segment(aes(x=2,y=0,xend=2,yend=2),color = "blue", linetype = "dashed", linewidth = 1)+
+    geom_segment(aes(x=3,y=0,xend=3,yend=3),color = "red", linetype = "dashed", linewidth = 1)+
     annotate("text", x=2.1, y=0, label= TeX("$y_1$"),size=6, color='blue')+
     annotate("text", x=3.1, y=0, label= TeX("$y_2$"),size=6, color='red')+
     theme_minimal()+
