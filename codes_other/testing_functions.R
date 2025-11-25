@@ -2268,3 +2268,11 @@ loglik(X[,2],Q_matrix,theta)
 loglik(X[,1],Q_matrix,theta)
 loglik(X[,4],Q_matrix,theta)
 
+########### testing spaced
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
+
+a <- readMatrix("")
