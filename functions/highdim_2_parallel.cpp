@@ -1526,5 +1526,6 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   // ret["time_mode1"]=time_find_m1;
   // ret["time_mode2"]=time_find_m2;
   ret["time_modes"]=time_find_modes_full;
+  ret["final_swap"]=final_swap;
   return ret;
 }
