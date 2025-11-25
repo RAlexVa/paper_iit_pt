@@ -1204,12 +1204,12 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               if(dist_mode==0){
                 if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
                   //The first time a mode is visited, it prints a message
-                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<track_burn_in<< std::endl;
                 }
                 if(first_replica){//If I stop when the first replica visits the modes
                   if(temperature_index==0){//Check that the visit was the first replica
                     if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
-                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<track_burn_in<< std::endl;
                     }
                     check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
                   }
