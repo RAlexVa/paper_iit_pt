@@ -16,3 +16,4 @@ results/.~lock.simulation_details_lowd.csv\#
 inputs/.~lock.find_temps.csv\#
 inputs/.~lock.simulation_details_highd.csv\#
 *.sh
+inputs/mode_matrix/
