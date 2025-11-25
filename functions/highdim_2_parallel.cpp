@@ -576,7 +576,7 @@ List single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_f
 
 ////////// Code for Parallel Tempering simulations //////////
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta, int num_modes){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta, int num_modes, bool first_replica){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   double J=double(T)-1;//Number of temperatures minus 1, used in swap loops
@@ -710,12 +710,22 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
             std::clock_t time_find_mode = std::clock();
             double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
             time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-            if(dist_mode==0){
-              if(check_mode_visit(mode_counter)==0){
+            if(dist_mode==0){//Reached a mode
+              if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
                 //The first time a mode is visited, it prints a message
                 Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
               }
-              check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+              if(first_replica){//If I stop when the first replica visits the modes
+                if(temperature_index==0){//Check that the visit was the first replica
+                  if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                  Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                  }
+                  check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                }
+              }else{//If I stop when ANY replica visits the modes
+                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+              }
+              
             }
           }
         }
@@ -864,12 +874,21 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
             std::clock_t time_find_mode = std::clock();
             double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
             time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-            if(dist_mode==0){
-              if(check_mode_visit(mode_counter)==0){
+            if(dist_mode==0){//Reached a mode
+              if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
                 //The first time a mode is visited, it prints a message
                 Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
               }
-              check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+              if(first_replica){//If I stop when the first replica visits the modes
+                if(temperature_index==0){//Check that the visit was the first replica
+                  if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                  Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                  }
+                  check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                }
+              }else{//If I stop when ANY replica visits the modes
+                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+              }
             }
           }
         }
@@ -1038,7 +1057,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf, bool first_replica){
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
   vec log_bound_vector(T); // vector to store a log-bound for each replica
@@ -1183,11 +1202,20 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
               time_find_modes(mode_counter,temperature_index)=secs_find_mode;
               if(dist_mode==0){
-                if(check_mode_visit(mode_counter)==0){
+                if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
                   //The first time a mode is visited, it prints a message
-                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" during burn-in, swaps:"<<swap_count<<" temp:"<<current_temp<< std::endl;
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
                 }
-                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                if(first_replica){//If I stop when the first replica visits the modes
+                  if(temperature_index==0){//Check that the visit was the first replica
+                    if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                    }
+                    check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                  }
+                }else{//If I stop when ANY replica visits the modes
+                  check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                }
               }
             }
           }
@@ -1368,12 +1396,21 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               std::clock_t time_find_mode = std::clock();
               double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
               time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-              if(dist_mode==0){
-                if(check_mode_visit(mode_counter)==0){
+              if(dist_mode==0){//Reached a mode
+                if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
                   //The first time a mode is visited, it prints a message
-                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in swap"<<i<< std::endl;
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
                 }
-                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                if(first_replica){//If I stop when the first replica visits the modes
+                  if(temperature_index==0){//Check that the visit was the first replica
+                    if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                    }
+                    check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                  }
+                }else{//If I stop when ANY replica visits the modes
+                  check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                }
               }
             }
           }
