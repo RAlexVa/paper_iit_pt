@@ -93,6 +93,7 @@ run_highd <- function(list_ids,unique_id=1){
       theta <- sim_chosen$theta;
       num_modes <- sim_chosen$num_modes
       export <- list();
+      first_replica <- as.logical(sim_chosen$first_replica)
       #### Function depending on algorithm to use
       
       writeLines(c("Parameters:",
@@ -111,8 +112,10 @@ run_highd <- function(list_ids,unique_id=1){
                    paste0("Total swaps:",total_swap),
                    paste0("Theta: ",theta),
                    paste0("Num. Modes: ",num_modes),
-                   paste0("Reduction constant:",reduc_constant),
-                   paste0("bound reduction method:",reduc_model)))
+                   # paste0("Reduction constant:",reduc_constant),
+                   # paste0("bound reduction method:",reduc_model)
+                   paste0("Stop only for first replica:",first_replica)
+                   ))
       
       #re-create the balancing function vector
       #All replicas use the same balancing function
@@ -133,7 +136,7 @@ run_highd <- function(list_ids,unique_id=1){
             # output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE, file_matrix,states_visited,start_state)
             
             # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
-            output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state,theta,num_modes)
+            output <- PT_IIT_sim(p,1,total_simulations,total_iter,iterswap,burnin_iter,temperatures,bal_f,TRUE,file_matrix,states_visited,start_state,theta,num_modes,first_replica)
             #round trip rate (NA for IIT)
             swaps_for_rt_rate <- floor(total_iter/iterswap)
           }
@@ -148,7 +151,7 @@ run_highd <- function(list_ids,unique_id=1){
           if(alg=="PT_A_IIT"){
             # Using A-IIT in each replica
             # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf){
-            output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,iterswap,burnin_iter,temperatures,bal_f,file_matrix,0,0,0,"never",theta,num_modes, temps_for_rf)
+            output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,iterswap,burnin_iter,temperatures,bal_f,file_matrix,0,0,0,"never",theta,num_modes, temps_for_rf,first_replica)
             #round trip rate (NA for IIT)
             swaps_for_rt_rate <- total_swap
           }
