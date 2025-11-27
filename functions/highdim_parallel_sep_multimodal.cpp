@@ -559,7 +559,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {
         Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;
-        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
+        // Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         int temperature_index=index_process(replica);
         current_temp=temp(temperature_index);
@@ -723,7 +723,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;
-        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
+        // Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
       // Rcpp::Rcout << "State X:\n " <<X << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int temperature_index=index_process(replica);
@@ -1254,7 +1254,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
       
     }//End while loop to track burn-in
     Rcpp::Rcout <<"END of burn-in period\n log_bound_vector:\n "<< log_bound_vector << std::endl;
-    Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
+    // Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
     //////////////////////Finish the loop for burn-in period
     max_log_bound_vector=log_bound_vector;
     // Rcpp::Rcout <<"Dist1\n "<< distance_mode1 << std::endl;
@@ -1267,7 +1267,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       if (i % 1000 == 1) {Rcpp::Rcout << "PT A-IIT Simulation: " << s+startsim << " Swap: " << i<<" Prob_decrease_bound: " << prob_to_dec << std::endl;
-        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
+        // Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
       // Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replicas
         int samples_replica=0;
