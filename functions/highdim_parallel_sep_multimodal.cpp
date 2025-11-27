@@ -208,6 +208,23 @@ int L1_distance(const vec& v1, const vec& v2) {
   }
 }
 
+
+/////////////Read matrix file/////////////////
+// [[Rcpp::export]]
+mat readMatrix(const std::string& filename) {
+  std::ifstream file(filename);
+  if (!file) throw std::runtime_error("Cannot open file: " + filename);
+  
+  // Read entire file into Armadillo matrix
+  mat matrix;
+  if (!matrix.load(file, raw_ascii)) {
+    throw std::runtime_error("Error reading matrix data from file");
+  }
+  
+  return matrix;
+}
+
+
 ////////// Balancing functions //////////
 ///// List of balancing functions that apply to log-likelihoods
 double bf_sq(double x){
@@ -323,29 +340,19 @@ double loglik_R_exptail(NumericVector& X,const NumericMatrix& M, const double& t
 // [[Rcpp::export]]
 double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
   double loglik_computed=+0.0;
-    bool close_enough=false;  
+    // bool close_enough=false;  
     uword dimension=X.n_rows;//Dimension of the problem
-    int k=dimension/2;///5; // Size of the cone surrounding the mode
+    // int k=dimension/2;///5; // Size of the cone surrounding the mode
     
-    double max_dist=k;//The size of the cone around the mode is 15% of the dim
+    // double max_dist=k;//The size of the cone around the mode is 15% of the dim
     //Each column in M is a mode
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
       double dist_mode=arma::accu(abs(X-M.col(c)));
-      if(dist_mode<max_dist){
         // At most 1 mode contributes to the likelihood
-        loglik_computed+=(theta/(1+dist_mode));
-        close_enough=true;
-      }
-      
+        loglik_computed+=exp((theta/(1+dist_mode)));
     }//End for loop for modes
-    if(close_enough){
-
-    }else{
-      //If not close to any mode, return something flat.
-      loglik_computed=theta/(1+max_dist);
-    }
  
- return(loglik_computed);
+ return(log(loglik_computed));
   
   
 }
