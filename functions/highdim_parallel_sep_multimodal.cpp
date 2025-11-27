@@ -460,7 +460,7 @@ List single_step_update(NumericVector currentX, NumericMatrix Q,int p, int bal_f
 
 ////////// Code for Parallel Tempering simulations //////////
 // [[Rcpp::export]]
-List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta, int num_modes, bool first_replica, int matrix_id){
+List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta, int num_modes, bool first_replica, int matrix_id, bool check_dist_modes){
   num_modes=p; //For this model we have as many modes as the dimension 
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
@@ -506,6 +506,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
   //// Define matrix with modes
   mat Q_matrix(p,p);
   Q_matrix=readMatrix("inputs/mode_matrix/mat_"+std::to_string(p)+"_"+std::to_string(matrix_id)+".txt");
+  Rcpp::Rcout <<" Read mode matrix"<< std::endl;
   // for(int i=0;i<p;i++){
   //   if(i%2==0){Q_matrix(i,1)=1;}
   //   if(i%2==1){Q_matrix(i,0)=1;}
@@ -589,33 +590,36 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         GetMin min_coord(choose_min);
         parallelReduce(0,dim_size,min_coord);
         
-        //// Check distance to modes
-        for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
-          double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
-          if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
-            // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
-            distance_modes(mode_counter,temperature_index)=dist_mode;
-            std::clock_t time_find_mode = std::clock();
-            double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
-            time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-            if(dist_mode==0){//Reached mode
-              if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
-                //The first time a mode is visited, it prints a message
-                Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
-              }
-              if(first_replica){//If I stop when the first replica visits the modes
-                if(temperature_index==0){//Check that the visit was the first replica
-                  if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
-                    Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
-                  }
-                  check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+        if(check_dist_modes){
+          //// Check distance to modes
+          for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+            double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+            if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+              // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
+              distance_modes(mode_counter,temperature_index)=dist_mode;
+              std::clock_t time_find_mode = std::clock();
+              double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+              time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+              if(dist_mode==0){//Reached mode
+                if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
+                  //The first time a mode is visited, it prints a message
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
                 }
-              }else{//If I stop when ANY replica visits the modes
-                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                if(first_replica){//If I stop when the first replica visits the modes
+                  if(temperature_index==0){//Check that the visit was the first replica
+                    if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                    }
+                    check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                  }
+                }else{//If I stop when ANY replica visits the modes
+                  check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                }
               }
             }
           }
-        }        
+        }
+        
         
         //Swap that coordinate
         X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
@@ -760,33 +764,36 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
         // Rcpp::Rcout <<"idx 72: "<<choose_min[71]<< " idx 476: " <<choose_min[475]<<" idx 1: " <<choose_min[0]<< std::endl;
         // Rcpp::Rcout <<"Minimum : "<<choose_min[min_coord.min_index]<< std::endl;
         
-        //// Check distance to modes
-        for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
-          double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
-          if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
-            // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
-            distance_modes(mode_counter,temperature_index)=dist_mode;
-            std::clock_t time_find_mode = std::clock();
-            double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
-            time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-            if(dist_mode==0){//Reached mode
-              if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
-                //The first time a mode is visited, it prints a message
-                Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
-              }
-              if(first_replica){//If I stop when the first replica visits the modes
-                if(temperature_index==0){//Check that the visit was the first replica
-                  if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
-                    Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
-                  }
-                  check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+        if(check_dist_modes){
+          //// Check distance to modes
+          for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+            double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+            if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+              // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
+              distance_modes(mode_counter,temperature_index)=dist_mode;
+              std::clock_t time_find_mode = std::clock();
+              double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+              time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+              if(dist_mode==0){//Reached mode
+                if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
+                  //The first time a mode is visited, it prints a message
+                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
                 }
-              }else{//If I stop when ANY replica visits the modes
-                check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                if(first_replica){//If I stop when the first replica visits the modes
+                  if(temperature_index==0){//Check that the visit was the first replica
+                    if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                    }
+                    check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                  }
+                }else{//If I stop when ANY replica visits the modes
+                  check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                }
               }
             }
           }
         }
+        
         
         //Swap that coordinate
         X(min_coord.min_index,replica)=1-X(min_coord.min_index,replica);
@@ -948,7 +955,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
 }
 
 // [[Rcpp::export]]
-List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf, bool first_replica, int matrix_id){
+List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf, bool first_replica, int matrix_id, bool check_dist_modes){
   num_modes=p; //For this model we have as many modes as the dimension 
   //// Initialize variables to use in the code
   int T=temp.n_rows; // Count number of temperatures
@@ -1002,6 +1009,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
   //// Define modes
   mat Q_matrix(p,p);
   Q_matrix=readMatrix("inputs/mode_matrix/mat_"+std::to_string(p)+"_"+std::to_string(matrix_id)+".txt");
+  Rcpp::Rcout <<" Read mode matrix"<< std::endl;
   // Q_matrix=create_mode_matrix(p,num_modes);
   // for(int i=0;i<p;i++){
   //   if(i%2==0){Q_matrix(i,1)=1;}
@@ -1086,32 +1094,35 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           
           current_X=X(_,replica);
           update_state=true;
-          ///// Check distance to modes
-          for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
-            double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
-            if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
-              distance_modes(mode_counter,temperature_index)=dist_mode;
-              std::clock_t time_find_mode = std::clock();
-              double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
-              time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-              if(dist_mode==0){//Reached mode
-                if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
-                  //The first time a mode is visited, it prints a message
-                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<track_burn_in<< std::endl;
-                }
-                if(first_replica){//If I stop when the first replica visits the modes
-                  if(temperature_index==0){//Check that the visit was the first replica
-                    if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
-                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<track_burn_in<< std::endl;
-                    }
-                    check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+          if(check_dist_modes){
+            ///// Check distance to modes
+            for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+              double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+              if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+                distance_modes(mode_counter,temperature_index)=dist_mode;
+                std::clock_t time_find_mode = std::clock();
+                double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+                time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+                if(dist_mode==0){//Reached mode
+                  if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
+                    //The first time a mode is visited, it prints a message
+                    Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<track_burn_in<< std::endl;
                   }
-                }else{//If I stop when ANY replica visits the modes
-                  check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                  if(first_replica){//If I stop when the first replica visits the modes
+                    if(temperature_index==0){//Check that the visit was the first replica
+                      if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                        Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<track_burn_in<< std::endl;
+                      }
+                      check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                    }
+                  }else{//If I stop when ANY replica visits the modes
+                    check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                  }
                 }
               }
             }
           }
+          
           if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
             
             // NumericVector output_current_X_ratios(p);
@@ -1285,32 +1296,35 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           bool update_state=true;
           
           
-          ///// Check distance to modes
-          for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
-            double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
-            if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
-              distance_modes(mode_counter,temperature_index)=dist_mode;
-              std::clock_t time_find_mode = std::clock();
-              double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
-              time_find_modes(mode_counter,temperature_index)=secs_find_mode;
-              if(dist_mode==0){//Reached mode
-                if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
-                  //The first time a mode is visited, it prints a message
-                  Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
-                }
-                if(first_replica){//If I stop when the first replica visits the modes
-                  if(temperature_index==0){//Check that the visit was the first replica
-                    if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
-                      Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
-                    }
-                    check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+          if(check_dist_modes){
+            ///// Check distance to modes
+            for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
+              double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
+              if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+                distance_modes(mode_counter,temperature_index)=dist_mode;
+                std::clock_t time_find_mode = std::clock();
+                double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
+                time_find_modes(mode_counter,temperature_index)=secs_find_mode;
+                if(dist_mode==0){//Reached mode
+                  if(check_mode_visit(mode_counter)==0){//Reached a mode for the first time
+                    //The first time a mode is visited, it prints a message
+                    Rcpp::Rcout <<"Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
                   }
-                }else{//If I stop when ANY replica visits the modes
-                  check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                  if(first_replica){//If I stop when the first replica visits the modes
+                    if(temperature_index==0){//Check that the visit was the first replica
+                      if(check_mode_visit(mode_counter)==0){//First replica reached a mode for the first time
+                        Rcpp::Rcout <<"Replica with t1 Found mode: "<<mode_counter<<" in iteration"<<i<< std::endl;
+                      }
+                      check_mode_visit(mode_counter)=1;//Turn to 1 when the first replica visits the mode
+                    }
+                  }else{//If I stop when ANY replica visits the modes
+                    check_mode_visit(mode_counter)=1;//Turn to 1 when visit the mode
+                  }
                 }
               }
             }
           }
+          
           
           if(temperature_index<temps_rf){//For the colder temperatures we use Rejection-Free
             //// Visit neighbors in parallel
