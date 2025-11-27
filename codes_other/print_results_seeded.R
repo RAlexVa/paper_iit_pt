@@ -21,6 +21,9 @@ chosen_dim <- "highdim"; file_dim <- "highd"
 chosen_ids <- c(802,804,854,856,858,860,878,879)#Para comparar lo que ya habia salido con este
 chosen_ids <- c(802,804,860,858)
 chosen_ids <- c(806,808,862,864,880,881)
+chosen_ids <- c(846:853) #Dim 1k
+chosen_ids <- c(802,804,878,879,882,883) #dim 3k
+chosen_ids <- c(870:873)
 ##### Read files and specifications#####
 #Read CSV with simulation details
 parameters <- read_csv(paste0("inputs/simulation_details_",file_dim,".csv"), col_types = cols())
@@ -193,15 +196,16 @@ for(i in 1:nrow(data_sum)){
     iterations <- rbind(iterations,temp)
   }
 ### Extract log-bounds
-  
-  temp <- as.data.frame(data[["final_bounds"]])# IMPORTANT: Here we assume there's only 1 column
-  colnames(temp) <- "log_bound"
-  temp$replica <- 1:length(temperatures)
-  temp$sim <- sim_id
-  temp$alg <- algorithm
-  temp <- temp |> select(alg,sim,replica,log_bound)
-  log_bounds <- rbind(log_bounds,temp)
-  
+  if(!is_empty(data[["final_bounds"]])){
+    temp <- as.data.frame(data[["final_bounds"]])# IMPORTANT: Here we assume there's only 1 column
+    colnames(temp) <- "log_bound"
+    temp$replica <- 1:length(temperatures)
+    temp$sim <- sim_id
+    temp$alg <- algorithm
+    temp <- temp |> select(alg,sim,replica,log_bound)
+    log_bounds <- rbind(log_bounds,temp)
+  }
+
 }
 
 
@@ -259,6 +263,18 @@ if(chosen_dim=="highdim"){
       select(-time_find) |> 
       pivot_wider(names_from = mode,values_from = min_dist)
     view(wide_report_min_dist)
+    
+    
+    
+    report_by_alg_sim <- distances |> 
+      group_by(alg,mode,sim) |> 
+      slice_min(min_dist,n=1) |> 
+      slice_min(time_find,n=1) |> 
+      select(alg,mode,min_dist,time_find) |> 
+      ungroup() |> 
+      select(-time_find) |> 
+      pivot_wider(names_from = mode,values_from = min_dist)
+    
   }
    
   
@@ -321,7 +337,7 @@ if(chosen_dim=="highdim"){
      
       forsurv_bk <- forsurv #Backup
       ids_to_print <- chosen_ids
-      ids_to_print <- c(880,881)#c(880,881,806,808)
+      # ids_to_print <- c(870,872)#c(880,881,806,808)
       forsurv <- forsurv_bk |> filter(grepl(paste(ids_to_print,collapse = "|"),alg))
       fit <- survfit(Surv(last_visit,rep(1,nrow(forsurv)))~alg,data=forsurv)
       
@@ -346,8 +362,9 @@ if(chosen_dim=="highdim"){
         export_file_name_temp <- paste0(paste0(ids_to_print,collapse="_"),"_",chosen_dim)}
       jpeg(file.path(export_path,paste0(export_file_name_temp,"_speed_mode_anyrep",".jpg")),width=1200,height =600,pointsize = 30)
       print(plot_surv_mode)
-      dev.off()  
-    }
+      dev.off()
+
+      }
     
   
 
@@ -383,6 +400,7 @@ if(chosen_dim=="highdim"){
         ggplot(aes(x=factor(replica),y=iterations))+
         geom_boxplot()+
         facet_wrap(~alg, scales="free")
+        # facet_wrap(~alg)
       boxplot_iter
       
       #Export table with averages
@@ -421,26 +439,26 @@ if(chosen_dim=="highdim"){
     # View(vertical_report_sr)
     
     
-    boxplot_iter <- swap_rate |> 
+    boxplot_sr <- swap_rate |> 
       ggplot(aes(x=factor(replica),y=swap_rate))+
       geom_boxplot()+
       geom_hline(yintercept=0.234,col="red")+
       facet_wrap(~alg)
-    boxplot_iter
+    boxplot_sr
     
     table_sr_report <- vertical_report_sr
     # table_sr_report <- horizontal_report_sr
-    
+    View(table_sr_report)
     
     
     #Export table with averages
-    jpeg(file.path(export_path,paste0(export_file_name,"_swap_rate",".jpg")),width=140*ncol(table_iter_report),height =28*nrow(table_iter_report),pointsize = 30)
+    jpeg(file.path(export_path,paste0(export_file_name,"_swap_rate",".jpg")),width=140*ncol(table_sr_report),height =28*nrow(table_sr_report),pointsize = 30)
     grid.arrange(tableGrob(table_sr_report |> mutate(across(starts_with("P"),\(x) round(x,6)))))
     dev.off()  
     
     # Export boxplot
     jpeg(file.path(export_path,paste0(export_file_name,"_sr_boxplot",".jpg")),width=1200,height =600,pointsize = 30)
-    print(boxplot_iter)
+    print(boxplot_sr)
     dev.off()  
     
     
@@ -474,20 +492,20 @@ if(chosen_dim=="highdim"){
     table_rt_report <- vertical_report_rt
     # table_rt_report <- horizontal_report_rt
     
-    boxplot_iter <- round_trip |> 
+    boxplot_rt <- round_trip |> 
       ggplot(aes(x=factor(replica),y=round_trips))+
       geom_boxplot()+
       facet_wrap(~alg)
-    boxplot_iter
+    boxplot_rt
     
     #Export table with averages
-    jpeg(file.path(export_path,paste0(export_file_name,"_round_trips",".jpg")),width=140*ncol(table_iter_report),height =28*nrow(table_iter_report),pointsize = 30)
+    jpeg(file.path(export_path,paste0(export_file_name,"_round_trips",".jpg")),width=140*ncol(table_rt_report),height =28*nrow(table_rt_report),pointsize = 30)
     grid.arrange(tableGrob(table_rt_report))
     dev.off()  
     
     # Export boxplot
     jpeg(file.path(export_path,paste0(export_file_name,"_rt_boxplot",".jpg")),width=1200,height =600,pointsize = 30)
-    print(boxplot_iter)
+    print(boxplot_rt)
     dev.off()  
     
   }
@@ -495,7 +513,47 @@ if(chosen_dim=="highdim"){
   
 ##### REPORT: Max bounds ##### 
   {
+    log_bounds$id <- str_extract(log_bounds$alg, "\\(\\d+\\)") |> 
+      str_remove_all("[()]")
+    log_bounds$replica <- as.numeric(log_bounds$replica)
     
+    bound_report <- log_bounds |> 
+      mutate(replica=as.numeric(replica)) |> 
+      group_by(id,alg,replica) |> 
+      summarise(avg.bound=mean(log_bound,na.rm=T)) |> ungroup() |> 
+      arrange(id,replica)
+    
+    #Horizontal
+    horizontal_report_bound <- bound_report |> filter(grepl("sq",alg)) |> 
+      select(-id) |> 
+      pivot_wider(names_from = replica,values_from = avg.bound)
+    
+    
+    #Vertical
+    vertical_report_bound <- bound_report |> filter(grepl("sq",alg)) |> 
+      select(-id) |> 
+      pivot_wider(names_from = alg,values_from = avg.bound)
+   
+    
+    table_report_bound <- vertical_report_bound
+    # table_rt_report <- horizontal_report_bound
+    
+    boxplot_bounds <- log_bounds |> 
+      filter(grepl("sq",alg)) |> 
+      ggplot(aes(x=factor(replica),y=log_bound))+
+      geom_boxplot()+
+      facet_wrap(~alg)
+    boxplot_bounds
+    
+    #Export table with averages
+    jpeg(file.path(export_path,paste0(export_file_name,"_log_bounds",".jpg")),width=140*ncol(table_report_bound),height =28*nrow(table_report_bound),pointsize = 30)
+    grid.arrange(tableGrob(table_report_bound))
+    dev.off()  
+    
+    # Export boxplot
+    jpeg(file.path(export_path,paste0(export_file_name,"_bound_boxplot",".jpg")),width=1200,height =600,pointsize = 30)
+    print(boxplot_bounds)
+    dev.off()  
   }
   
   
