@@ -2117,8 +2117,8 @@ test_random()
 rm(list=ls())
 library(Rcpp)
 Rcpp::sourceCpp("functions/highdim_2_parallel.cpp")
-p <- 1000
-num_modes <- 7
+p <- 5000
+num_modes <- 6
 theta <- 0.001
 Q_matrix <- create_mode_matrix(p,num_modes)
 
@@ -2128,18 +2128,25 @@ for(i in 1:(ncol(Q_matrix)-1)){
     distances_modes[i,j] <- L1_distance(Q_matrix[,i],Q_matrix[,j])
   }
 }
-distances_modes
+distances_modes #Distance between modes
 
 x <- c(rep(1,p/2),rep(0,p/2))
-x <- rep(0,p)
+x <- rep(0,p) #This is the point most away for all the modes
+#Hence is the point with the lowest probability
+x <- c(1,rep(0,p-1))
+x <- c(0,1,rep(0,p-2))
+set.seed(543);x <- rbinom(n=p,size=1,prob=0.5);
 dist_modes <- c()
 for(i in 1:num_modes){
 dist_modes[i] <- sum(abs(x-Q_matrix[,i]))
 }
-dist_modes
+dist_modes #Example of distance of a random vector to each mode
 
+#Computing values of loglikelihood
 loglik(x,Q_matrix,theta)
 loglik(c(1,rep(0,p-1)),Q_matrix,theta)
+loglik(c(0,1,rep(0,p-2)),Q_matrix,theta)
+loglik(c(rep(0,p)),Q_matrix,theta)
 
 loglik_modes <- c()
 for(i in 1:num_modes){
@@ -2147,6 +2154,7 @@ for(i in 1:num_modes){
 }
 loglik_modes
 
+#Computing likelihoods of neighbors of modes
 llik_neigh <- matrix(NA,nrow=p,ncol=num_modes)
 for(i in 1:num_modes){
   chosen_mode <- Q_matrix[,i]
@@ -2156,13 +2164,45 @@ for(i in 1:num_modes){
     llik_neigh[j,i] <- loglik(temp,Q_matrix,theta)
   }
 }
+
+#checking liks of paths connecting modes
+llik_path <- array(NA,dim=c(num_modes,num_modes,p))
+
+for(i in 1:(num_modes-1)){
+  for(j in (i+1):num_modes){
+    mod1 <- Q_matrix[,i];
+    mod2 <- Q_matrix[,j];
+    for(d in 1:p){#For loop for coordinates
+      mod1[d] <- mod2[d]; #Move from mod1 to mod2
+      llik_path[i,j,d] <- loglik(mod1,Q_matrix,theta)
+    }
+  }
+}
+
+plot(x=1:p,y=llik_path[1,2,])
+
+min(llik_path[1,2,])
+max(llik_path[1,2,])
+
+min(llik_path, na.rm=T)
+max(llik_path, na.rm=T)
+
+
+max(llik_path, na.rm=T) - min(llik_path, na.rm=T)
+
 #Checking that all of them are local modes
 for(i in 1:num_modes){
 check <-   all(llik_neigh[,i]<loglik_modes[i])
 print(check)
 }
 
-table(llik_neigh[,3])
+table(llik_neigh[,1])
+
+mod_lik <- loglik_modes[1]
+neigh_lik <- llik_neigh[1,1]
+
+
+
 
 ### Testing modifications to the Burn-in
 
@@ -2275,4 +2315,32 @@ library(Rcpp)
 library(RcppArmadillo)
 Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
 
-a <- readMatrix("")
+Q_matrix <- readMatrix("inputs/mode_matrix/mat_500_3.txt")
+
+p <- nrow(Q_matrix)
+x <- rep(0,p)
+theta <- 10
+loglik(x,Q_matrix,10)#Lowest probability (?)
+loglik(Q_matrix[,1],Q_matrix,10)
+loglik(Q_matrix[,100],Q_matrix,10)
+loglik(Q_matrix[,95],Q_matrix,10)
+loglik(Q_matrix[,420],Q_matrix,10)
+
+dist <- compute_column_differences(Q_matrix)
+
+number_ones <- colSums(Q_matrix)
+
+prob_0 <- log(sum(exp(theta/(1+number_ones))))
+
+chosen_mode <- Q_matrix[,1]
+neigh_prob <- c()
+for(i in 1:p){
+  temp <- chosen_mode
+  temp[i] <- 1-temp[i]
+  neigh_prob <- loglik(temp,Q_matrix,theta)
+}
+
+check <- Q_matrix[,1]
+check[1] <- 1-check[1]
+check[2] <- 1-check[2]
+loglik(check,Q_matrix,theta)
