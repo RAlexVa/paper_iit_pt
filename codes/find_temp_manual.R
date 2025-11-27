@@ -193,7 +193,8 @@ find_temp_highd_recurrent <- function(list_ids){
     for(id_chosen in list_ids){
       havent_reach_min <- TRUE;
       after_first_run <- FALSE;
-      while(havent_reach_min){
+      count_for_id <- 0
+      while(havent_reach_min){#Loop until it reaches the minimum
       
       sim_chosen <- parameters |> filter(id==id_chosen)
       if(nrow(sim_chosen)!=1){
@@ -201,6 +202,10 @@ find_temp_highd_recurrent <- function(list_ids){
         if(length(list_ids)==1){break;}else{next;}
         next;}
       #In case there are more than 1 model, I need to re-read functions depending on model
+      
+      #Matrix_id_for_parallel_sep
+      count_for_id <- count_for_id+1;
+      chosen_mat_id <- 1+(count_for_id%%100);
       
       # Parameters for all algorithms
       total_simulations <- sim_chosen$tot_sim
@@ -283,12 +288,12 @@ find_temp_highd_recurrent <- function(list_ids){
         if(alg=="PT_IIT_Z"){
           # Using Z factor bias correction
           # PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int burn_in, vec temp, int bal_func, bool bias_fix,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double theta)
-          output <- PT_IIT_sim(p,1,total_simulations,total_iter,sample_inter_swap,burnin_iter,temperatures,bal_f,TRUE,chosen_file,0,0,theta_chosen,num_modes)
+          output <- PT_IIT_sim(p,1,total_simulations,total_iter,sample_inter_swap,burnin_iter,temperatures,bal_f,TRUE,chosen_file,0,0,theta_chosen,num_modes, TRUE,chosen_mat_id,FALSE)
         }
         if(alg=="PT_A_IIT"){
           # Using A-IIT in each replica
           # PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inter_swap,int burn_in, vec temp, const int bal_func,const std::string& filename,int num_states_visited,const std::vector<int>& starting_coord, double decreasing_constant,std::string reduc_model, double theta, int num_modes, int temps_rf)
-          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,chosen_file,0,0,0,"never",theta_chosen,num_modes,length(temperatures))
+          output <- PT_a_IIT_sim(p,1,total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,chosen_file,0,0,0,"never",theta_chosen,num_modes,length(temperatures), TRUE,chosen_mat_id,FALSE)
         }
         
         
