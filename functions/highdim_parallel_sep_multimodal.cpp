@@ -561,7 +561,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     for(int i=0;i<burn_in;i++){
       if (i % 10000 == 1) {
         Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;
-        Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;}
+        // Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
+        }
       for(int replica=0;replica<T;replica++){//For loop for replica update
         int temperature_index=index_process(replica);
         current_temp=temp(temperature_index);
