@@ -770,7 +770,8 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
           for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
             double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
             if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
-              // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<< std::endl;
+              //Print loglik of the closer state
+              Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<<" loglik : "<<loglik_R(current_X,Q_mat_R,theta)<< std::endl;
               distance_modes(mode_counter,temperature_index)=dist_mode;
               std::clock_t time_find_mode = std::clock();
               double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
@@ -1302,6 +1303,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             for(int mode_counter=0;mode_counter<num_modes;mode_counter++){
               double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
               if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
+                //Print loglik of the closer state
+                Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<<" loglik : "<<loglik_R(current_X,Q_mat_R,theta)<< std::endl;
                 distance_modes(mode_counter,temperature_index)=dist_mode;
                 std::clock_t time_find_mode = std::clock();
                 double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
