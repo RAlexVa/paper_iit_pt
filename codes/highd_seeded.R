@@ -94,7 +94,7 @@ run_highd <- function(list_ids,unique_id=1){
       num_modes <- sim_chosen$num_modes
       export <- list();
       first_replica <- as.logical(sim_chosen$first_replica)
-      matrix_id <- unique_id
+      matrix_id <- as.numeric(unique_id)
       #### Function depending on algorithm to use
       
       writeLines(c("Parameters:",
