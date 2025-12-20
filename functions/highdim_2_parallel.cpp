@@ -408,7 +408,7 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
       return((-max_dist*theta) + log1p(exp(loglik_second_part)));
     }
 /////////////////Second case with smaller theta
-  }else if(theta==0.001){//With this smaller theta we can work with p=10k 
+  }else if(theta>=0){//With this smaller theta we can work with p=10k 
     //and the contributions is at most -10 and the change is less than 0.001
     // vec mode_weight={1,2.5,1,3.2,1,1.5,0.5};
     for(uword c=0;c<M.n_cols;c++){//For loop for modes
@@ -420,29 +420,31 @@ double loglik(const arma::vec& X,const arma::mat& M,const double& theta){
       
     }//End for loop for modes
     return(log(loglik_computed));
-  }else if((dimension*theta)/5 <700){//For a different theta 
-    bool close_enough=false;  
-    double max_dist=dimension/5;//How long do we allow the tail to go
-    //Each column in M is a mode
-    for(uword c=0;c<M.n_cols;c++){//For loop for modes
-      double dist_mode=arma::accu(abs(X-M.col(c)));
-      if(dist_mode<max_dist ){
-        // Check the distance, so there's space between modes
-        //Check that computing exp of the log-lik doesnt underflow
-        loglik_computed-=(dist_mode*theta);
-        close_enough=true;
-      }
-      
-    }//End for loop for modes
-    if(close_enough){
-      // Rcpp::Rcout <<"Yes CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
-      return(loglik_computed);
-    }else{
-      // return(loglik_second_part);
-      // Rcpp::Rcout <<"NO CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
-      return(-max_dist*theta);
-    }
-  }else{
+  }else 
+  //   if((dimension*theta)/5 <700){//For a different theta 
+  //   bool close_enough=false;  
+  //   double max_dist=dimension/5;//How long do we allow the tail to go
+  //   //Each column in M is a mode
+  //   for(uword c=0;c<M.n_cols;c++){//For loop for modes
+  //     double dist_mode=arma::accu(abs(X-M.col(c)));
+  //     if(dist_mode<max_dist ){
+  //       // Check the distance, so there's space between modes
+  //       //Check that computing exp of the log-lik doesnt underflow
+  //       loglik_computed-=(dist_mode*theta);
+  //       close_enough=true;
+  //     }
+  //     
+  //   }//End for loop for modes
+  //   if(close_enough){
+  //     // Rcpp::Rcout <<"Yes CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
+  //     return(loglik_computed);
+  //   }else{
+  //     // return(loglik_second_part);
+  //     // Rcpp::Rcout <<"NO CE Transformed loglik second part: "<<log1p(exp(loglik_second_part))<< std::endl;
+  //     return(-max_dist*theta);
+  //   }
+  // }else
+    {
     Rcpp::Rcout <<"The value of theta and dimension of the problem make the probabilities underflow"<< std::endl;
     return(-100000);
   }
@@ -1256,6 +1258,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               //Considering the previous constant and the BF applied to the max of the ratios 
               // log_bound_vector(temperature_index)=ret_max(apply_bal_func(get_max.max_value,bal_func),log_bound_vector(temperature_index),0);  
               //Considering the previous constant and the current needed bound
+              // Rcpp::Rcout <<"GetMax X= \n"<<get_max.max_value<< std::endl;
+              // Rcpp::Rcout <<"PrevBound X= \n"<<log_bound_vector(temperature_index)<< std::endl;
               log_bound_vector(temperature_index)=ret_max(get_max.max_value,log_bound_vector(temperature_index),0);  
             }
             
@@ -1264,6 +1268,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             if(current_log_bound>700){//Message in case we underlow the probabilities
               Rcpp::Rcout <<"Replica:"<<replica<<" Current log-bound:"<<current_log_bound<< std::endl;
               Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
+              // Rcpp::Rcout <<"Coutput Current X= \n"<<output_current_X<< std::endl;
             }
             // NumericVector output_current_X_bounded(p);
             // //// Apply balancing function to probability ratios
@@ -1286,6 +1291,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
             if(new_samples<1){//In case we encounter numerical errors
               Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Swap: " << swap_count <<" temperature:"<<current_temp<< std::endl;
               Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+              // Rcpp::Rcout <<"Current X= \n"<<current_X<< std::endl;
               new_samples=sample_inter_swap;
             }
             if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
