@@ -1,14 +1,14 @@
 #!/bin/bash
-#SBATCH --job-name=find_t_A-IIT_G
+#SBATCH --job-name=find_t_spaced_alldim
 #SBATCH --output=output_%a_%A.log
 #SBATCH --error=error_%a_%A.log
-#SBATCH --time=48:00:00
-#SBATCH --mem=16GB
-#SBATCH --cpus-per-task=10
+#SBATCH --time=90:00:00
+#SBATCH --mem=5GB
+#SBATCH --cpus-per-task=20
 #SBATCH --mail-user=alexander.valencia@mail.utoronto.ca
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-#SBATCH --array=184-187
+#SBATCH --array=279-294
 
 module load r/4.5.0
 
