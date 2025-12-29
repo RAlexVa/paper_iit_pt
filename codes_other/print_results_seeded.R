@@ -17,13 +17,8 @@ library(survminer); library(survival) #For plot showing how fast each replica vi
 ##### Define IDs and dimension #####
 # Choose dimension
 chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" 
-chosen_ids <- c(802,804,854,856,858,860,878,879)#Para comparar lo que ya habia salido con este
-chosen_ids <- c(802,804,860,858)
-chosen_ids <- c(806,808,862,864,880,881)
-chosen_ids <- c(846:853) #Dim 1k
-chosen_ids <- c(802,804,878,879,882,883) #dim 3k
-chosen_ids <- c(870:873)
+chosen_ids <- c(1040:1051)#c(932:1007)
+# chosen_ids <- c(908:911)#Spaced model
 ##### Read files and specifications#####
 #Read CSV with simulation details
 parameters <- read_csv(paste0("inputs/simulation_details_",file_dim,".csv"), col_types = cols())
@@ -76,6 +71,7 @@ if(chosen_dim=="highdim"){
     iterations <- tibble(alg=character(),sim=numeric(),replica=numeric(),iterations=numeric());
     log_bounds <- tibble(alg=character(),sim=numeric(),replica=numeric(),log_bound=numeric());
     rf_replicas <- tibble(id=numeric(),rf_reps=numeric());
+    temperatures_matrix <- tibble(id=numeric(),temp_id=numeric(),temperature=numeric());
 }
 time_taken <- as.data.frame(matrix(nrow=0,ncol=2));colnames(time_taken) <- c("alg","time")
 
@@ -91,6 +87,9 @@ for(i in 1:nrow(data_sum)){
   interswap <- data_sum |> slice(i) |> pull(interswap)
   temperatures <- as.numeric(data_sum |> slice(i) |> select(matches("^t\\d{1,2}$")))
   temperatures <- temperatures[!is.na(temperatures)]# all the temperatures are in order and consecutive in the CSV file
+  temperatures_temporal <- tibble(id=selected_id,temp_id=1:length(temperatures),temperature=temperatures);
+  temperatures_matrix <- rbind(temperatures_matrix,temperatures_temporal)
+  
   num_modes <- data_sum |> slice(i) |> pull(num_modes)
   #Add the BF to the algorithm name
   if(algorithm=="PT_A_IIT"){algorithm <- paste0("PT A-IIT(",data_sum |> slice(i)|> pull(bf),")")}
@@ -246,6 +245,262 @@ if(chosen_dim=="highdim"){
     table(dist_t1$min_dist)
 
     
+    
+##### REPORT: First for the highest inverse temperature to visit all modes #####
+    {
+      report_first <- dist_t1_times |> 
+        select(alg,first_time) |> 
+        rename(time_visit=first_time)
+      
+      report_first_bk <- report_first #Backup
+      ids_to_print <- chosen_ids
+      ids_to_print <- c(932:935)+12#+4#+8
+      ids_to_print <- c(932,934)+12#+4#+8
+      ids_to_print <- seq(948,1007,by=6)
+      report_first <- report_first_bk |> filter(grepl(paste(ids_to_print,collapse = "|"),alg))
+      fit <- survfit(Surv(time_visit,rep(1,nrow(report_first)))~alg,data=report_first)
+      
+      
+      (plot_surv_mode <- ggsurvplot(fit,
+                                    data=report_first,
+                                    fun="event",
+                                    palette = "Set1",    # Color palette
+                                    xlab = "Time (seconds)",
+                                    ylab = "Prop. of simulations visiting all modes",
+                                    legend.title = "Algorithm",
+                                    # break.time.by = time_br,
+                                    font.x = 25,        # X-axis label font size
+                                    font.y = 25,        # Y-axis label font size
+                                    font.tickslab = 18, # Axis tick labels (numbers) font size
+                                    font.legend = 20,
+                                    size=2,
+                                    conf.int = FALSE,
+                                    censor = TRUE))   # Legend text font size)
+      
+      export_file_name_temp <- export_file_name
+      if(!identical(ids_to_print,chosen_ids)){
+        export_file_name_temp <- paste0(paste0(ids_to_print,collapse="_"),"_",chosen_dim)}
+      jpeg(file.path(export_path,paste0(export_file_name_temp,"_speed_mode_1st_rep_1st_visit",".jpg")),width=1200,height =600,pointsize = 30)
+      print(plot_surv_mode)
+      dev.off()
+      
+}
+    
+##### REPORT: Last time for the highest inverse temperature to visit all modes #####    
+    {
+      report_last <- dist_t1_times |> 
+        select(alg,last_time)|> 
+        rename(time_visit=last_time)
+      
+      report_last_bk <- report_last
+      
+      
+      ids_to_print <- chosen_ids
+      ids_to_print <- c(1024:1027)+8#+12#+4#+8
+      ids_to_print <- c(1024,1026)#+12#+4#+8
+      report_last <- report_last_bk |> filter(grepl(paste(ids_to_print,collapse = "|"),alg)) |> 
+        filter(time_visit<100000)
+      fit <- survfit(Surv(time_visit,rep(1,nrow(report_last)))~alg,data=report_last)
+      
+      
+      (plot_surv_mode <- ggsurvplot(fit,
+                                    data=report_last,
+                                    fun="event",
+                                    palette = "Set1",    # Color palette
+                                    xlab = "Time (seconds)",
+                                    ylab = "Prop. of simulations visiting all modes",
+                                    legend.title = "Algorithm",
+                                    # break.time.by = time_br,
+                                    font.x = 25,        # X-axis label font size
+                                    font.y = 25,        # Y-axis label font size
+                                    font.tickslab = 18, # Axis tick labels (numbers) font size
+                                    font.legend = 20,
+                                    size=2,
+                                    conf.int = FALSE,
+                                    censor = TRUE))   # Legend text font size)
+      
+      export_file_name_temp <- export_file_name
+      if(!identical(ids_to_print,chosen_ids)){
+        export_file_name_temp <- paste0(paste0(ids_to_print,collapse="_"),"_",chosen_dim)}
+      jpeg(file.path(export_path,paste0(export_file_name_temp,"_speed_mode_1st_rep_last_visit",".jpg")),width=1200,height =600,pointsize = 30)
+      print(plot_surv_mode)
+      dev.off()
+      
+    }
+    
+    
+##### REPORT: First for the highest inverse temperature COMPARING RF replicas #####
+    {
+      report_first_compare <- dist_t1_times |> 
+        select(alg,id,first_time) |> 
+        rename(time_visit=first_time) |> 
+        mutate(id=as.numeric(id)) 
+      
+      report_first_compare$bf <- str_extract(report_first_compare$alg, "(?<=\\()[^)]+(?=\\))")
+      
+      #Filter the IDs to compare by number of RF replicas
+      report_first_compare <- report_first_compare |> filter(id>=948)
+      
+#Data set with additional information
+      add_info <- tibble(id=948:1007,
+                         rf=rep(c(1:5,9:13),each=6),
+                         dim=rep(c(3,3,5,5,7,7),10))
+      
+      
+ #Dataset with all the info     
+      report_firstc_bk <- report_first_compare |>  #Backup
+                          left_join(add_info,by="id")
+      
+# Parameters to filter      
+      chosen_bf <- "min"; #chosen_bf <- "min";
+      dim_size <- 7#3#5#7
+      report_first_compare <- report_firstc_bk |> 
+        filter(bf==chosen_bf) |> 
+        filter(dim==dim_size)
+      
+      fit <- survfit(Surv(time_visit,rep(1,nrow(report_first_compare)))~id+rf,data=report_first_compare)
+      
+      
+      (plot_surv_mode <- ggsurvplot(fit,
+                                    data=report_first_compare,
+                                    fun="event",
+                                    palette = "Set3",    # Color palette
+                                    xlab = "Time (seconds)",
+                                    ylab = "Prop. of simulations visiting all modes",
+                                    legend.title = "Alg",
+                                    # break.time.by = time_br,
+                                    font.x = 25,        # X-axis label font size
+                                    font.y = 25,        # Y-axis label font size
+                                    font.tickslab = 18, # Axis tick labels (numbers) font size
+                                    font.legend = 20,
+                                    size=2,
+                                    conf.int = FALSE,
+                                    censor = TRUE))   # Legend text font size)
+      
+      
+      export_file_name_temp <- paste0("first_visit_compare_rf_",chosen_bf,"_",dim_size,".jpg")
+      
+      jpeg(file.path(export_path,export_file_name_temp),width=1200,height =600,pointsize = 30)
+      print(plot_surv_mode)
+      dev.off()
+      
+    }    
+
+##### REPORT: Last for the highest inverse temperature COMPARING RF replicas #####
+    {
+      report_first_compare <- dist_t1_times |> 
+        select(alg,id,last_time) |> 
+        rename(time_visit=last_time) |> 
+        mutate(id=as.numeric(id)) 
+      
+      report_first_compare$bf <- str_extract(report_first_compare$alg, "(?<=\\()[^)]+(?=\\))")
+      
+      #Filter the IDs to compare by number of RF replicas
+      report_first_compare <- report_first_compare |> filter(id>=948)
+      
+      #Data set with additional information
+      add_info <- tibble(id=948:1007,
+                         rf=rep(c(1:5,9:13),each=6),
+                         dim=rep(c(3,3,5,5,7,7),10))
+      
+      
+      #Dataset with all the info     
+      report_firstc_bk <- report_first_compare |>  #Backup
+        left_join(add_info,by="id")
+      
+      # Parameters to filter      
+      chosen_bf <- "min"; #chosen_bf <- "min";
+      dim_size <- 7#3#5#7
+      report_first_compare <- report_firstc_bk |> 
+        filter(bf==chosen_bf) |> 
+        filter(dim==dim_size)
+      
+      fit <- survfit(Surv(time_visit,rep(1,nrow(report_first_compare)))~id+rf,data=report_first_compare)
+      
+      
+      (plot_surv_mode <- ggsurvplot(fit,
+                                    data=report_first_compare,
+                                    fun="event",
+                                    palette = "Set3",    # Color palette
+                                    xlab = "Time (seconds)",
+                                    ylab = "Prop. of simulations visiting all modes",
+                                    legend.title = "Alg",
+                                    # break.time.by = time_br,
+                                    font.x = 25,        # X-axis label font size
+                                    font.y = 25,        # Y-axis label font size
+                                    font.tickslab = 18, # Axis tick labels (numbers) font size
+                                    font.legend = 20,
+                                    size=2,
+                                    conf.int = FALSE,
+                                    censor = TRUE))   # Legend text font size)
+      
+      
+      export_file_name_temp <- paste0("last_visit_compare_rf_",chosen_bf,"_",dim_size,".jpg")
+      
+      jpeg(file.path(export_path,export_file_name_temp),width=1200,height =600,pointsize = 30)
+      print(plot_surv_mode)
+      dev.off()
+      
+    }           
+
+##### REPORT: Last for the highest inverse temperature COMPARING RF replicas AND BF #####
+    {
+      report_first_compare <- dist_t1_times |> 
+        select(alg,id,last_time) |> 
+        rename(time_visit=last_time) |> 
+        mutate(id=as.numeric(id)) 
+      
+      report_first_compare$bf <- str_extract(report_first_compare$alg, "(?<=\\()[^)]+(?=\\))")
+      
+      #Filter the IDs to compare by number of RF replicas
+      report_first_compare <- report_first_compare |> filter(id>=948)
+      
+      #Data set with additional information
+      add_info <- tibble(id=948:1007,
+                         rf=rep(c(1:5,9:13),each=6),
+                         dim=rep(c(3,3,5,5,7,7),10))
+      
+      
+      #Dataset with all the info     
+      report_firstc_bk <- report_first_compare |>  #Backup
+        left_join(add_info,by="id")
+      
+      # Parameters to filter      
+      dim_size <- 7#3#5#7
+      rf_select <- c(10:13)
+      report_first_compare <- report_firstc_bk |> 
+        filter(dim==dim_size) |> 
+        filter(rf%in%rf_select)
+      
+      fit <- survfit(Surv(time_visit,rep(1,nrow(report_first_compare)))~bf+rf,data=report_first_compare)
+      
+      
+      (plot_surv_mode <- ggsurvplot(fit,
+                                    data=report_first_compare,
+                                    fun="event",
+                                    palette = "Set3",    # Color palette
+                                    xlab = "Time (seconds)",
+                                    ylab = "Prop. of simulations visiting all modes",
+                                    legend.title = "Alg",
+                                    # break.time.by = time_br,
+                                    font.x = 25,        # X-axis label font size
+                                    font.y = 25,        # Y-axis label font size
+                                    font.tickslab = 18, # Axis tick labels (numbers) font size
+                                    font.legend = 20,
+                                    size=2,
+                                    conf.int = FALSE,
+                                    censor = TRUE))   # Legend text font size)
+      
+      
+      export_file_name_temp <- paste0("last_visit_compare_BFS_",dim_size,"_",paste0(rf_select,collapse="_"),".jpg")
+      
+      jpeg(file.path(export_path,export_file_name_temp),width=1200,height =600,pointsize = 30)
+      print(plot_surv_mode)
+      dev.off()
+      
+    }         
+    
+        
   }
   
 ##### REPORT: minimum distance reached by ANY replica in ANY simulation #####
@@ -274,6 +529,19 @@ if(chosen_dim=="highdim"){
       ungroup() |> 
       select(-time_find) |> 
       pivot_wider(names_from = mode,values_from = min_dist)
+    
+    
+    modes_not_visited <- report_by_alg_sim |> 
+      rowwise() |> 
+      mutate(max_dist=max(across(starts_with("m")),na.rm=T)) |> 
+      filter(max_dist>0)
+    
+    #Export table with averages
+    jpeg(file.path(export_path,paste0("sim_not_find_modes",".jpg")),width=80*ncol(modes_not_visited),height =26*nrow(modes_not_visited),pointsize = 30)
+    grid.arrange(tableGrob(modes_not_visited))
+    dev.off()  
+    
+    
     
   }
    
@@ -337,7 +605,7 @@ if(chosen_dim=="highdim"){
      
       forsurv_bk <- forsurv #Backup
       ids_to_print <- chosen_ids
-      # ids_to_print <- c(870,872)#c(880,881,806,808)
+      ids_to_print <- c(884,886)+8#c(870,872)#c(880,881,806,808)
       forsurv <- forsurv_bk |> filter(grepl(paste(ids_to_print,collapse = "|"),alg))
       fit <- survfit(Surv(last_visit,rep(1,nrow(forsurv)))~alg,data=forsurv)
       
@@ -363,17 +631,25 @@ if(chosen_dim=="highdim"){
       jpeg(file.path(export_path,paste0(export_file_name_temp,"_speed_mode_anyrep",".jpg")),width=1200,height =600,pointsize = 30)
       print(plot_surv_mode)
       dev.off()
-
       }
     
-  
+  #Modify the name of the file to export
+  if(nchar(export_file_name)>80){
+    export_file_name <- paste0(min(chosen_ids),"_",max(chosen_ids),"_many_ids_",chosen_dim)
+  }
 
 ##### REPORT: Average number of iterations per algorithm #####
   {
+    iterations$id <- as.numeric(str_extract(iterations$alg, "\\(\\d+\\)") |> 
+                                 str_remove_all("[()]"))
+    iterations$replica <- as.numeric(iterations$replica)
+    
+    
     iter_report <- iterations |> 
       mutate(replica=as.numeric(replica)) |> 
-      group_by(alg,replica) |> 
-      summarise(avg.iter=mean(iterations,na.rm=T)) |> ungroup()
+      group_by(alg,id,replica) |> 
+      summarise(avg.iter=mean(iterations,na.rm=T)) |> ungroup() |> 
+      arrange(id) |> select(-id)
       
       #Horizontal
       horizontal_report_iter <- iter_report |> 
@@ -419,11 +695,12 @@ if(chosen_dim=="highdim"){
 
   ##### REPORT: Average swap rate #####
   {
-    swap_rate$id <- str_extract(swap_rate$alg, "\\(\\d+\\)") |> 
-      str_remove_all("[()]")
+    swap_rate$id <- as.numeric(str_extract(swap_rate$alg, "\\(\\d+\\)") |> 
+      str_remove_all("[()]"))
     swap_rate$replica <- as.numeric(swap_rate$replica)
     
-    sr_report <- swap_rate |> 
+    
+    sr_report <- swap_rate |>
       group_by(id,alg,replica) |> 
       summarise(avg.sr=mean(swap_rate,na.rm=T)) |> ungroup() |> 
       arrange(id,replica)
@@ -448,7 +725,7 @@ if(chosen_dim=="highdim"){
     
     table_sr_report <- vertical_report_sr
     # table_sr_report <- horizontal_report_sr
-    View(table_sr_report)
+    # View(table_sr_report)
     
     
     #Export table with averages
@@ -469,8 +746,8 @@ if(chosen_dim=="highdim"){
   ##### REPORT: Round trips#####
   {
     
-    round_trip$id <- str_extract(round_trip$alg, "\\(\\d+\\)") |> 
-      str_remove_all("[()]")
+    round_trip$id <- as.numeric(str_extract(round_trip$alg, "\\(\\d+\\)") |> 
+      str_remove_all("[()]"))
     round_trip$replica <- as.numeric(round_trip$replica)
     
     rt_report <- round_trip |> 
@@ -513,8 +790,8 @@ if(chosen_dim=="highdim"){
   
 ##### REPORT: Max bounds ##### 
   {
-    log_bounds$id <- str_extract(log_bounds$alg, "\\(\\d+\\)") |> 
-      str_remove_all("[()]")
+    log_bounds$id <- as.numeric(str_extract(log_bounds$alg, "\\(\\d+\\)") |> 
+      str_remove_all("[()]"))
     log_bounds$replica <- as.numeric(log_bounds$replica)
     
     bound_report <- log_bounds |> 
