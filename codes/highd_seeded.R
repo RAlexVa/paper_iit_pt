@@ -95,18 +95,36 @@ run_highd <- function(list_ids,unique_id=1){
       export <- list();
       first_replica <- as.logical(sim_chosen$first_replica)
       matrix_id <- as.numeric(unique_id)
-      #### Function depending on algorithm to use
       
+##### Adding possibility to have a lot of temperatures#####      
+number_replicas_print <- length(temperatures)
+temperatures_to_print <- paste(temperatures,collapse=',')
+
+#If the first temperature is negative then we can have a different definition of temperatures
+if(sign(temperatures[1])==-1){
+  temp_from <- temperatures[2]
+  temp_to <- temperatures[3]
+  temp_total_number <- temperatures[4]
+  
+  temperatures <- seq(temp_from,temp_to,length.out=temp_total_number)
+  number_replicas_print <- temp_total_number
+  temperatures_to_print <- paste(temp_total_number,
+                                   " temperatures. From: ",
+                                   temp_from,
+                                 " To: ",
+                                 temp_to,collapse=',')
+}
+      #### Printing details of the simulation to run
       writeLines(c("Parameters:",
                    paste0("ID: ",id_chosen),
                    paste0("Algorithm: ",alg),
                    paste0("Problem: ",sim_chosen$model),
-                   paste0("Number of Replicas: ",length(temperatures)),
+                   paste0("Number of Replicas: ",number_replicas_print),
                    paste0("Replicas with RF: ",temps_for_rf),
                    paste0("Total simulations: ",total_simulations),
                    paste0("Burn-in iterations: ",burnin_iter),
                    paste0("Total iterations: ",total_iter),
-                   paste0("Temperatures: ",paste(temperatures,collapse=',')),
+                   paste0("Temperatures: ",temperatures_to_print),
                    paste0("Balancing function: ",paste(bal_f,collapse = ',')),
                    paste0("Try swaps:",iterswap),
                    paste0("Samples in-between swaps: ",sample_inter_swap),
