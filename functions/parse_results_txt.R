@@ -102,7 +102,7 @@ parse_pt_file <- function(filename, print_res=TRUE) {
     seconds = all_seconds
   ))
 }
-id <- 201
+id <- 265
 dat <- parse_pt_file(file.path(getwd(),"results",paste0("temperatures_id_",id,".txt")))
             
 
@@ -277,7 +277,7 @@ write.table(temps_table,
 
 
 ##### Process multiple files and transpose the results ##### 
-temps_table <- process_multiple_files(233:264)
+temps_table <- process_multiple_files(299:302)
 # First, let's create a function to process each ID's data
 process_single_id <- function(result_matrix, target_id) {
   # Filter rows for this specific ID and drop seconds and vector_name columns
@@ -375,7 +375,7 @@ process_all_ids <- function(result_matrix) {
   return(final_combined)
 }
 
-transform_and_export <- function(result_matrix, output_file = "results/output_temperature_matrix.txt") {
+transform_and_export <- function(result_matrix, output_file = "results/output_temperature_matrix_t.txt") {
   # Transform to wide format
   final_matrix <- process_all_ids(result_matrix)
   
