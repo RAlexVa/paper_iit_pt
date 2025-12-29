@@ -24,6 +24,11 @@ chosen_ids <- c(767,769:773)#c(766,768)#c(767,769:773) #For results with modes o
 chosen_ids <- c(782,783,784,785)#For spaced problem
 chosen_ids <- c(806:809)#For MultiM dim 5k theta 0.001
 chosen_ids <- c(802:805)#For MultiM dim 3k theta 0.001
+chosen_ids <- c(1024:1035)#For MultiM dim 1k varios theta
+chosen_ids <- c(858:861,866:869,874:877)
+chosen_ids <- c(802,804,878,879)#Para comparar lo que ya habia salido con este
+chosen_ids <- c(806,808,862,864,880:881)#Para comparar lo que ya habia salido con este en dim 5k
+
 # chosen_ids <-755
 # chosen_ids <- c(650:661,663:669)
 #### Chosen for lowdim bimodal problem ####
@@ -415,13 +420,6 @@ if(chosen_dim=="highdim"){
       
   }
 }
-##### Delete first row with NA#####
-# round_trip <- round_trip |> filter(!is.na(alg))
-# if(exists("swap_rate")){swap_rate <- swap_rate |> filter(!is.na(alg))}
-# iterations <- iterations |> filter(!is.na(alg))
-# time_taken <- time_taken |> filter(!is.na(alg))
-
-
 
 
 ##### Export plots and tables #####
@@ -813,6 +811,12 @@ if(chosen_dim=="highdim"){
     dist_t1_times[dist_t1_times==Inf] <- NA ## replace Infinities for NAs
     #How many didn't reach the optimum
     table(dist_t1$min_dist)
+    # View(distances)
+    View(distances |> 
+           group_by(alg,mode, sim) |> 
+           summarise(minim_dist=min(min_dist),max_dist=max(min_dist)) |> 
+           group_by(alg,mode) |> 
+           summarise(min.avg=mean(minim_dist), max.avg=mean(max_dist)))
 
     
     
@@ -1009,6 +1013,11 @@ wide_report_min_dist <-  report_min_dist |>
     forsurv <- first_visit_report |> select(new_alg,last_visit)
     forsurv <- forsurv |> filter(last_visit<Inf)
     # forsurv <- forsurv |> filter(new_alg!="PT_IIT_Z(5)")
+    forsurv_bk <- forsurv
+    ids_to_print <- chosen_ids
+    ids_to_print <- c(862,864)#c(862,864)#c(854,856)#c(854:857)
+    ids_to_print <- c(806,808,880,881)
+    forsurv <- forsurv_bk |> filter(grepl(paste(ids_to_print,collapse = "|"),new_alg))
     fit <- survfit(Surv(last_visit,rep(1,nrow(forsurv)))~new_alg,data=forsurv)
     
     (plot_surv_mode <- ggsurvplot(fit,
@@ -1027,13 +1036,12 @@ wide_report_min_dist <-  report_min_dist |>
                                   conf.int = FALSE,
                                   censor = TRUE))   # Legend text font size)
     
+    if(!identical(ids_to_print,chosen_ids)){
+      export_file_name <- paste0(paste0(ids_to_print,collapse="_"),"_",chosen_dim)}
     jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode_anyrep",".jpg")),width=1200,height =600,pointsize = 30)
     print(plot_surv_mode)
     dev.off()
     
-    jpeg(file.path(export_path,paste0(export_file_name,"_speed_mode_anyrep_just2",".jpg")),width=1200,height =600,pointsize = 30)
-    print(plot_surv_mode)
-    dev.off()
     
     
 ############################################################          
