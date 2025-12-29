@@ -728,7 +728,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
     // Sleep(5000);
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
-      if (i % 10000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;
+      if (i % 1000 == 1) {Rcpp::Rcout << "PT-IIT Simulation: " << s+startsim << " Iteration: " << i << std::endl;
         // Rcpp::Rcout <<"Distance modes: \n"<<distance_modes<< std::endl;
         }
       // Rcpp::Rcout << "State X:\n " <<X << std::endl;
@@ -771,7 +771,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter, int iterswap,int bur
             double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
             if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
               //Print loglik of the closer state
-              Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<<" loglik : "<<loglik_R(current_X,Q_mat_R,theta)<< std::endl;
+              // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<<" loglik : "<<loglik_R(current_X,Q_mat_R,theta)<< std::endl;
               distance_modes(mode_counter,temperature_index)=dist_mode;
               std::clock_t time_find_mode = std::clock();
               double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
@@ -1304,7 +1304,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
               double dist_mode=sum(abs(current_X-Q_mat_R(_,mode_counter)));
               if(distance_modes(mode_counter,temperature_index)>dist_mode){//In case we find a smaller distance to the mode
                 //Print loglik of the closer state
-                Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<<" loglik : "<<loglik_R(current_X,Q_mat_R,theta)<< std::endl;
+                // Rcpp::Rcout <<"Mode : "<<mode_counter<<" dist : "<<dist_mode<<" loglik : "<<loglik_R(current_X,Q_mat_R,theta)<< std::endl;
                 distance_modes(mode_counter,temperature_index)=dist_mode;
                 std::clock_t time_find_mode = std::clock();
                 double secs_find_mode = static_cast<double>(time_find_mode - start) / CLOCKS_PER_SEC;
