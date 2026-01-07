@@ -2121,7 +2121,7 @@ p <- 1000
 num_modes <- 6
 theta <- 0.001
 Q_matrix <- create_mode_matrix(p,num_modes)
-
+### Check distance between modes, dist_modes, distance_modes
 distances_modes <- matrix(nrow=ncol(Q_matrix),ncol=ncol(Q_matrix))
 for(i in 1:(ncol(Q_matrix)-1)){
   for(j in i:ncol(Q_matrix)){
@@ -2313,8 +2313,8 @@ sum(abs(z-Q_matrix[,7]))
 rm(list=ls())
 library(Rcpp)
 Rcpp::sourceCpp("functions/highdim_parallel_sep_multimodal.cpp")
-p <- 1000
-num_modes <- 7
+p <- 5000
+num_modes <- 6
 theta <- 0.1
 Q_matrix <- create_mode_matrix(p,num_modes)
 
@@ -2418,3 +2418,27 @@ check <- Q_matrix[,1]
 check[1] <- 1-check[1]
 check[2] <- 1-check[2]
 loglik(check,Q_matrix,theta)
+
+
+######### Testing lowdim
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions.cpp")
+p <- 16
+X <- c(rep(0,7),1,1,rep(0,7))
+X1 <- c(rep(0,7),1,1,rep(0,7))
+X2 <- X1
+X2[1] <- 1-X2[1]
+loglik(X1)
+loglik(X2)
+ll_neighbor <- c()
+
+for(i in 1:length(X)){
+  Y <- X;
+  Y[i] <- 1-Y[i]
+  ll_neighbor[i] <- loglik(Y);
+}
+
+
