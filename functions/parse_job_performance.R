@@ -5,7 +5,7 @@ library(stringr)
 ##### Run all of this to read and parse the file #####
 
 
-chosen_file <- "results/jobs_since_dec1.txt"
+chosen_file <- "results/jobs_since_jan1.txt"
 {
   # Function to convert SLURM time format to hours
   convert_slurm_time_to_hours <- function(time_str) {
@@ -146,7 +146,7 @@ convert_maxrss_to_mb <- function(maxrss_vector) {
 
 #Check start and end
 check_start_end <- jobs_data |>
-  filter(ParentJobID>6112300) |> 
+  filter(ParentJobID>6295000) |> 
   select(ParentJobID,Start,End) |> #,ArrayID
   group_by(ParentJobID) |> 
   summarise(min_start=min(Start),max_end=max(End), count=n())
@@ -157,7 +157,7 @@ jobs_data$MaxRSS <- convert_maxrss_to_mb(jobs_data$MaxRSS)
 #Time taken
 summary <- jobs_data |> 
   # filter(ParentJobID %in% chosen_ids) |> 
-  filter(ParentJobID>6110000) |>
+  filter(ParentJobID>6295000) |>
   group_by(ParentJobID) |> 
   summarise(min_time=min(Elapsed_hours),
             avg_time=mean(Elapsed_hours),
