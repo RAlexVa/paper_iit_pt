@@ -5,7 +5,14 @@ library(dplyr, warn.conflicts = F)
 library(readr)
 
 
-##### import functions #####
+##### Uses different files #####
+# For gset problems
+## functions/cpp_functions_highdim.cpp
+# For multimodal/bimodal 
+## functions/cpp_functions_highdim_2.cpp
+# For spaced
+## functions/highdim_parallel_sep_multimodal.cpp
+#####
 
 source("functions/r_functions.R")
 run_highd <- function(list_ids,unique_id=1){
