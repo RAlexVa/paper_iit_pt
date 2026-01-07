@@ -17,7 +17,7 @@ library(survminer); library(survival) #For plot showing how fast each replica vi
 ##### Define IDs and dimension #####
 # Choose dimension
 chosen_dim <- "highdim"; file_dim <- "highd"
-chosen_ids <- c(1040:1051)#c(932:1007)
+chosen_ids <- c(1070:1071)#c(932:1007)
 # chosen_ids <- c(908:911)#Spaced model
 ##### Read files and specifications#####
 #Read CSV with simulation details
@@ -87,6 +87,21 @@ for(i in 1:nrow(data_sum)){
   interswap <- data_sum |> slice(i) |> pull(interswap)
   temperatures <- as.numeric(data_sum |> slice(i) |> select(matches("^t\\d{1,2}$")))
   temperatures <- temperatures[!is.na(temperatures)]# all the temperatures are in order and consecutive in the CSV file
+  #If the first temperature is negative then we can have a different definition of temperatures
+  if(sign(temperatures[1])==-1){
+    temp_from <- temperatures[2]
+    temp_to <- temperatures[3]
+    temp_total_number <- temperatures[4]
+    
+    temperatures <- seq(temp_from,temp_to,length.out=temp_total_number)
+    # number_replicas_print <- temp_total_number
+    # temperatures_to_print <- paste(temp_total_number,
+    #                                " temperatures. From: ",
+    #                                temp_from,
+    #                                " To: ",
+    #                                temp_to,collapse=',')
+  }
+  
   temperatures_temporal <- tibble(id=selected_id,temp_id=1:length(temperatures),temperature=temperatures);
   temperatures_matrix <- rbind(temperatures_matrix,temperatures_temporal)
   
@@ -173,7 +188,7 @@ for(i in 1:nrow(data_sum)){
     temp <- temp |> pivot_longer(-(alg:sim),names_to="replica",values_to = "swap_rate")
     swap_rate <- rbind(swap_rate,temp)
   }
-  if(!is_empty(data[["total_iter"]])&& ncol(data[["total_iter"]])>1){ 
+  if(!is_empty(data[["total_iter"]])&& ncol(data[["total_iter"]])>1){
 ### Extract avg. number of iterations interswap
     #Considering that we only have 1 simulation per read dataset
     temp_single <- data[["total_iter"]][,,1]
