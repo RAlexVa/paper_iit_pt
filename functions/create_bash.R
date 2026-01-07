@@ -57,14 +57,14 @@ Rscript --vanilla codes/highd_seeded.R $FIXED_INPUT $SLURM_ARRAY_TASK_ID
 }
 
 # Usage with your example vector
-numbers <- c(1058:1061)
+numbers <- c(1066:1069)
 create_sh_files(numbers,
-                prefix = "spa1",
+                prefix = "spac",
                 hours=100,
-                cpus=20,
-                sim_ini=1,
-                sim_fin=20,
-                memory_gb=25,
+                cpus=40,
+                sim_ini=51,
+                sim_fin=70,
+                memory_gb=5,
                 output_dir = "bash",
                 name_file="spaced_500")
 numbers <- c(1062:1065)
@@ -81,16 +81,16 @@ create_sh_files(numbers,
 
 
 
-numbers <- c(1052:1057)
+numbers <- c(1070:1071)
 create_sh_files(numbers,
                 prefix = "high",
-                hours=20,
+                hours=10,
                 cpus=20,
                 sim_ini=1,
                 sim_fin=25,
                 memory_gb=2,
                 output_dir = "bash",
-                name_file="1k_13temp_diftemp")
+                name_file="1k_13temp")
 
 numbers <- c(1012:1023)
 create_sh_files(numbers,
