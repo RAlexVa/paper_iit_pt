@@ -40,6 +40,7 @@ chosen_ids <- c(806,808,862,864,880:881)#Para comparar lo que ya habia salido co
 # 
 # chosen_bimodal <- c(202,203,282,252,254)#c(202,203,204,233,235,272,282,252,254)#c(129,135,137,139)
 # print_bimodal <- TRUE
+print_bimodal <- FALSE
 # chosen_ids <- chosen_bimodal
 
 #### Chosen for lowdim multimodal problem ####
@@ -48,6 +49,7 @@ chosen_ids <- c(806,808,862,864,880:881)#Para comparar lo que ya habia salido co
 # 
 # chosen_multimodal <- c(205,206,328,294)#c(205,206,207,237,239,319,328,294)#c(165,167,169,190)
 # print_multimodal <- TRUE
+print_multimodal <- FALSE
 # chosen_ids <- chosen_multimodal
 
 
