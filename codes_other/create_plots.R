@@ -426,11 +426,20 @@ violin_plot_last <- function(the_list,add_info,subset_ids,subset_rfs, return_dat
 }
 
 export_plot <- function(the_plot,plot_name,dimension){
-  jpeg(file.path(export_path,paste0(plot_name,"_hd_",dimension,"k.jpg")),
+  if(missing(dimension)){
+    plot_name <- paste0(plot_name,"_hd.jpg")
+    file_name <- file.path(export_path,plot_name)
+   
+  }else{
+    plot_name <- paste0(plot_name,"_hd_",dimension,"k.jpg")
+    file_name <- file.path(export_path,plot_name)
+  }
+    
+  jpeg(file_name,
        width=1200,height = 600,pointsize = 30)
   print(the_plot)
   dev.off()
-  message("Successfully created plot: ",paste0(plot_name,"_hd_",dimension,"k.jpg"))
+  message("Successfully created plot: ",plot_name)
 }
 
 
@@ -461,6 +470,37 @@ export_plot <- function(the_plot,plot_name,dimension){
   
 }
 
+#####  Plots to compare bounding constants.  #####
+{
+
+  
+  alg_correction <- tibble(alg=c("PT A-IIT(sq)","PT A-IIT(min)","PT_IIT_Z(sq)","PT_IIT_Z(min)"),
+                           algorithm=c("A-IIT","MH-mult","IIT","RF-MH"))
+  #Dim 3k
+  chosen_ids <- c(932:935)+4
+  lll <- create_plot_input("dim_3k",chosen_ids)
+  
+  bounds <- lll[["log_bounds"]]
+  
+  bounds <- bounds |> 
+    mutate(bound=exp(log_bound),#Compute bounds from log_bounds
+           alg=str_remove(alg, "\\(\\d+\\)$")) |> #Modify name of algorithm, delete ID
+    left_join(alg_correction,by="alg") |> #Add the standardized name of the algorithm
+    filter(algorithm=="A-IIT")# Consider only A-IIT beacuse MH doesnt have bounds
+    
+  #Beta labels for the x axis
+  beta_labels <- sapply(sort(unique(bounds$replica)), function(i) {bquote(beta[.(i)])})
+  
+  bounds_plot <- bounds |> ggplot(aes(x=factor(replica),fill=algorithm, y=bound))+
+    geom_violin()+
+    scale_x_discrete(labels = beta_labels) +
+    scale_fill_manual(values = alg_colors, name = "Algorithm") +
+    labs(x = "", y = "bounding constant")+
+    theme(legend.position = "none")
+  
+  
+  export_plot(bounds_plot,"bounds_a_iit",3)
+}
 
 #####  Plots to compare RF algorithms #####
 {
@@ -541,19 +581,57 @@ export_plot <- function(the_plot,plot_name,dimension){
   
   export_plot(s_plot,"compare_RF_a_iit",dimension=3)
   
+  #dim 3k compare RF for A-IIT
+  ddd <- violin_plot_last(lll,add_info,return_dataset = T,subset_ids=chosen_ids)
   
+  s_plot <- ddd |> filter(algorithm=="MH-mult") |> 
+    ggplot(aes(x=factor(rf),fill=algorithm, y=time_visit))+
+    geom_violin()+
+    scale_fill_manual(values = alg_colors, name = "Algorithm")+
+    labs(x = "Rejection Free replicas", y = "seconds")+
+    facet_wrap(~algorithm)+
+    theme(legend.position = "none",
+          strip.text = element_text(size=25))
+  
+  export_plot(s_plot,"compare_RF_mh_mult",dimension=3)
   
 }
 
-#####  TITLE  #####
+#####  Plot to compare number of iterations  #####
 {
+  chosen_id <- 1004 #dimention 5k
+  lll <- create_plot_input("dim_5k_iterations",chosen_id)
+  itera_data <- lll[["iterations"]]
+  itera_data$replica <- as.numeric(itera_data$replica)
+  algorithm_check <- str_extract(unique(itera_data$alg), "^[^(]+")
+  if(algorithm_check=="PT A-IIT"){itera_data$alg <- "A-IIT"}else{cat("ERROR: not the correct algorithm")}
+  
+  itera_data |> ggplot(aes(x=as.factor(replica),y=iterations))+
+    geom_violin()+
+    scale_fill_manual(values = alg_colors, name = "Algorithm") +
+    labs(x = "Rejection Free replicas", y = "seconds")
+  
+  
+  beta_labels <- sapply(sort(unique(itera_data$replica)), function(i) {
+    bquote(beta[.(i)])
+  })
+  
+  itera_plot <- itera_data |> 
+    ggplot(aes(x = as.factor(replica), y = iterations, fill=alg)) +
+    geom_violin() +
+    scale_x_discrete(labels = beta_labels) +
+    scale_fill_manual(values = alg_colors, name = "Algorithm") +
+    labs(x = "", y = "RF iterations")+
+    theme(legend.position = "none",
+          strip.text = element_text(size=25))
+  
+  export_plot(itera_plot,"compare_iterations")
+  
+  itera_data |> group_by(as.factor(replica)) |> summarise(avg.iter=mean(iterations))
   
 }
 
-#####  TITLE  #####
-{
-  
-}
+
 
 #####  TITLE  #####
 {
