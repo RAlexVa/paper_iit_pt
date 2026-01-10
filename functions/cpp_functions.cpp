@@ -116,6 +116,17 @@ double bal_func(double x,String chosen){
   }
 }
 
+// [[Rcpp::export]]
+double bal_func_bounded(double x,String chosen,double log_bound){
+  if (chosen == "sq") {
+    return bound_sq(x,log_bound);
+  } else if (chosen == "min") {
+    return bf_min(x);
+  } else {
+    Rcpp::Rcout <<"Name of the balancing function does exist!" << std::endl;
+    return 0; // Default return for unknown operation
+  }
+}
 
 ////////// loglikelihood functions //////////
 
@@ -129,7 +140,8 @@ double loglik(const arma::vec& X){
   return -std::numeric_limits<double>::infinity();
   }
   
-  double theta=15;
+  // double theta=15;
+  double theta=10;
 
   // Defined modes
     arma::vec  mod1 = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};// 16 1s
@@ -156,7 +168,7 @@ double loglik(const arma::vec& X){
 
 // [[Rcpp::export]]
 vec compute_true_dist(int p){
-  double theta=15;
+  double theta=10;
   vec temporal_state(p);
   vec true_dist(pow(2,p));
   for(int i=0; i<pow(2,p); i++){
@@ -227,7 +239,7 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound,
   vec newX;
   
   
-  
+  if(chosen_bf=="min"){update=false;}//For the MIN balancing function we never update the bounding constant because we don't use it.
   
   if(update){//If it's defined to keep updating the bounding constant
     
@@ -236,13 +248,13 @@ List a_IIT_update(vec X, String chosen_bf, double temperature, double log_bound,
       newX = X;
       newX.row(j) = 1-X.row(j); //Change coordinate of the state to define new neighbor
       temporal = temperature*(loglik(newX)-logpi_current);
-      logprobs(j)=temporal; //Store raw log_probability
+      logprobs(j)=bal_func(temporal,"sq"); //Store log_probability with the BF applied
       max_logprobs(j)=abs(temporal); // Store the max log-probability, either pi_y/pi_x or pi_x/pi_y
     }// End of loop to compute raw log-probability of neighbors
     
     //Updating the log-bound
     
-double checking_max_logprob=bal_func(max(max_logprobs),"sq");
+double checking_max_logprob=max(max_logprobs);
     if(max_logbound_found<checking_max_logprob && (checking_max_logprob-max_logbound_found)>=threshold){
       // Rcpp::Rcout <<"Diff en log bound: "<< checking_max_logprob-max_logbound_found<<std::endl;
       // Rcpp::Rcout <<"Previous max log bound: "<< max_logbound_found*1000000<<std::endl;
@@ -279,6 +291,12 @@ double checking_max_logprob=bal_func(max(max_logprobs),"sq");
         // Rcpp::Rcout <<"Rejected a bounding constant decrease"<< std::endl;
       }
     }
+    //// Apply bounding B.F. with updated constant    
+    // for(int j=0;j<total_neighbors;j++){
+    //   logprobs(j)=bound_sq(logprobs(j),log_bound);
+    // }
+    // Apply the bounding constant to all the log probabilities.
+    logprobs=logprobs-log_bound;
   }else{//In case we don't update the bouding constant
     
     //// Apply bounded B.F. without modifying the constant
@@ -286,8 +304,9 @@ double checking_max_logprob=bal_func(max(max_logprobs),"sq");
       newX = X;
       newX.row(j) = 1-X.row(j); //Change coordinate of the state to define new neighbor
       temporal = temperature*(loglik(newX)-logpi_current);
-      logprobs(j)=bound_sq(temporal,log_bound);
+      logprobs(j)=bal_func_bounded(temporal,chosen_bf,log_bound);
     }
+    
   }
   
 /////////////
@@ -361,7 +380,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
   int measure_this_swap;
   int tvd_swap_count;
   uword tvd_swap_index;
-  int tvd_total_measurements=20;
+  int tvd_total_measurements=50;
   vec swap_to_measure(tvd_total_measurements);//Vector to store the index of swaps to measure
   if(total_swaps>=tvd_total_measurements){
     tvd_measurements=tvd_total_measurements;//Define the number of measurements
@@ -408,7 +427,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
     tvd_swap_index=0;
     //// Start loop for burn_in period
     for(int i=0;i<burn_in;i++){
-      if (i % 100 == 1) {Rcpp::Rcout << "PT-IIT - Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
+      // if (i % 100 == 1) {Rcpp::Rcout << "PT-IIT - Simulation: " << s+startsim << " Burn_in period, iteration: " << i << std::endl;}
       for(int replica=0;replica<T;replica++){//For loop for replica update
         current_temp=temp(index_process(replica));
         output=IIT_update_w(X.col(replica),bal_function[index_process(replica)],current_temp);
@@ -471,7 +490,7 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
 //// Start the loop for all iterations in simulation s
     for(int i=0;i<numiter;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
+      // if (i % 1000 == 1) {Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;}
       // Rcpp::Rcout << "Simulation: " << s+startsim << " Iteration: " << i << std::endl;
       for(int replica=0;replica<T;replica++){//For loop for replicas
         current_temp=temp(index_process(replica));// Extract temperature of the replica
@@ -571,8 +590,9 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
 //   tvd_swap_index++;
 // }
 if(swap_count == swap_to_measure(tvd_swap_index) && tvd_swap_index<tvd_measurements){
-  Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<< std::endl;
-  tvd_report(s,tvd_swap_index)=tvd_compute(true_distribution, pi_est);
+  double tvd_to_print=tvd_compute(true_distribution, pi_est);
+  tvd_report(s,tvd_swap_index)=tvd_to_print;
+  Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<<" TVD: "<< tvd_to_print<<std::endl;
   std::clock_t time_tvd_measurement = std::clock(); // Stop timer
   // Calculate the time taken in seconds
   double dur_tvd = static_cast<double>(time_tvd_measurement - start) / CLOCKS_PER_SEC;
@@ -676,7 +696,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     int measure_this_swap;
     int tvd_swap_count;
     uword tvd_swap_index;
-    int tvd_total_measurements=20;
+    int tvd_total_measurements=50;
     vec swap_to_measure(tvd_total_measurements);//Vector to store the index of swaps to measure
     if(total_swaps>=tvd_total_measurements){
       tvd_measurements=tvd_total_measurements;//Define the number of measurements
@@ -749,6 +769,7 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           if(new_samples<1){
             Rcpp::Rcout <<"Error: geometric in "<< "simulation: " << s+startsim << " Burn-in period after " << track_burn_in <<"simulations,  temp:"<<current_temp<< std::endl;
             Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            Rcpp::Rcout <<"X= "<<X.col(replica) << std::endl;
             new_samples=sample_inter_swap;
           }
           if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
@@ -798,8 +819,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     //// Start the loop for all iterations in simulation s
     for(int i=0;i<total_swaps;i++){
       // Rcpp::Rcout <<"Inside iteration loop"<< i << std::endl;
-      if (i % 100 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;
-        Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
+      // if (i % 100 == 1) {Rcpp::Rcout << "PT A-IITm - Simulation: " << s+startsim << " Swap: " << i <<" Prob_decrease_bound: " << prob_to_dec << std::endl;
+      //   Rcpp::Rcout <<"log_bound_vector:\n "<< log_bound_vector << std::endl;}
       // if (i % 10 == 1) {Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;}
       // Rcpp::Rcout <<"Current log_bound vector :\n"<< log_bound_vector<< std::endl;
       //   bool check_bool= log_bound_vector(J)==0;
@@ -822,6 +843,8 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
           new_samples=1+R::rgeom(Z);
           if(new_samples<1){
             Rcpp::Rcout <<"Error with geometric in "<< "Simulation: " << s+startsim << " Swap: " << i <<" temperature:"<<current_temp<< std::endl;
+            Rcpp::Rcout <<"new_samples= "<<new_samples<< ", Z=" << Z << " log-bound= " << current_log_bound << std::endl;
+            Rcpp::Rcout <<"X= "<<X.col(replica) << std::endl;
             new_samples=sample_inter_swap;
           }
           if((samples_replica+new_samples)>sample_inter_swap){//If we're going to surpass the required number of samples
@@ -922,8 +945,9 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
 //   tvd_swap_index++;
 // }
 if(swap_count == swap_to_measure(tvd_swap_index) && tvd_swap_index<tvd_measurements){
-  Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<< std::endl;
-  tvd_report(s,tvd_swap_index)=tvd_compute(true_distribution, pi_est);
+  double tvd_to_print=tvd_compute(true_distribution, pi_est);
+  tvd_report(s,tvd_swap_index)=tvd_to_print;
+  Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<<" TVD: "<< tvd_to_print<<std::endl;
   std::clock_t time_tvd_measurement = std::clock(); // Stop timer
   // Calculate the time taken in seconds
   double dur_tvd = static_cast<double>(time_tvd_measurement - start) / CLOCKS_PER_SEC;
@@ -1026,7 +1050,7 @@ List PT_a_IIT_sim_RF(int p,int startsim,int endsim, int numiter,int iterswap,int
   int measure_this_swap;
   int tvd_swap_count;
   uword tvd_swap_index;
-  int tvd_total_measurements=20;
+  int tvd_total_measurements=50;
   vec swap_to_measure(tvd_total_measurements);//Vector to store the index of swaps to measure
   if(total_swaps>=tvd_total_measurements){
     tvd_measurements=tvd_total_measurements;//Define the number of measurements
