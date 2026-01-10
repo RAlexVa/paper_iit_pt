@@ -2465,3 +2465,59 @@ for(i in 1:length(X)){
 }
 
 
+######### Testing lowdim bidimensional
+
+rm(list=ls())
+library(Rcpp)
+library(RcppArmadillo)
+Rcpp::sourceCpp("functions/cpp_functions_lowdim_2.cpp")
+p <- 16
+pi.true <- compute_true_dist(p)
+# mod1 = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);
+mod2 = c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0);
+mod3 = c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1);
+# mod4 = c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0);
+# mod5 = c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1);
+# mod6 = c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1);
+# mod7 = c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0);
+
+pi.true[vec_to_num(mod2)+1];
+pi.true[vec_to_num(mod3)+1];
+sum(pi.true[vec_to_num(mod2)+1] + pi.true[vec_to_num(mod3)+1])
+modas <- which(pi.true>0.14)
+lapply(modas-1,num_to_vec,p)#Remember to substract one beacuse R starts counting at 1 and c++ at 0
+
+head(sort(pi.true,decreasing=T),n=10)
+
+
+X <- mod2
+loglik(X)
+neigh_prob_est <- c()
+neigh_prob_true <- c()
+for(i in 1:p){
+  Y <- X
+  Y[i] <- 1-Y[i];
+  neigh_prob_est[i] <- loglik(Y)
+  neigh_prob_true[i] <- pi.true[vec_to_num(Y)]
+}
+
+
+for(i in 1:length(X)){
+  Y <- X;
+  Y[i] <- 1-Y[i]
+  ll_neighbor[i] <- loglik(Y);
+}
+
+iii <- generate_log_iterations(1,1000000,52)
+iii <- generate_log_iterations(1,1000000,119)
+iii <- generate_log_iterations(1,100,109)
+iii <- generate_log_iterations(1,2000000,109)
+
+length(iii)
+
+
+a <- readRDS("results/sim_lowdim_id_607_1.Rds")
+
+a$tvd_time_report
+a$tvd_measurements
+a$tvd_report
