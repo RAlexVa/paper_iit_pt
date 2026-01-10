@@ -2427,6 +2427,29 @@ library(Rcpp)
 library(RcppArmadillo)
 Rcpp::sourceCpp("functions/cpp_functions.cpp")
 p <- 16
+pi.true <- compute_true_dist(p)
+mod1 = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);
+mod2 = c(1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0);
+mod3 = c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1);
+mod4 = c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0);
+mod5 = c(0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1);
+mod6 = c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1);
+mod7 = c(0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0);
+pi.true[vec_to_num(mod1)+1];
+pi.true[vec_to_num(mod2)+1];
+pi.true[vec_to_num(mod3)+1];
+pi.true[vec_to_num(mod4)+1];
+pi.true[vec_to_num(mod5)+1];
+pi.true[vec_to_num(mod6)+1];
+pi.true[vec_to_num(mod7)+1];
+
+modas <- which(pi.true>0.14)
+num_to_vec(modas,p)
+lapply(modas-1,num_to_vec,p)#Remember to substract one beacuse R starts counting at 1 and c++ at 0
+
+head(sort(pi.true,decreasing=T),n=10)
+
+
 X <- c(rep(0,7),1,1,rep(0,7))
 X1 <- c(rep(0,7),1,1,rep(0,7))
 X2 <- X1
