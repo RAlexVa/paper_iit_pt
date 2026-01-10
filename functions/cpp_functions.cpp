@@ -67,6 +67,30 @@ double tvd_compute(vec dist1, vec dist2){
   return 0.5*sum_diff;
 }
 
+// [[Rcpp::export]]
+arma::vec generate_log_iterations(int start, int end, int n_points) {
+  std::vector<int> iterations;
+  iterations.reserve(n_points);
+  
+  double log_start = std::log10(start);
+  double log_end = std::log10(end);
+  double step = (log_end - log_start) / (n_points - 1);
+  
+  for (int i = 0; i < n_points; i++) {
+    double log_value = log_start + i * step;
+    int iteration = std::round(std::pow(10.0, log_value));
+    iterations.push_back(iteration);
+  }
+  
+  // Remove duplicates (equivalent to unique() in R)
+  std::sort(iterations.begin(), iterations.end());
+  iterations.erase(std::unique(iterations.begin(), iterations.end()), iterations.end());
+  
+  // Convert std::vector<int> to arma::vec
+  arma::vec result = arma::conv_to<arma::vec>::from(iterations);
+  
+  return result;
+}
 
 
 
@@ -380,33 +404,21 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
   int measure_this_swap;
   int tvd_swap_count;
   uword tvd_swap_index;
-  int tvd_total_measurements=50;
+  int tvd_total_measurements=109;
   vec swap_to_measure(tvd_total_measurements);//Vector to store the index of swaps to measure
   if(total_swaps>=tvd_total_measurements){
-    tvd_measurements=tvd_total_measurements;//Define the number of measurements
-    // measure_this_swap=trunc(total_swaps/tvd_measurements); //define after how many swaps there will be a measurement
-    double step_size=(log(total_swaps)-1)/(tvd_total_measurements-1);
-    swap_to_measure(0)=1;
-    for(int i=1;i<tvd_total_measurements;i++){//Create vector with logarithmic spacing
-      swap_to_measure(i)=swap_to_measure(i-1)+step_size;
+    tvd_measurements=tvd_total_measurements;
+    swap_to_measure=generate_log_iterations(1,total_swaps,tvd_total_measurements);
+  }else{//measure at each swap
+    tvd_measurements=total_swaps;
+    swap_to_measure.resize(tvd_measurements);
+    for(int i=0;i<tvd_measurements;i++){
+      swap_to_measure(i)=i+1;
     }
-    swap_to_measure=round(exp(swap_to_measure));
-    for(int i=1;i<tvd_total_measurements;i++){//If we get the same number, we space them
-      if(swap_to_measure(i-1)==swap_to_measure(i)){
-        swap_to_measure(i)=swap_to_measure(i)+1;
-      }
-    }
-    swap_to_measure(tvd_total_measurements-1)=total_swaps;//Force the last measurement
-    }else{
-      tvd_measurements=total_swaps;
-      swap_to_measure.resize(tvd_measurements);
-      for(int i=0;i<tvd_measurements;i++){
-        swap_to_measure(i)=i+1;
-      }
-      // measure_this_swap=1; //define after how many swaps there will be a measurement
-      }//Check that we have enough swaps to measure
-  mat tvd_report(total_sim,tvd_measurements); //Create a matrix to store the tvd measurements
-  mat tvd_time_report(total_sim,tvd_measurements); //Create a matrix to store the time of tvd measurements    
+  }
+  // Rcpp::Rcout <<"Measuring TVD at swaps"<< swap_to_measure << std::endl;
+  mat tvd_report(tvd_measurements,total_sim); //Create a matrix to store the tvd measurements
+  mat tvd_time_report(tvd_measurements,total_sim); //Create a matrix to store the time of tvd measurements    
 //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
     for(int i=0;i<T;i++){ // Reset index process vector at the start of each simulation
@@ -578,25 +590,15 @@ List PT_IIT_sim(int p,int startsim,int endsim, int numiter,int iterswap,int burn
         ind_pro_hist.row((s*total_swaps)+swap_count)=index_process.t();
         // Rcpp::Rcout <<"Store index process " << std::endl;
       }//End of replica swap process
-//// Include the measurement of TVD after some swaps      
-// if(swap_count == tvd_swap_count && tvd_swap_index<tvd_measurements){
-//   Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<<", measured every: "<<measure_this_swap<<" swaps "<< std::endl;
-//   tvd_report(s,tvd_swap_index)=tvd_compute(true_distribution, pi_est);
-//   std::clock_t time_tvd_measurement = std::clock(); // Stop timer
-//   // Calculate the time taken in seconds
-//   double dur_tvd = static_cast<double>(time_tvd_measurement - start) / CLOCKS_PER_SEC;
-//   tvd_time_report(s,tvd_swap_index)=dur_tvd;
-//   tvd_swap_count+=measure_this_swap;
-//   tvd_swap_index++;
-// }
+
 if(swap_count == swap_to_measure(tvd_swap_index) && tvd_swap_index<tvd_measurements){
   double tvd_to_print=tvd_compute(true_distribution, pi_est);
-  tvd_report(s,tvd_swap_index)=tvd_to_print;
+  tvd_report(tvd_swap_index,s)=tvd_to_print;
   Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<<" TVD: "<< tvd_to_print<<std::endl;
   std::clock_t time_tvd_measurement = std::clock(); // Stop timer
   // Calculate the time taken in seconds
   double dur_tvd = static_cast<double>(time_tvd_measurement - start) / CLOCKS_PER_SEC;
-  tvd_time_report(s,tvd_swap_index)=dur_tvd;
+  tvd_time_report(tvd_swap_index,s)=dur_tvd;
   tvd_swap_count+=measure_this_swap;
   // tvd_swap_count+=measure_this_swap;
   tvd_swap_index++;
@@ -696,33 +698,21 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
     int measure_this_swap;
     int tvd_swap_count;
     uword tvd_swap_index;
-    int tvd_total_measurements=50;
+    int tvd_total_measurements=109;
     vec swap_to_measure(tvd_total_measurements);//Vector to store the index of swaps to measure
     if(total_swaps>=tvd_total_measurements){
-      tvd_measurements=tvd_total_measurements;//Define the number of measurements
-      // measure_this_swap=trunc(total_swaps/tvd_measurements); //define after how many swaps there will be a measurement
-      double step_size=(log(total_swaps)-1)/(tvd_total_measurements-1);
-      swap_to_measure(0)=1;
-      for(int i=1;i<tvd_total_measurements;i++){//Create vector with logarithmic spacing
-        swap_to_measure(i)=swap_to_measure(i-1)+step_size;
-      }
-      swap_to_measure=round(exp(swap_to_measure));
-      for(int i=1;i<tvd_total_measurements;i++){//If we get the same number, we space them
-        if(swap_to_measure(i-1)==swap_to_measure(i)){
-          swap_to_measure(i)=swap_to_measure(i)+1;
-        }
-      }
-      swap_to_measure(tvd_total_measurements-1)=total_swaps;//Force the last measurement
-    }else{
+      tvd_measurements=tvd_total_measurements;
+      swap_to_measure=generate_log_iterations(1,total_swaps,tvd_total_measurements);
+    }else{//measure at each swap
       tvd_measurements=total_swaps;
       swap_to_measure.resize(tvd_measurements);
       for(int i=0;i<tvd_measurements;i++){
         swap_to_measure(i)=i+1;
       }
-      // measure_this_swap=1; //define after how many swaps there will be a measurement
-    }//Check that we have enough swaps to measure
-    mat tvd_report(total_sim,tvd_measurements); //Create a matrix to store the tvd measurements
-    mat tvd_time_report(total_sim,tvd_measurements); //Create a matrix to store the time of tvd measurements    
+    }
+    // Rcpp::Rcout <<"Measuring TVD at swaps"<< swap_to_measure << std::endl;
+    mat tvd_report(tvd_measurements,total_sim); //Create a matrix to store the tvd measurements
+    mat tvd_time_report(tvd_measurements,total_sim); //Create a matrix to store the time of tvd measurements    
   
   //// Start the loop for all simulations
   for(int s=0;s<total_sim;s++){
@@ -933,25 +923,15 @@ List PT_a_IIT_sim(int p,int startsim,int endsim, int total_swaps,int sample_inte
         // Rcpp::Rcout <<"Store index process " << std::endl;
 ////End of replica swap process
 
-//// Include the measurement of TVD after some swaps      
-// if(swap_count == tvd_swap_count && tvd_swap_index<tvd_measurements){
-//   Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<<", measured every: "<<measure_this_swap<<" swaps "<< std::endl;
-//   tvd_report(s,tvd_swap_index)=tvd_compute(true_distribution, pi_est);
-//   std::clock_t time_tvd_measurement = std::clock(); // Stop timer
-//   // Calculate the time taken in seconds
-//   double dur_tvd = static_cast<double>(time_tvd_measurement - start) / CLOCKS_PER_SEC;
-//   tvd_time_report(s,tvd_swap_index)=dur_tvd;
-//   tvd_swap_count+=measure_this_swap;
-//   tvd_swap_index++;
-// }
+
 if(swap_count == swap_to_measure(tvd_swap_index) && tvd_swap_index<tvd_measurements){
   double tvd_to_print=tvd_compute(true_distribution, pi_est);
-  tvd_report(s,tvd_swap_index)=tvd_to_print;
+  tvd_report(tvd_swap_index,s)=tvd_to_print;
   Rcpp::Rcout <<"Measuring TVD in swap: "<< swap_count <<" out of "<<total_swaps<<" TVD: "<< tvd_to_print<<std::endl;
   std::clock_t time_tvd_measurement = std::clock(); // Stop timer
   // Calculate the time taken in seconds
   double dur_tvd = static_cast<double>(time_tvd_measurement - start) / CLOCKS_PER_SEC;
-  tvd_time_report(s,tvd_swap_index)=dur_tvd;
+  tvd_time_report(tvd_swap_index,s)=dur_tvd;
   // tvd_swap_count+=measure_this_swap;
   tvd_swap_index++;
 }
