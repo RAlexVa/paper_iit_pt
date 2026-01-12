@@ -2484,6 +2484,23 @@ mod3 = c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1);
 pi.true[vec_to_num(mod2)+1];
 pi.true[vec_to_num(mod3)+1];
 sum(pi.true[vec_to_num(mod2)+1] + pi.true[vec_to_num(mod3)+1])
+##### Check path connecting modes
+X <- mod2
+lll_path <- c()
+prob_path <- c()
+for(i in 1:16){
+  X[i] <- mod3[i];
+  lll_path[i] <- loglik(X);
+  prob_path[i] <- pi.true[vec_to_num(X)+1];
+}
+#The change from changing a coordinate is theta (in this case 6)
+
+i <- 3
+tempt <- 0
+(lll_path[i]-lll_path[i+1])*tempt
+
+exp((lll_path[i]-lll_path[i+1])*tempt)
+
 modas <- which(pi.true>0.14)
 lapply(modas-1,num_to_vec,p)#Remember to substract one beacuse R starts counting at 1 and c++ at 0
 
