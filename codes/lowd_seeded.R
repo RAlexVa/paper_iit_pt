@@ -212,7 +212,7 @@ run_lowd <- function(list_ids, unique_id=1){
         # Total Variation Distance
         export[["tvd"]] <- apply(output[["est_pi"]], 2,TVD,pi.est=pi.true)
         # estimated density on the modes
-        export[["pi_modes"]] <- output[["est_pi"]][modes+1,]
+        export[["pi_modes"]] <- export[["est_pi"]][modes+1,]
         # Time of first visit
         export[["mode_visit"]] <- t(output[["visits"]][modes+1,])
         #Running time
@@ -238,7 +238,7 @@ if (!interactive()) {
   args <- commandArgs(trailingOnly = TRUE)
   defined_seed <- args[2]
   set.seed(defined_seed)
-  run_highd(args[1],defined_seed)
+  run_lowd(args[1],defined_seed)
 }
 
 
