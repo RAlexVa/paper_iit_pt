@@ -6,7 +6,8 @@ create_sh_files <- function(numbers,
                             sim_fin=100,
                             memory_gb=16,
                             output_dir = ".",
-                            name_file="default") {
+                            name_file="default",
+                            name_code="highd_seeded.R") {
   # Ensure output directory exists
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
@@ -31,7 +32,7 @@ module load r/4.5.0
 
 FIXED_INPUT=PLACEHOLDER
 
-Rscript --vanilla codes/highd_seeded.R $FIXED_INPUT $SLURM_ARRAY_TASK_ID
+Rscript --vanilla codes/CODE_NAME $FIXED_INPUT $SLURM_ARRAY_TASK_ID
 '
     # Replace the placeholder with the actual number
     content <- gsub("PLACEHOLDER", numbers[i], content)
@@ -41,7 +42,7 @@ Rscript --vanilla codes/highd_seeded.R $FIXED_INPUT $SLURM_ARRAY_TASK_ID
     content <- gsub("SIMFIN", sim_fin, content)
     content <- gsub("NAMEFILE", name_file, content)
     content <- gsub("MEMORY", memory_gb, content)
-    
+    content <- gsub("CODE_NAME", name_code, content)
     # # Write the file with UNIX line endings
     # writeLines(content, filename, sep = "\n")
     # # Make the file executable (Unix/Linux systems)
@@ -57,6 +58,30 @@ Rscript --vanilla codes/highd_seeded.R $FIXED_INPUT $SLURM_ARRAY_TASK_ID
 }
 
 # Usage with your example vector
+numbers <- c(655:663)
+create_sh_files(numbers,
+                prefix = "lowd",
+                hours=5,
+                cpus=1,
+                sim_ini=1,
+                sim_fin=100,
+                memory_gb=6,
+                output_dir = "bash",
+                name_file="lowdim",
+                name_code="lowd_seeded.R")
+
+numbers <- c(664:668)
+create_sh_files(numbers,
+                prefix = "lowd2",
+                hours=10,
+                cpus=1,
+                sim_ini=1,
+                sim_fin=100,
+                memory_gb=6,
+                output_dir = "bash",
+                name_file="lowdim",
+                name_code="lowd_seeded.R")
+
 numbers <- c(1066:1069)
 create_sh_files(numbers,
                 prefix = "spac",
