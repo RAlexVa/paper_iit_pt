@@ -133,7 +133,7 @@ run_lowd <- function(list_ids, unique_id=1){
       total_swap <- sim_chosen$total_swap #Total number of swaps to try
       reduc_constant <- sim_chosen$reduc_constant
       reduc_model <- sim_chosen$reduc_model
-      
+      number_rf_replicas <- sim_chosen$temps_rf
       export <- list();
       #### Function depending on algorithm to use
       
@@ -142,6 +142,7 @@ run_lowd <- function(list_ids, unique_id=1){
                    paste0("Algorithm: ",alg),
                    paste0("Problem: ",sim_chosen$model),
                    paste0("Number of Replicas: ",length(temperatures)),
+                   paste0("Num. of Rejection Free Replicas: ",sim_chosen$temps_rf),
                    paste0("Total simulations: ",total_simulations),
                    paste0("Burn-in iterations: ",burnin_iter),
                    paste0("Total iterations: ",total_iter),
@@ -184,7 +185,7 @@ run_lowd <- function(list_ids, unique_id=1){
             print("Running PT A-IIT")
             # Using A-IIT with multiplicity list in each replica
             # output_name <- paste0("PT_A_IIT_","sim_",total_simulations,"_interswap_",sample_inter_swap,"_totalswap_",total_swap,"_s_",defined_seed,".Rds");
-            output <- PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state,reduc_constant,reduc_model)
+            output <- PT_a_IIT_sim(p,1, total_simulations,total_swap,sample_inter_swap,burnin_iter,temperatures,bal_f,start_state,reduc_constant,reduc_model,number_rf_replicas)
             #round trip rate (NA for IIT)
             swaps_for_rt_rate <- total_swap
           }
