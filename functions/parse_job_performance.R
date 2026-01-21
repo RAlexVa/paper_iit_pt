@@ -1,3 +1,4 @@
+rm(list=ls())
 library(tidyverse)
 library(stringr)
 
@@ -5,7 +6,7 @@ library(stringr)
 ##### Run all of this to read and parse the file #####
 
 
-chosen_file <- "results/jobs_since_jan1.txt"
+chosen_file <- "results/jobs_since_jan8.txt"
 {
   # Function to convert SLURM time format to hours
   convert_slurm_time_to_hours <- function(time_str) {
@@ -83,7 +84,7 @@ chosen_file <- "results/jobs_since_jan1.txt"
   jobs_data <- jobs_data |> filter(State %in% c("COMPLETED","TIMEOUT"))
   
   #Delete the decimals from JobID
-  jobs_data$JobID <- str_remove(jobs_data$JobID,"\\..*")
+  jobs_data$JobID <- str_remove(jobs_data$JobID,"[.+].*")
   
   # Now process as before
   jobs_data <- jobs_data %>%
@@ -146,7 +147,7 @@ convert_maxrss_to_mb <- function(maxrss_vector) {
 
 #Check start and end
 check_start_end <- jobs_data |>
-  filter(ParentJobID>6295000) |> 
+  filter(ParentJobID>6628000) |> 
   select(ParentJobID,Start,End) |> #,ArrayID
   group_by(ParentJobID) |> 
   summarise(min_start=min(Start),max_end=max(End), count=n())
@@ -163,7 +164,7 @@ summary <- jobs_data |>
             avg_time=mean(Elapsed_hours),
             max_time=max(Elapsed_hours),
             time_limit=max(Timelimit_hours),
-            max_RSS_mb=max(MaxRSS))
+            max_RSS_mb=max(MaxRSS,na.rm=T))
 
 
 state_summary <- jobs_data |> 
