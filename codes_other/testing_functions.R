@@ -2426,6 +2426,7 @@ rm(list=ls())
 library(Rcpp)
 library(RcppArmadillo)
 Rcpp::sourceCpp("functions/cpp_functions.cpp")
+# Rcpp::sourceCpp("functions/cpp_functions_lowdim_2.cpp")
 p <- 16
 pi.true <- compute_true_dist(p)
 mod1 = c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);
@@ -2442,6 +2443,14 @@ pi.true[vec_to_num(mod4)+1];
 pi.true[vec_to_num(mod5)+1];
 pi.true[vec_to_num(mod6)+1];
 pi.true[vec_to_num(mod7)+1];
+
+c(vec_to_num(mod1),
+  vec_to_num(mod2),
+  vec_to_num(mod3),
+  vec_to_num(mod4),
+  vec_to_num(mod5),
+  vec_to_num(mod6),
+  vec_to_num(mod7))+1
 
 modas <- which(pi.true>0.14)
 num_to_vec(modas,p)
