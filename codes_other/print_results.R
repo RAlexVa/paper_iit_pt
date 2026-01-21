@@ -14,8 +14,8 @@ theme_update(base_size = 17,legend.key.size = unit(1, 'cm'));
 ### Process simulation results ###
 
 # Choose dimension
-chosen_dim <- "highdim"; file_dim <- "highd"
-# chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
+# chosen_dim <- "highdim"; file_dim <- "highd"
+chosen_dim <- "lowdim";file_dim <- "lowd" #,10000,1000,5000
 print_bimodal <- FALSE
 print_multimodal <- FALSE
 # chosen_ids <-c(730,733,736,739)+1
@@ -29,6 +29,8 @@ chosen_ids <- c(858:861,866:869,874:877)
 chosen_ids <- c(802,804,878,879)#Para comparar lo que ya habia salido con este
 chosen_ids <- c(806,808,862,864,880:881)#Para comparar lo que ya habia salido con este en dim 5k
 
+# New lowdim
+chosen_ids <- 600:617
 # chosen_ids <-755
 # chosen_ids <- c(650:661,663:669)
 #### Chosen for lowdim bimodal problem ####
