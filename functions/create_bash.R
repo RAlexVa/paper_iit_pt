@@ -58,10 +58,10 @@ Rscript --vanilla codes/CODE_NAME $FIXED_INPUT $SLURM_ARRAY_TASK_ID
 }
 
 # Usage with your example vector
-numbers <- c(655:663)
+numbers <- c(700:703)
 create_sh_files(numbers,
                 prefix = "lowd",
-                hours=5,
+                hours=3,
                 cpus=1,
                 sim_ini=1,
                 sim_fin=100,
@@ -70,71 +70,39 @@ create_sh_files(numbers,
                 name_file="lowdim",
                 name_code="lowd_seeded.R")
 
-numbers <- c(664:668)
+numbers <- c(1100:1103)
 create_sh_files(numbers,
-                prefix = "lowd2",
+                prefix = "highd1",
                 hours=10,
-                cpus=1,
+                cpus=20,
                 sim_ini=1,
                 sim_fin=100,
                 memory_gb=6,
                 output_dir = "bash",
-                name_file="lowdim",
-                name_code="lowd_seeded.R")
+                name_file="highdim_1k",
+                name_code="highd_seeded.R")
 
-numbers <- c(1066:1069)
+numbers <- c(1104:1115)
 create_sh_files(numbers,
-                prefix = "spac",
-                hours=100,
-                cpus=40,
-                sim_ini=51,
-                sim_fin=70,
-                memory_gb=5,
-                output_dir = "bash",
-                name_file="spaced_500")
-numbers <- c(1062:1065)
-create_sh_files(numbers,
-                prefix = "spa2",
-                hours=100,
-                cpus=20,
-                sim_ini=21,
-                sim_fin=40,
-                memory_gb=25,
-                output_dir = "bash",
-                name_file="spaced_500")
-
-
-
-
-numbers <- c(1070:1071)
-create_sh_files(numbers,
-                prefix = "high",
-                hours=10,
-                cpus=20,
-                sim_ini=1,
-                sim_fin=25,
-                memory_gb=2,
-                output_dir = "bash",
-                name_file="1k_13temp")
-
-numbers <- c(1012:1023)
-create_sh_files(numbers,
-                prefix = "less_rf",
+                prefix = "highd",
                 hours=8,
                 cpus=20,
                 sim_ini=1,
-                sim_fin=25,
-                memory_gb=5,
+                sim_fin=100,
+                memory_gb=6,
                 output_dir = "bash",
-                name_file="6mod_13t_less_rf")
+                name_file="highdim",
+                name_code="highd_seeded.R")
 
-numbers <- c(978:1007)
+
+numbers <- c(704:705)
 create_sh_files(numbers,
-                prefix = "more_rf",
-                hours=100,
-                cpus=20,
+                prefix = "lowd2",
+                hours=3,
+                cpus=1,
                 sim_ini=1,
-                sim_fin=25,
-                memory_gb=16,
+                sim_fin=100,
+                memory_gb=6,
                 output_dir = "bash",
-                name_file="6mod_13t_less_rf")
+                name_file="lowdim",
+                name_code="lowd_seeded.R")
