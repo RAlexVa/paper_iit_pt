@@ -6,7 +6,7 @@ library(stringr)
 ##### Run all of this to read and parse the file #####
 
 
-chosen_file <- "results/jobs_since_jan8.txt"
+chosen_file <- "results/jobs_since_jan10.txt"
 {
   # Function to convert SLURM time format to hours
   convert_slurm_time_to_hours <- function(time_str) {
