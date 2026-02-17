@@ -169,8 +169,8 @@ find_temp_highd <- function(list_ids){
 
 find_temp_highd_recurrent <- function(list_ids){
   target_sr <- 0.234
-  lower_limit <- 0.21
-  upper_limit <- 0.39
+  lower_limit <- 0.23#0.21
+  upper_limit <- 0.29#0.39
   
   if(!("./results" %in% list.dirs(recursive=F))){
     print("Wrong directory. There's no results folder for the output")
