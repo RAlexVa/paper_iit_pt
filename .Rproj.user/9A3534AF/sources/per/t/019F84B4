@@ -1,0 +1,27 @@
+{
+    "id": "019F84B4",
+    "path": "~/src/paper_iit_pt/codes/find_temp_manual.R",
+    "project_path": "codes/find_temp_manual.R",
+    "type": "r_source",
+    "hash": "1240185774",
+    "contents": "",
+    "dirty": false,
+    "created": 1750350343662.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Sourcekmzwspt0obqm",
+        "cursorPosition": "172,21",
+        "scrollLine": "0"
+    },
+    "folds": "10|38|167|0|\n26|35|164|38|\n",
+    "lastKnownWriteTime": 1770337450,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1770337450981,
+    "read_only": false,
+    "read_only_alternatives": []
+}

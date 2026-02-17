@@ -1,0 +1,27 @@
+{
+    "id": "C489351C",
+    "path": "~/src/paper_iit_pt/functions/highdim_parallel_sep_multimodal.cpp",
+    "project_path": "functions/highdim_parallel_sep_multimodal.cpp",
+    "type": "cpp",
+    "hash": "1434504818",
+    "contents": "",
+    "dirty": false,
+    "created": 1760479171047.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "730,15",
+        "scrollLine": "0"
+    },
+    "folds": "16|43|19|0|\n21|43|24|0|\n27|22|36|0|\n39|29|56|0|\n58|94|67|0|\n69|106|122|0|\n126|94|137|0|\n140|77|178|0|\n183|51|197|0|\n199|47|208|0|\n213|45|224|0|\n229|23|231|0|\n232|24|240|0|\n242|44|245|0|\n248|49|250|0|\n251|40|260|0|\n261|49|270|0|\n272|81|302|0|\n303|86|338|0|\n340|73|357|0|\n358|78|374|0|\n379|79|381|0|\n383|120|385|0|\n387|99|397|0|\n399|118|401|0|\n403|105|413|0|\n415|120|417|0|\n421|146|458|0|\n959|373|1479|0|\n",
+    "lastKnownWriteTime": 1767028342,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1768232446387,
+    "read_only": false,
+    "read_only_alternatives": []
+}

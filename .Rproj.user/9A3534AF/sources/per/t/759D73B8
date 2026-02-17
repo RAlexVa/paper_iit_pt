@@ -1,0 +1,27 @@
+{
+    "id": "759D73B8",
+    "path": "~/src/paper_iit_pt/functions/highdim_2_parallel.cpp",
+    "project_path": "functions/highdim_2_parallel.cpp",
+    "type": "cpp",
+    "hash": "2487433973",
+    "contents": "",
+    "dirty": false,
+    "created": 1749741982523.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Sourcekmzwspt0obqm",
+        "cursorPosition": "1334,146",
+        "scrollLine": "0"
+    },
+    "folds": "16|43|19|0|\n21|43|24|0|\n27|22|36|0|\n39|29|56|0|\n58|94|67|0|\n71|108|105|0|\n108|106|167|0|\n170|94|181|0|\n184|77|222|0|\n227|51|241|0|\n243|47|252|0|\n256|23|258|0|\n259|24|267|0|\n269|44|272|0|\n275|49|277|0|\n278|40|287|0|\n288|49|297|0|\n299|81|329|0|\n330|86|365|0|\n367|73|453|0|\n454|78|490|0|\n495|79|497|0|\n499|120|501|0|\n503|99|513|0|\n515|118|517|0|\n519|105|529|0|\n531|120|533|0|\n538|146|576|0|\n580|302|1057|0|\n",
+    "lastKnownWriteTime": 1766266935,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1768182107066,
+    "read_only": false,
+    "read_only_alternatives": []
+}

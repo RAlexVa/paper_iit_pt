@@ -1,0 +1,26 @@
+{
+    "id": "BA816E58",
+    "path": "~/src/paper_iit_pt/functions/workers.h",
+    "project_path": "functions/workers.h",
+    "type": "h",
+    "hash": "53183294",
+    "contents": "",
+    "dirty": false,
+    "created": 1749503553187.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "145,16",
+        "scrollLine": "0"
+    },
+    "folds": "16|1|80|0|\n31|32|35|2|\n36|32|40|2|\n64|54|79|2|\n100|40|104|2|\n105|40|109|2|\n152|1|209|0|\n165|32|169|2|\n170|32|174|2|\n196|54|208|2|\n212|1|255|0|\n223|40|227|2|\n244|54|254|2|\n258|1|328|0|\n276|40|280|2|\n281|40|285|2|\n313|54|327|2|\n331|1|380|0|\n372|54|379|2|\n385|1|408|0|\n398|55|402|2|\n405|35|407|2|\n411|1|431|0|\n421|55|425|2|\n428|32|430|2|\n434|1|459|0|\n443|55|450|2|\n453|34|458|2|\n462|1|487|0|\n471|55|478|2|\n481|34|486|2|\n490|1|516|0|\n499|55|507|2|\n510|37|515|2|\n",
+    "lastKnownWriteTime": 1761325032,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1767729707433,
+    "read_only": false,
+    "read_only_alternatives": []
+}

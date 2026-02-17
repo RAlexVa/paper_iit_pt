@@ -1,0 +1,27 @@
+{
+    "id": "D41E9345",
+    "path": "~/src/paper_iit_pt/functions/cpp_functions.cpp",
+    "project_path": "functions/cpp_functions.cpp",
+    "type": "cpp",
+    "hash": "3257569112",
+    "contents": "",
+    "dirty": false,
+    "created": 1767728553670.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "879,23",
+        "scrollLine": "0"
+    },
+    "folds": "11|43|14|0|\n17|43|20|0|\n23|22|36|0|\n39|29|56|0|\n59|41|67|0|\n70|69|92|0|\n100|23|102|0|\n105|24|113|0|\n117|44|120|0|\n126|49|128|0|\n131|40|140|0|\n143|65|152|0|\n159|34|189|0|\n193|29|202|0|\n209|63|249|0|\n252|169|356|0|\n394|175|661|0|\n1042|232|1389|0|\n",
+    "lastKnownWriteTime": 1768185628,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1768185628770,
+    "read_only": false,
+    "read_only_alternatives": []
+}

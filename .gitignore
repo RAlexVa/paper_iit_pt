@@ -1,9 +1,6 @@
-.Rproj*
 results/raw_exports
 paper_iit_pt.Rproj
 *.jpg
-.Rdata
-.Rhistory
 codes/hmm_bw0.sh
 codes/main_template.R
 drac_logs
@@ -18,6 +15,3 @@ inputs/.~lock.simulation_details_highd.csv\#
 *.sh
 inputs/mode_matrix/
 inputs/simulation_details_highd_bk.csv
-.RData
-.RDataTmp
-.Rhistory

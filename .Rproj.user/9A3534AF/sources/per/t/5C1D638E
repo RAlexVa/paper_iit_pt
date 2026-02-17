@@ -1,0 +1,27 @@
+{
+    "id": "5C1D638E",
+    "path": "~/src/paper_iit_pt/functions/parse_results_txt.R",
+    "project_path": "functions/parse_results_txt.R",
+    "type": "r_source",
+    "hash": "63560084",
+    "contents": "",
+    "dirty": false,
+    "created": 1761600368124.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Sourcekmzwspt0obqm",
+        "cursorPosition": "397,21",
+        "scrollLine": "0"
+    },
+    "folds": "4|53|103|0|\n110|54|219|0|\n222|62|264|0|\n281|57|326|0|\n329|44|375|0|\n377|106|395|0|\n",
+    "lastKnownWriteTime": 1767041652,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1767041652185,
+    "read_only": false,
+    "read_only_alternatives": []
+}

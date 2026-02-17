@@ -1,0 +1,26 @@
+{
+    "id": "14943817",
+    "path": "~/src/paper_iit_pt/functions/cpp_functions_lowdim_2.cpp",
+    "project_path": "functions/cpp_functions_lowdim_2.cpp",
+    "type": "cpp",
+    "hash": "2742650766",
+    "contents": "",
+    "dirty": false,
+    "created": 1767727268955.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "691,21",
+        "scrollLine": "0"
+    },
+    "folds": "11|43|14|0|\n17|43|20|0|\n23|22|36|0|\n39|29|56|0|\n59|41|67|0|\n70|69|92|0|\n98|23|100|0|\n103|24|111|0|\n115|44|118|0|\n124|49|126|0|\n129|40|138|0|\n141|65|150|0|\n157|34|186|0|\n189|29|198|0|\n204|63|244|0|\n247|169|357|0|\n396|175|663|0|\n1047|232|1394|0|\n",
+    "lastKnownWriteTime": 1768186459,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1768323910312,
+    "read_only": false,
+    "read_only_alternatives": []
+}
