@@ -818,7 +818,7 @@ tables_path <- "C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/tables"
     #Particular changes depending on model
     table_file_name <- ""
     table_label <- ""
-    table_caption <- paste0("Average number of rejection-free steps between replica swaps")
+    table_caption <- paste0("Average number of iterations between replica swaps")
     if(h_l_dim=="lowdim"){
       table_file_name <- paste0("avg_iter_ld_", dimension, ".tex");
       
@@ -1264,23 +1264,23 @@ model_name <- c("bimodal","7_mode")
   lll <- create_plot_input("dim_3k_rf_alg",chosen_ids)
   
   #dim 3k, 1-3
-  s_plot <- violin_plot_last(lll,add_info,subset_rfs=c(1:5))
-  s_plot
-  export_plot(s_plot,"compare_RF_1_5",3)
+  # s_plot <- violin_plot_last(lll,add_info,subset_rfs=c(1:5))
+  # s_plot
+  # export_plot(s_plot,"compare_RF_1_5",3)
 
   
   #dim 3k compare RF side by side
-  ddd <- violin_plot_last(lll,add_info,return_dataset = T,subset_ids=chosen_ids)
-  
-  s_plot <- ggplot(ddd,aes(x=factor(rf),fill=algorithm, y=time_visit))+
-    geom_violin()+
-    scale_fill_manual(values = alg_colors, name = "Algorithm")+
-    labs(x = "Rejection Free replicas", y = "seconds")+
-    facet_wrap(~algorithm)+
-    theme(legend.position = "none",
-          strip.text = element_text(size=25))
-  
-  export_plot(s_plot,"compare_RF_side",dimension=3)
+  # ddd <- violin_plot_last(lll,add_info,return_dataset = T,subset_ids=chosen_ids)
+  # 
+  # s_plot <- ggplot(ddd,aes(x=factor(rf),fill=algorithm, y=time_visit))+
+  #   geom_violin()+
+  #   scale_fill_manual(values = alg_colors, name = "Algorithm")+
+  #   labs(x = "Rejection Free replicas", y = "seconds")+
+  #   facet_wrap(~algorithm)+
+  #   theme(legend.position = "none",
+  #         strip.text = element_text(size=25))
+  # 
+  # export_plot(s_plot,"compare_RF_side",dimension=3)
   
   #dim 3k compare RF for A-IIT
   ddd <- violin_plot_last(lll,add_info,return_dataset = T,subset_ids=chosen_ids)
@@ -1289,12 +1289,12 @@ model_name <- c("bimodal","7_mode")
     ggplot(aes(x=factor(rf),fill=algorithm, y=time_visit))+
     geom_violin()+
     scale_fill_manual(values = alg_colors, name = "Algorithm")+
-    labs(x = "Rejection Free replicas", y = "seconds")+
+    labs(x = "Number of replicas using A-IIT", y = "seconds")+
     facet_wrap(~algorithm)+
     theme(legend.position = "none",
           strip.text = element_text(size=25))
   
-  export_plot(s_plot,"compare_RF_a_iit",dimension=3)
+  export_plot(s_plot,"compare_RF_a_iit","highdim",dimension=3)
   
   #dim 3k compare RF for A-IIT
   ddd <- violin_plot_last(lll,add_info,return_dataset = T,subset_ids=chosen_ids)
@@ -1303,12 +1303,12 @@ model_name <- c("bimodal","7_mode")
     ggplot(aes(x=factor(rf),fill=algorithm, y=time_visit))+
     geom_violin()+
     scale_fill_manual(values = alg_colors, name = "Algorithm")+
-    labs(x = "Rejection Free replicas", y = "seconds")+
+    labs(x = "Number of replicas using MH with a multiplicity list", y = "seconds")+
     facet_wrap(~algorithm)+
     theme(legend.position = "none",
           strip.text = element_text(size=25))
   
-  export_plot(s_plot,"compare_RF_mh_mult",dimension=3)
+  export_plot(s_plot,"compare_RF_mh_mult","highdim",dimension=3)
   
 }
 
