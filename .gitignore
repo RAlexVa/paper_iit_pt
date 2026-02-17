@@ -14,3 +14,4 @@ inputs/.~lock.simulation_details_highd.csv\#
 *.sh
 inputs/mode_matrix/
 inputs/simulation_details_highd_bk.csv
+.Rproj.user*
