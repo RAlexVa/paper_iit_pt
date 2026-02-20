@@ -28,11 +28,11 @@ tables_path <- "C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/tables"
   my_theme <- theme_minimal() +
     theme(
       # text = element_text(size = 12),           # Base text size
-      axis.title = element_text(size = 22),     # Axis labels
-      axis.text = element_text(size = 22),      # Axis tick labels
-      legend.title = element_text(size = 16),   # Legend title
-      legend.text = element_text(size = 14),    # Legend labels
-      plot.title = element_text(size = 16)      # Plot title (if you add one)
+      axis.title = element_text(size = 30),     # Axis labels
+      axis.text = element_text(size = 30),      # Axis tick labels
+      legend.title = element_text(size = 20),   # Legend title
+      legend.text = element_text(size = 20),    # Legend labels
+      plot.title = element_text(size = 45, hjust=0.5)      # Plot title (if you add one)
     )
   theme_set(my_theme)
 }
@@ -933,10 +933,12 @@ tables_path <- "C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/tables"
       filter(measurement>filter_measurement) |>
       filter(avg_time<filter_time) |> 
       ggplot(aes(x=avg_time,y=avg_tvd,color=algorithm))+
-      geom_line(linewidth=1.2, alpha=0.4)+
-      geom_point(aes(x=avg_time,y=avg_tvd),size=0.4,alpha=0.5)+
+      geom_line(linewidth=1.8, alpha=0.4)+
+      geom_point(aes(x=avg_time,y=avg_tvd),size=1.5,alpha=0.3)+
       scale_color_manual(values = alg_colors, name = "Algorithm")+
-      labs(x = "seconds", y = "TVD")
+      labs(x = "seconds", y = "TVD")+
+      scale_x_continuous(breaks=seq(0,filter_time,length.out=5),
+                         labels=seq(0,filter_time,length.out=5))
     
     return(tvd_plot)
     
@@ -1066,51 +1068,18 @@ model_name <- c("bimodal","7_mode")
 
 ##### PLOTS and TABLES #####
 
-#####  Plots to compare speed to modes of the 4 algorithms  #####
-{
-## Highdim
-  chosen_dim <- "highdim"
-  #Dim 1k
-  j <- 1
-  lll <- create_plot_input(list_hd_names[j],mat_ids_hd[j,],chosen_dim)
-  (s_plot <- speed_plot_last(lll))
-  export_plot(s_plot,"speed_to_mode",chosen_dim,dim_size[j])
-  
-  for(i in 1:4){
-    lll <- create_plot_input(list_hd_names[i],mat_ids_hd[i,],chosen_dim)
-    (s_plot <- speed_plot_last(lll))
-    export_plot(s_plot,"speed_to_mode",chosen_dim,dim_size[i])
-  }
-  
-#####################################################################  
-## Lowdim
-  chosen_dim <- "lowdim"
-  lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
-  (s_plot <- speed_mode_lowdim(lll))
-  export_plot(s_plot,paste0("speed_to_mode_",model_name[1]),chosen_dim,16)
-  
-  
-  lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
-  (s_plot <- speed_mode_lowdim(lll))
-  export_plot(s_plot,paste0("speed_to_mode_",model_name[2]),chosen_dim,16)
-
-  # Other for bimodal
-  lll <- create_plot_input("bimodal_other",c(600,663,704,705),chosen_dim)
-  (s_plot <- speed_mode_lowdim(lll))
-  
-}
 
 #### Plot of TVD ####
 {
   chosen_dim <- "lowdim"
   #Low dim bimodal
   lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
-  (s_plot <- plot_tvd(lll,filter_measurement=50,filter_time=1000))
+  (s_plot <- plot_tvd(lll,filter_measurement=50,filter_time=200))
   export_plot(s_plot,"tvd_bimodal",chosen_dim,16)
   
   #Low dim 7_modes
   lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
-  (s_plot <- plot_tvd(lll,filter_measurement=50,filter_time=1000))
+  (s_plot <- plot_tvd(lll,filter_measurement=50,filter_time=200))
   export_plot(s_plot,"tvd_7_mode",chosen_dim,16)
   
   # Other for bimodal
@@ -1198,9 +1167,10 @@ model_name <- c("bimodal","7_mode")
   alg_correction <- tibble(alg=c("PT A-IIT(sq)","PT A-IIT(min)","PT_IIT_Z(sq)","PT_IIT_Z(min)"),
                            algorithm=c("A-IIT","MH-mult","IIT","RF-MH"))
   #Dim 3k
-  chosen_ids <- c(932:935)+4
-  lll <- create_plot_input("dim_3k",chosen_ids)
-  
+  # chosen_ids <- c(932:935)+4
+  # lll <- create_plot_input("dim_3k",chosen_ids)
+  chosen_ids_3k_100 <- c(1104:1107)
+  lll <- create_plot_input("dim_3k_100",chosen_ids_3k_100,chosen_dim)
   bounds <- lll[["log_bounds"]]
   
   bounds <- bounds |> 
@@ -1220,7 +1190,7 @@ model_name <- c("bimodal","7_mode")
     theme(legend.position = "none")
   
   
-  export_plot(bounds_plot,"bounds_a_iit",3)
+  export_plot(bounds_plot,"bounds_a_iit","highdim",3);
 }
 
 
@@ -1289,10 +1259,9 @@ model_name <- c("bimodal","7_mode")
     ggplot(aes(x=factor(rf),fill=algorithm, y=time_visit))+
     geom_violin()+
     scale_fill_manual(values = alg_colors, name = "Algorithm")+
-    labs(x = "Number of replicas using A-IIT", y = "seconds")+
-    facet_wrap(~algorithm)+
-    theme(legend.position = "none",
-          strip.text = element_text(size=25))
+    labs(x = "Number of rejection free replicas", y = "seconds",title="A-IIT")+
+    # facet_wrap(~algorithm)+
+    theme(legend.position = "none")#,strip.text = element_text(size=25)
   
   export_plot(s_plot,"compare_RF_a_iit","highdim",dimension=3)
   
@@ -1303,10 +1272,9 @@ model_name <- c("bimodal","7_mode")
     ggplot(aes(x=factor(rf),fill=algorithm, y=time_visit))+
     geom_violin()+
     scale_fill_manual(values = alg_colors, name = "Algorithm")+
-    labs(x = "Number of replicas using MH with a multiplicity list", y = "seconds")+
-    facet_wrap(~algorithm)+
-    theme(legend.position = "none",
-          strip.text = element_text(size=25))
+    labs(x = "Number of rejection free replicas", y = "seconds",title="MH-mult")+
+    # facet_wrap(~algorithm)+
+    theme(legend.position = "none")#,  strip.text = element_text(size=25)
   
   export_plot(s_plot,"compare_RF_mh_mult","highdim",dimension=3)
   
@@ -1337,10 +1305,10 @@ model_name <- c("bimodal","7_mode")
     scale_x_discrete(labels = beta_labels) +
     scale_fill_manual(values = alg_colors, name = "Algorithm") +
     labs(x = "", y = "RF iterations")+
-    theme(legend.position = "none",
-          strip.text = element_text(size=25))
+    theme(legend.position = "none")#,strip.text = element_text(size=25)
   
-  export_plot(itera_plot,"compare_iterations")
+  
+  export_plot(itera_plot,"compare_iterations","highdim","5")
   
   itera_data |> group_by(as.factor(replica)) |> summarise(avg.iter=mean(iterations))
   
