@@ -3,6 +3,7 @@ library(tidyverse)
 library(ggplot2)
 library(stringr)
 library(stargazer)
+library(patchwork) #To make dual plots
 #### Create plots to include in the PDF
 wd_path <- "C:/Users/ralex/Documents/src/paper_iit_pt"
 source_path <- "C:/Users/ralex/Documents/src/paper_iit_pt/results"
@@ -1080,38 +1081,58 @@ model_name <- c("bimodal","7_mode")
 
 ##### PLOTS and TABLES #####
 
-### Trying both plots in the same space ###
+##### Dual plots: Speed to mode AND TVD #####  
 
-## Lowdim
-library(patchwork)
-chosen_dim <- "lowdim"
-# Bimodal
-lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
-(plot1 <- speed_mode_lowdim(lll))
-
-
-lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
-(plot2 <- plot_tvd(lll,filter_measurement=50,filter_time=200))
-
-bimodal_plot_joined <- plot1 + plot2+ plot_layout(guides='collect') &
-  theme(legend.position='bottom')
-bimodal_plot_joined
-
-export_plot(bimodal_plot_joined,"double_graph_bimodal",chosen_dim,16)
-
-# Multimodal
-lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
-(plot3 <- speed_mode_lowdim(lll))
-
-
-lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
-(plot4 <- plot_tvd(lll,filter_measurement=50,filter_time=200))
-
-multimodal_plot_joined <- plot3 + plot4+ plot_layout(guides='collect') &
-  theme(legend.position='bottom')
-multimodal_plot_joined
-
-export_plot(multimodal_plot_joined,"double_graph_7_mode",chosen_dim,16)
+{
+  ## Lowdim
+  
+  chosen_dim <- "lowdim"
+  # Bimodal
+  lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
+  (plot1 <- speed_mode_lowdim(lll))
+  
+  
+  lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
+  (plot2 <- plot_tvd(lll,filter_measurement=50,filter_time=200))
+  
+  bimodal_plot_joined <- plot1 + plot2+ plot_layout(guides='collect') &
+    theme(legend.position='bottom')
+  bimodal_plot_joined
+  
+  export_plot(bimodal_plot_joined,"double_graph_bimodal",chosen_dim,16)
+  
+  # Multimodal
+  lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
+  (plot3 <- speed_mode_lowdim(lll))
+  
+  
+  lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
+  (plot4 <- plot_tvd(lll,filter_measurement=50,filter_time=200))
+  
+  multimodal_plot_joined <- plot3 + plot4+ plot_layout(guides='collect') &
+    theme(legend.position='bottom')
+  multimodal_plot_joined
+  
+  export_plot(multimodal_plot_joined,"double_graph_7_mode",chosen_dim,16)
+  
+  ## Highdim
+  ## Only for dimension 3k
+  chosen_dim <- "highdim"
+  lll <- create_plot_input(list_hd_names[2],mat_ids_hd[2,],chosen_dim)
+  plot5 <- speed_plot_last(lll)
+  
+  lll <- create_plot_input(list_hd_names[2],mat_ids_hd[2,])
+  plot6 <- speed_plot_last(lll,mat_ids_hd_with_mult[2,])
+  
+  plot6 <- plot6+theme(legend.position="none")
+  
+  highdim_3k_plot_joined <- (plot5 + plot6) 
+  highdim_3k_plot_joined
+  
+  export_plot(highdim_3k_plot_joined,"double_graph_highdim",chosen_dim,dim_size[2])
+  
+  
+}
 
 
 #####  Plots to compare speed to modes of the 4 algorithms  #####
