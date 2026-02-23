@@ -931,12 +931,22 @@ tables_path <- "C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/tables"
       tvd_summary <- tvd_summary |> filter(id %in% subset_ids)
     }
     
+    # tvd_plot <- tvd_summary |> 
+    #   filter(measurement>filter_measurement) |>
+    #   filter(avg_time<filter_time) |> 
+    #   ggplot(aes(x=avg_time,y=avg_tvd,color=algorithm))+
+    #   geom_line(linewidth=1.8, alpha=0.4)+
+    #   geom_point(aes(x=avg_time,y=avg_tvd),size=1.5,alpha=0.3)+
+    #   scale_color_manual(values = alg_colors, name = "Algorithm")+
+    #   labs(x = "seconds", y = "TVD")+
+    #   scale_x_continuous(breaks=seq(0,filter_time,length.out=5),
+    #                      labels=seq(0,filter_time,length.out=5))
+    
     tvd_plot <- tvd_summary |> 
       filter(measurement>filter_measurement) |>
       filter(avg_time<filter_time) |> 
       ggplot(aes(x=avg_time,y=avg_tvd,color=algorithm))+
-      geom_line(linewidth=1.8, alpha=0.4)+
-      geom_point(aes(x=avg_time,y=avg_tvd),size=1.5,alpha=0.3)+
+      geom_line(linewidth=1.6)+
       scale_color_manual(values = alg_colors, name = "Algorithm")+
       labs(x = "seconds", y = "TVD")+
       scale_x_continuous(breaks=seq(0,filter_time,length.out=5),
@@ -1070,12 +1080,42 @@ model_name <- c("bimodal","7_mode")
 
 ##### PLOTS and TABLES #####
 
+### Trying both plots in the same space ###
+
+## Lowdim
+library(patchwork)
+chosen_dim <- "lowdim"
+# Bimodal
+lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
+(plot1 <- speed_mode_lowdim(lll))
+
+
+lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
+(plot2 <- plot_tvd(lll,filter_measurement=50,filter_time=200))
+
+bimodal_plot_joined <- plot1 + plot2+ plot_layout(guides='collect') &
+  theme(legend.position='bottom')
+bimodal_plot_joined
+
+# Multimodal
+lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
+(plot3 <- speed_mode_lowdim(lll))
+
+
+lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
+(plot4 <- plot_tvd(lll,filter_measurement=50,filter_time=200))
+
+multimodal_plot_joined <- plot3 + plot4+ plot_layout(guides='collect') &
+  theme(legend.position='bottom')
+multimodal_plot_joined
+
+
 #####  Plots to compare speed to modes of the 4 algorithms  #####
 {
   ## Highdim
   chosen_dim <- "highdim"
   #Dim 1k
-  j <- 1
+  j <- 4
   lll <- create_plot_input(list_hd_names[j],mat_ids_hd[j,],chosen_dim)
   (s_plot <- speed_plot_last(lll))
   export_plot(s_plot,"speed_to_mode",chosen_dim,dim_size[j])
