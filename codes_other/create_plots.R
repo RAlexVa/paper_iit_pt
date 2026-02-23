@@ -1097,6 +1097,8 @@ bimodal_plot_joined <- plot1 + plot2+ plot_layout(guides='collect') &
   theme(legend.position='bottom')
 bimodal_plot_joined
 
+export_plot(bimodal_plot_joined,"double_graph_bimodal",chosen_dim,16)
+
 # Multimodal
 lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
 (plot3 <- speed_mode_lowdim(lll))
@@ -1108,6 +1110,8 @@ lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
 multimodal_plot_joined <- plot3 + plot4+ plot_layout(guides='collect') &
   theme(legend.position='bottom')
 multimodal_plot_joined
+
+export_plot(multimodal_plot_joined,"double_graph_7_mode",chosen_dim,16)
 
 
 #####  Plots to compare speed to modes of the 4 algorithms  #####
