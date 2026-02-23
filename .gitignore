@@ -3,7 +3,7 @@ results/raw_exports
 codes/hmm_bw0.sh
 codes/main_template.R
 drac_logs
-results/*.Rds
+
 results/*.txt
 Rpackages
 results/.~lock.find_temps.csv\#
@@ -15,3 +15,4 @@ inputs/.~lock.simulation_details_highd.csv\#
 inputs/mode_matrix/
 inputs/simulation_details_highd_bk.csv
 .Rproj.user*
+results/*sim*.Rds
