@@ -30,8 +30,10 @@ tables_path <- "C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/tables"
       # text = element_text(size = 12),           # Base text size
       axis.title = element_text(size = 30),     # Axis labels
       axis.text = element_text(size = 30),      # Axis tick labels
-      legend.title = element_text(size = 20),   # Legend title
+      # legend.title = element_text(size = 20),   # Legend title
+      legend.title = element_blank(),   # Legend title
       legend.text = element_text(size = 20),    # Legend labels
+      legend.position="bottom", #Legend moved to the bottom
       plot.title = element_text(size = 45, hjust=0.5)      # Plot title (if you add one)
     )
   theme_set(my_theme)
@@ -1068,6 +1070,39 @@ model_name <- c("bimodal","7_mode")
 
 ##### PLOTS and TABLES #####
 
+#####  Plots to compare speed to modes of the 4 algorithms  #####
+{
+  ## Highdim
+  chosen_dim <- "highdim"
+  #Dim 1k
+  j <- 1
+  lll <- create_plot_input(list_hd_names[j],mat_ids_hd[j,],chosen_dim)
+  (s_plot <- speed_plot_last(lll))
+  export_plot(s_plot,"speed_to_mode",chosen_dim,dim_size[j])
+  
+  for(i in 1:4){
+    lll <- create_plot_input(list_hd_names[i],mat_ids_hd[i,],chosen_dim)
+    (s_plot <- speed_plot_last(lll))
+    export_plot(s_plot,"speed_to_mode",chosen_dim,dim_size[i])
+  }
+  
+  #####################################################################  
+  ## Lowdim
+  chosen_dim <- "lowdim"
+  lll <- create_plot_input(list_ld_names[1],mat_ids_ld[1,],chosen_dim)
+  (s_plot <- speed_mode_lowdim(lll))
+  export_plot(s_plot,paste0("speed_to_mode_",model_name[1]),chosen_dim,16)
+  
+  
+  lll <- create_plot_input(list_ld_names[2],mat_ids_ld[2,],chosen_dim)
+  (s_plot <- speed_mode_lowdim(lll))
+  export_plot(s_plot,paste0("speed_to_mode_",model_name[2]),chosen_dim,16)
+  
+  # Other for bimodal
+  lll <- create_plot_input("bimodal_other",c(600,663,704,705),chosen_dim)
+  (s_plot <- speed_mode_lowdim(lll))
+  
+}
 
 #### Plot of TVD ####
 {
