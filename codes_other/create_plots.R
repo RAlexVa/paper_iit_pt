@@ -1133,8 +1133,8 @@ model_name <- c("bimodal","7_mode")
   
   
 }
-
-
+#add comment
+#asdf
 #####  Plots to compare speed to modes of the 4 algorithms  #####
 {
   ## Highdim
