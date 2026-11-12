@@ -604,6 +604,9 @@ tables_path <- "C:/Users/ralex/Documents/src/paper-adaptive-iit-latex/tables"
       geom_step(linewidth=1.6) +
       scale_color_manual(values = alg_colors, name = "Algorithm") +
       scale_y_continuous(labels = scales::percent_format()) +
+      # scale_x_continuous(breaks=seq(0,max(ecdf_data$time_visit),length.out=5),
+                         # labels=seq(0,max(ecdf_data$time_visit),length.out=5))+
+      scale_x_continuous(n.breaks=5)+
       labs(x = "seconds", y = "% of simulations")
     
     
@@ -1118,18 +1121,37 @@ model_name <- c("bimodal","7_mode")
   ## Highdim
   ## Only for dimension 3k
   chosen_dim <- "highdim"
-  lll <- create_plot_input(list_hd_names[2],mat_ids_hd[2,],chosen_dim)
-  plot5 <- speed_plot_last(lll)
+  # lll <- create_plot_input(list_hd_names[2],mat_ids_hd[2,],chosen_dim)
+  # plot5 <- speed_plot_last(lll)
+  # 
+  # lll <- create_plot_input(list_hd_names[2],mat_ids_hd[2,])
+  # plot6 <- speed_plot_last(lll,mat_ids_hd_with_mult[2,])
+  # 
+  # plot6 <- plot6+theme(legend.position="none")
+  # 
+  # highdim_3k_plot_joined <- (plot5 + plot6) 
+  # highdim_3k_plot_joined
+  # 
+  # export_plot(highdim_3k_plot_joined,"double_graph_highdim",chosen_dim,dim_size[2])
   
-  lll <- create_plot_input(list_hd_names[2],mat_ids_hd[2,])
-  plot6 <- speed_plot_last(lll,mat_ids_hd_with_mult[2,])
-  
-  plot6 <- plot6+theme(legend.position="none")
-  
-  highdim_3k_plot_joined <- (plot5 + plot6) 
-  highdim_3k_plot_joined
-  
-  export_plot(highdim_3k_plot_joined,"double_graph_highdim",chosen_dim,dim_size[2])
+  for(i in 1:4){
+    lll <- create_plot_input(list_hd_names[i],mat_ids_hd[i,],chosen_dim)
+    plot_first <- speed_plot_last(lll)
+    if(i==3){
+      plot_first <- plot_first+theme(axis.text = element_text(size = 25))
+    }
+    
+    lll <- create_plot_input(list_hd_names[i],mat_ids_hd[i,])
+    plot_second <- speed_plot_last(lll,mat_ids_hd_with_mult[i,])
+    
+    plot_second <- plot_second+labs(y="")
+    
+    highdim_plot_joined <- (plot_first + plot_second) + 
+      theme(plot.margin = margin(5.5, 15, 5.5, 5.5))
+    highdim_plot_joined
+    
+    export_plot(highdim_plot_joined,"double_graph_highdim",chosen_dim,dim_size[i])
+  }
   
  #add comment 
 }
