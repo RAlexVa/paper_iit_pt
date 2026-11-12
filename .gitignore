@@ -16,3 +16,5 @@ inputs/mode_matrix/
 inputs/simulation_details_highd_bk.csv
 .Rproj.user*
 results/*sim*.Rds
+.Rproj*
+.Rhistory
